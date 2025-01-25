@@ -11,9 +11,9 @@ export function SignUpPage() {
     setPage((prevValue) => !prevValue);
   }
   return (
-    <div className="mt-16 mb-16">
+    <div className="py-16 px-16 bg-custom-gradient flex flex-col items-center">
       {signUpPage ? (
-        <div className="flex flex-row gap-16 max-md:max-w-full justify-center">
+        <div className="flex flex-col gap-16 max-md:max-w-full justify-center md:flex-row">
           <SignUpFeatures />
           <SignUpForm togglePage={togglePage} />
         </div>
@@ -23,7 +23,5 @@ export function SignUpPage() {
       )}
       <Footer />
     </div>
-    //   {/* </div>
-    // </div> */}
   );
 }

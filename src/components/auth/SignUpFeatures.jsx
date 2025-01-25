@@ -1,4 +1,5 @@
 import * as React from "react";
+import Logo from "../common/Logo";
 
 const features = [
   {
@@ -38,12 +39,7 @@ function FeatureItem({ icon, title, description }) {
 export function SignUpFeatures() {
   return (
     <div className="flex flex-col min-w-[240px] w-[341px]">
-      <img
-        loading="lazy"
-        src="https://cdn.builder.io/api/v1/image/assets/c02fab8862c742a5a119c587d0a4921b/879bea75e6f1cda64e2dd8ec2a83fa6e2c00f3eb69341aebea80014a2963363b?apiKey=c02fab8862c742a5a119c587d0a4921b&"
-        alt="Nurture Logo"
-        className="object-contain self-center max-w-full aspect-[2.98] w-[271px]"
-      />
+      <Logo color={"white"}/>
       {features.map((feature, index) => (
         <FeatureItem key={index} {...feature} />
       ))}

@@ -26,7 +26,10 @@ module.exports = {
         regular: '1.1rem',
         small: '0.9rem',
         xsmall: '0.75rem'
-      }
+      },
+      backgroundImage: {
+        'custom-gradient': 'linear-gradient(36deg, #00224F 29.01%, #003D8B 75.13%)',
+      },
     },
   },
   plugins: [],

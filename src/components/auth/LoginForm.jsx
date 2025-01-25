@@ -1,17 +1,14 @@
 import TextField from "../common/TextField";
 import React from "react";
 import PrimaryButton from "../common/PrimaryButton";
-import logo from '../../assets/images/nurture-logo-white.png';
+import logo from '../../assets/images/nurture-logo-black.png';
+import Logo from "../common/Logo";
 
 export default function LoginForm({ togglePage }) {
   return (
     <div className="flex flex-col rounded-none min-w-[240px] w-[561px] max-md:max-w-full">
       <div className="flex z-10 flex-col items-center px-9 py-8 w-full bg-white rounded-3xl border border-solid border-neutral-300 shadow-[0px_0px_40px_rgba(0,0,0,0.12)] max-md:px-5 max-md:max-w-full">
-        <img
-          src={logo}
-          alt="Nurture Logo"
-          className="h-20"
-        />
+        <Logo color={"black"}/>
         <div className="flex flex-col max-w-full w-[393px]">
           <h1 className="text-2xl font-semibold text-center text-black">
             Sign in to Nurture
