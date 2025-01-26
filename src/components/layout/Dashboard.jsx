@@ -7,7 +7,7 @@ import { Route, Routes } from "react-router-dom";
 
 export default function Dashboard() {
   return (
-    <div className="px-6 py-4">
+    <div className="px-12 py-4">
       <NavBar />
       <Routes>
         <Route path="/overview" element={<Overview />} />

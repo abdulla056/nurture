@@ -1,12 +1,12 @@
 import Logo from "../common/Logo";
-import NavBarButtons from "../dashboard/NavBarButtons";
+import NavBarButtons from "../common/NavBarButtons";
 import notification from "../../assets/images/notification.png";
 import setting from "../../assets/images/setting.png";
-import IconButton from "../dashboard/IconButton";
+import IconButton from "../common/IconButton";
 
 export default function NavBar() {
   return (
-    <div className="flex flex-row items-center justify-between">
+    <div className="flex flex-row items-center justify-between mb-6">
       <Logo color={"black"} />
       <div className="flex flex-row w-7/12 justify-between gap-2">
         <NavBarButtons to="/overview">Overview</NavBarButtons>

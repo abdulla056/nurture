@@ -12,7 +12,7 @@ h2 {
 }
 
 h3 {
-  @apply text-3xl text-font
+  @apply text-3xl text-font font-medium
 }
 
 html {

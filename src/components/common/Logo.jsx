@@ -8,7 +8,7 @@ export default function Logo({ color }) {
     <img
       src={logo}
       alt="nurture logo"
-      className="object-contain self-center max-w-full aspect-[2.98] w-[271px] hover:opacity-90 delay-300  transition-colors hover:cursor-pointer"
+      className="object-contain self-center max-w-full aspect-[2.98] w-[271px] hover:opacity-90 delay-300  transition-colors hover:cursor-pointer -ml-5"
     />
   );
 }
