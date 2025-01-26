@@ -7,12 +7,13 @@ import PredictedCauseSection from "../components/overview/PredictedCauseSection"
 import RiskScore from "../components/overview/RiskScore";
 import calendarIcon from "../assets/images/calendar.png";
 import PregnancyDetails from "../components/overview/PregnancyDetails";
+import DetailedAnalysisButton from "../components/overview/DetailedAnalysisButton";
 
 const patient = { id: "RSW31213", cause: "Congenital syphilis" };
 
 export default function Overview() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 relative">
       <div className="flex flex-row justify-between items-center">
         <h1 className="text-primary font-medium">SUMMARY</h1>
         <OverviewButton>See all predicted results</OverviewButton>
@@ -58,6 +59,7 @@ export default function Overview() {
           </PrimaryContainer>
         </div>
       </div>
+      <DetailedAnalysisButton/>
     </div>
   );
 }

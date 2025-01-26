@@ -1,4 +1,4 @@
-export default function OverviewButton({ children, onClick }) {
+export default function OverviewButton({ children, onClick}) {
   return (
     <button
       onClick={onClick}
