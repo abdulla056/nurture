@@ -1,7 +1,7 @@
-export default function DashboardButton() {
+export default function HomeButton({children}) {
   return (
-    <button className="bg-background-container opacity-90 text-3xl flex justify-center items-center gap-2 shrink-0 rounded-lg text-primary py-4 px-6">
-      Go to prediction dashboard
+    <button className="bg-background-container opacity-90 text-2xl flex justify-center items-center gap-2 shrink-0 rounded-lg text-primary py-6 px-6">
+      {children}
     </button>
   );
 }

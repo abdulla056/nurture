@@ -41,7 +41,7 @@ export default function Features() {
         src={featureList[activeFeature].image}
         alt="Image of the feature"
         className={`w-2/6 mr-12 rounded-xl opacity-90 transition-opacity duration-500 ${
-          imageLoaded ? "opacity-100" : "opacity-0"
+          imageLoaded ? "opacity-90" : "opacity-0"
         }`}
         onLoad={() => setImageLoaded(true)} // Ensure smooth fade-in when image is loaded
       />
