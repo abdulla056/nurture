@@ -6,7 +6,7 @@ export default function NavBarButtons({ to, children }) {
   return (
     <Link
       to={to}
-      className={`py-3 text-regular rounded-full w-48 flex justify-center
+      className={`py-3 text-regular rounded-full w-full flex justify-center
     ${
       isActive
         ? "bg-primary text-white"

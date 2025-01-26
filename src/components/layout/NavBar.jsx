@@ -8,7 +8,7 @@ export default function NavBar() {
   return (
     <div className="flex flex-row items-center justify-between">
       <Logo color={"black"} />
-      <div className="flex flex-row w-7/12 justify-between">
+      <div className="flex flex-row w-7/12 justify-between gap-2">
         <NavBarButtons to="/overview">Overview</NavBarButtons>
         <NavBarButtons to="/analysis">Analysis</NavBarButtons>
         <NavBarButtons to="/exploration">Data Exploration</NavBarButtons>
