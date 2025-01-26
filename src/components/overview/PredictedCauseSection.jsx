@@ -9,9 +9,9 @@ export default function PredictedCauseSection({ patient }) {
       id="predictedCause"
     >
       <img src={fetusImage} alt="Image of the fetus" />
-      <PrimaryContainer className="gap-6 -mt-24">
+      <PrimaryContainer className="gap-6 -mt-24 items-center">
         <h3 className="text-font-tertiary">Predicted Cause</h3>
-        <BlueContainer className="text-2xl text-font font-medium">
+        <BlueContainer className="text-2xl text-font font-medium items-center">
           {patient.cause}
         </BlueContainer>
         <a href="" className="text-secondary">

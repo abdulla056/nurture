@@ -1,8 +1,12 @@
 import CustomLine from "../components/common/CustomLine";
+import PredictionDetails from "../components/common/PredictionDetails";
+import BlueContainer from "../components/layout/BlueContainer";
 import PrimaryContainer from "../components/layout/PrimaryContainer";
 import OverviewButton from "../components/overview/OverviewButton";
 import PredictedCauseSection from "../components/overview/PredictedCauseSection";
 import RiskScore from "../components/overview/RiskScore";
+import calendarIcon from "../assets/images/calendar.png";
+import PregnancyDetails from "../components/overview/PregnancyDetails";
 
 const patient = { id: "RSW31213", cause: "Congenital syphilis" };
 
@@ -23,8 +27,34 @@ export default function Overview() {
         <div className="grid grid-flow-col grid-rows-2 gap-6 grid-cols-2">
           <RiskScore />
           <RiskScore />
-          <PrimaryContainer className="row-span-2">
-            fakjsdbfdskjfbakdjsfbkjdsfbkjbkj
+          <PrimaryContainer className="row-span-2 items-start" id="predictionDetails">
+            <span className="text-2xl text-font">Prediction Details</span>
+            <BlueContainer className="grid grid-cols-2 grid-rows-2 gap-6 py-6">
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Date"}
+                data={"26th January 2024"}
+              />
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Time"}
+                data={"17:32:21"}
+              />
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Expected Delivery"}
+                data={"26th January 2024"}
+              />
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Prediction Model"}
+                data={"Resnet"}
+              />
+            </BlueContainer>
+            <CustomLine/>
+            <span className="text-2xl text-font">Pregnancy Details</span>
+            <PregnancyDetails data={"Second"} title={"Trimester"} description={"Giving birth in 15 weeks"}/>
+            <PregnancyDetails data={"Normal"} title={"Gestational"} description={"Birth at 38-42 weeks"}/>
           </PrimaryContainer>
         </div>
       </div>
