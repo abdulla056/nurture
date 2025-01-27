@@ -1,10 +1,8 @@
-export default function PrimaryButton({ onClick, type = "button", children, className = "" }) {
+export default function PrimaryButton({ children, onClick, className}) {
   return (
     <button
-      type={type}
-      className={`bg-opacity-90 gap-2.5 self-stretch px-16 py-3 mt-12 max-w-full text-base font-semibold
-        text-white whitespace-nowrap rounded-xl bg-primary max-md:px-5 max-md:mt-10
-        hover:bg-opacity-100 transition-bg-opacity duration-300 ${className}`}
+      onClick={onClick}
+      className={`bg-primary text-white py-4 px-8 rounded-xl hover:opacity-90 transition-all duration-150 ${className}`}
     >
       {children}
     </button>

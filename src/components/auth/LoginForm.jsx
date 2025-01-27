@@ -1,7 +1,6 @@
 import TextField from "../common/TextField";
 import React from "react";
-import PrimaryButton from "../common/PrimaryButton";
-import logo from '../../assets/images/nurture-logo-black.png';
+import SecondaryButton from "./SecondaryButton";
 import Logo from "../common/Logo";
 
 export default function LoginForm({ togglePage }) {
@@ -28,7 +27,7 @@ export default function LoginForm({ togglePage }) {
             id={"password"}
             type={"password"}
           ></TextField>
-          <PrimaryButton type="submit"> Continue </PrimaryButton>
+          <SecondaryButton type="submit"> Continue </SecondaryButton>
         </form>
       </div>
       <div className="gap-2.5 px-36 pt-20 pb-6 -mt-14 text-lg bg-white rounded-3xl min-h-[132px] text-sky-950 max-md:px-5 max-md:mt-10">

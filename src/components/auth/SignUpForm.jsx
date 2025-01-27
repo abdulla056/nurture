@@ -1,6 +1,6 @@
 import * as React from "react";
 import TextField from "../common/TextField";
-import PrimaryButton from "../common/PrimaryButton";
+import SecondaryButton from "./SecondaryButton";
 
 export function SignUpForm({ togglePage }) {
   return (
@@ -42,7 +42,7 @@ export function SignUpForm({ togglePage }) {
             id={"password"}
             type={"password"}
           ></TextField>
-          <PrimaryButton type="submit"> Continue </PrimaryButton>
+          <SecondaryButton type="submit"> Continue </SecondaryButton>
         </form>
       </div>
       <div className="gap-2.5 px-36 pt-20 pb-6 -mt-14 text-lg bg-white rounded-3xl min-h-[132px] text-sky-950 max-md:px-5 max-md:mt-10">

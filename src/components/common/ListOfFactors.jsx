@@ -1,6 +1,8 @@
 import PrimaryContainer from "../layout/PrimaryContainer";
 import { healthFactors } from "../../assets/data/data";
 import FactorDetails from "./FactorDetails";
+import PrimaryButton from "./PrimaryButton";
+import CustomLine from "./CustomLine"
 
 export default function ListOfFactors() {
   return (
@@ -10,6 +12,8 @@ export default function ListOfFactors() {
       {healthFactors.otherFactors.map((factor) => (
         <FactorDetails key={factor.title} {...factor} />
       ))}
+      <CustomLine className={"-mx-6 w-auto"}/>
+      <PrimaryButton className="mx-20 mt-4">See all factors</PrimaryButton>
     </PrimaryContainer>
   );
 }

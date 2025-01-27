@@ -1,6 +1,4 @@
 export default function ProgressBar({ main, percentage }) {
-
-  const dynamicColor = `rgba(228, 234, 255, ${Math.max(percentage / 100, 0.2)})`;
   
   return (
     <div

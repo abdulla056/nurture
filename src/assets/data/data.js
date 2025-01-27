@@ -96,4 +96,23 @@ export const featureList = {
         },
       ],
     };
+
+    export const performanceData = [
+      {
+        percentage: [54, 46],
+        metric: "Accuracy",
+      },
+      {
+        percentage: [71, 29],
+        metric: "Precision",
+      },
+      {
+        percentage: [63, 37],
+        metric: "Recall",
+      },
+      {
+        percentage: [21, 79],
+        metric: "F-1",
+      },
+    ];
     
