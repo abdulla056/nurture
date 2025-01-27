@@ -8,7 +8,7 @@ export default function PastPredictions() {
     <PrimaryContainer className="hover:scale-100 gap-4 hover:cursor-default">
       <div className="flex flex-row justify-between">
         <h3 className="font-medium">Past Predictions</h3>
-        <PrimaryButton className="mt-0">Add a prediction</PrimaryButton>
+        <PrimaryButton className="!mt-0">Add a prediction</PrimaryButton>
       </div>
       <div className="flex flex-row justify-between items-center">
         <div className="flex flex-row gap-4">

@@ -57,7 +57,7 @@ export const featureList = {
       }
     ];
 
-    const healthFactors = {
+    export const healthFactors = {
       biggestFactor: {
         title: "Smoking history",
         description: "How much the patient has been smoking",

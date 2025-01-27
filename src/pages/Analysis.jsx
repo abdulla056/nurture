@@ -10,7 +10,7 @@ export default function Analysis() {
     <div className="flex flex-col gap-4 items-center">
       <HeadingSection overview={false} patient={patient} />
       <PredictionCause patient={patient} overview={false}/>
-      <div className="flex flex-row">
+      <div className="flex flex-row w-full">
         <ListOfFactors/>
       </div>
     </div>

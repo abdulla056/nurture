@@ -20,6 +20,11 @@ html {
   overscroll-behavior-y: none;
   @apply bg-background 
 }
+
+.border-y-2 {
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
