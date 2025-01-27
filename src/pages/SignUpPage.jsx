@@ -19,7 +19,6 @@ export function SignUpPage() {
         </div>
       ) : (
         <LoginForm togglePage = {togglePage}/> 
-        // <div>fasijfbaskjbfd</div>
       )}
       <Footer />
     </div>

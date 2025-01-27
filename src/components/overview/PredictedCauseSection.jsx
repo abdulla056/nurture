@@ -1,6 +1,5 @@
-import PrimaryContainer from "../../components/layout/PrimaryContainer";
-import BlueContainer from "../../components/layout/BlueContainer";
 import fetusImage from "../../assets/images/fetus-picture.png";
+import PredictionCause from "../common/PredictionCause";
 
 export default function PredictedCauseSection({ patient }) {
   return (
@@ -9,15 +8,7 @@ export default function PredictedCauseSection({ patient }) {
       id="predictedCause"
     >
       <img src={fetusImage} alt="Image of the fetus" />
-      <PrimaryContainer className="gap-6 -mt-24 items-center">
-        <h3 className="text-font-tertiary">Predicted Cause</h3>
-        <BlueContainer className="text-2xl text-font font-medium items-center">
-          {patient.cause}
-        </BlueContainer>
-        <a href="" className="text-secondary">
-          Learn more
-        </a>
-      </PrimaryContainer>
+      <PredictionCause patient={patient}/>
     </div>
   );
 }

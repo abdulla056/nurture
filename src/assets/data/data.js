@@ -33,3 +33,67 @@ export const featureList = {
       isActive: false,
     },
   };
+
+  export const pastPredictions = [
+      {
+        date: "Jan 12",
+        time: "10:12"
+      },
+      {
+        date: "Jan 26",
+        time: "14:54"
+      },
+      {
+        date: "Feb 12",
+        time: "10:12"
+      },
+      {
+        date: "Mar 30",
+        time: "10:12"
+      },
+      {
+        date: "Jun 21",
+        time: "10:12"
+      }
+    ];
+
+    const healthFactors = {
+      biggestFactor: {
+        title: "Smoking history",
+        description: "How much the patient has been smoking",
+        percentage: 54,
+      },
+      otherFactors: [
+        {
+          title: "Physical activity",
+          description: "How active is the patient daily?",
+          percentage: 12,
+        },
+        {
+          title: "Diet quality",
+          description: "How balanced is the patient's diet?",
+          percentage: 8,
+        },
+        {
+          title: "Stress levels",
+          description: "How stressed is the patient generally?",
+          percentage: 5,
+        },
+        {
+          title: "Sleep quality",
+          description: "How well does the patient sleep?",
+          percentage: 4,
+        },
+        {
+          title: "Alcohol consumption",
+          description: "How much alcohol does the patient consume?",
+          percentage: 4,
+        },
+        {
+          title: "Genetic predisposition",
+          description: "Does the patient have any family history of similar issues?",
+          percentage: 3,
+        },
+      ],
+    };
+    
