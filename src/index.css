@@ -25,6 +25,18 @@ html {
   border-top-width: 1px;
   border-bottom-width: 1px;
 }
+
+.pastprediction-hover:hover h3{
+  color: white;
+}
+
+.pastprediction-hover:hover .risk-score{
+  color: white;
+}
+
+.graph-border {
+  @apply border rounded-lg border-[#C5C5C5] w-full p-6
+}
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

@@ -6,7 +6,7 @@ import PredictedCauseSection from "../components/overview/PredictedCauseSection"
 import RiskScore from "../components/overview/RiskScore";
 import calendarIcon from "../assets/images/calendar.png";
 import PregnancyDetails from "../components/overview/PregnancyDetails";
-import DetailedAnalysisButton from "../components/overview/DetailedAnalysisButton";
+import HoveringButton from "../components/overview/HoveringButton";
 import PastPredictions from "../components/overview/PastPredictions";
 import HeadingSection from "../components/common/HeadingSection";
 
@@ -64,7 +64,7 @@ export default function Overview() {
         </div>
       </div>
       <PastPredictions/>
-      <DetailedAnalysisButton />
+      <HoveringButton>See detailed analysis</HoveringButton>
     </div>
   );
 }

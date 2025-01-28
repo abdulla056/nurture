@@ -115,4 +115,39 @@ export const featureList = {
         metric: "F-1",
       },
     ];
+
+    export const riskAssessments = [
+      {
+        date: "30th January 2025",
+        time: "10:12:21",
+        riskScore: "Medium"
+      },
+      {
+        date: "30th January 2025",
+        time: "10:15:45",
+        riskScore: "High"
+      },
+      {
+        date: "29th January 2025",
+        time: "09:30:10",
+        riskScore: "Low"
+      },
+      {
+        date: "28th January 2025",
+        time: "14:50:33",
+        riskScore: "Medium"
+      },
+      {
+        date: "27th January 2025",
+        time: "08:05:17",
+        riskScore: "High"
+      },
+      {
+        date: "26th January 2025",
+        time: "16:20:55",
+        riskScore: "Low"
+      }
+    ];
+  
+    
     

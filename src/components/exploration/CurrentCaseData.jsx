@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PrimaryContainer from "../layout/PrimaryContainer";
 import CurrentCaseDataSelector from "./CurrentCaseDataSelector";
+import LineChart from "./LineChart";
 
 const features = [
   "Fetal heart rate",
@@ -19,7 +20,7 @@ export default function CurrentCaseData() {
   }
 
   return (
-    <PrimaryContainer className="w-7/12">
+    <PrimaryContainer className="w-7/12 !p-7">
       <h2>Current Case Data</h2>
       <div className="grid grid-cols-3 gap-4">
         {features.map((item, index) => (
@@ -32,6 +33,7 @@ export default function CurrentCaseData() {
           </CurrentCaseDataSelector>
         ))}
       </div>
+      <LineChart/>
     </PrimaryContainer>
   );
 }
