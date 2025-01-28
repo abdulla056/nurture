@@ -1,3 +1,9 @@
+import CurrentCaseData from "./CurrentCaseData";
+
 export default function ComparativeAnalysis() {
-    return <h3>COMPAREEEEE</h3>
+    return (
+        <div className="flex flex-row w-full">
+            <CurrentCaseData/>
+        </div>
+    )
 }
