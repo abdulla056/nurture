@@ -1,5 +1,5 @@
 import InfoButton from "./InfoButton";
-import ProgressBar from "./ProgressBar";
+import ProgressBar from "../analysis/ProgressBar"
 
 export default function FactorDetails({
   main = false,

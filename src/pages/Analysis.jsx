@@ -1,6 +1,6 @@
 import PredictionExplanation from "../components/analysis/PredictionExplanation";
 import HeadingSection from "../components/common/HeadingSection";
-import ListOfFactors from "../components/common/ListOfFactors";
+import ListOfFactors from "../components/analysis/ListOfFactors";
 import PredictionCause from "../components/common/PredictionCause";
 
 const patient = { id: "RSW31213", cause: "Congenital syphilis" };
