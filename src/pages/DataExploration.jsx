@@ -1,5 +1,5 @@
 import ExplorationNavBar from "../components/exploration/ExplorationNavBar";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import PrimaryButton from "../components/common/PrimaryButton";
 
 export default function DataExploration() {

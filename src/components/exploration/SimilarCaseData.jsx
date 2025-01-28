@@ -19,7 +19,7 @@ export default function SimilarCaseData() {
     <PrimaryContainer className="w-5/12 !p-7">
       <h2>Similar Case Data</h2>
       <div className="flex flex-row justify-between items-center">
-        <div className="flex flex-row gap-5">
+        <div className="flex flex-row gap-5 w-9/12">
           {dropDownData.map((dropDown) => (
             <CustomDropDown {...dropDown} />
           ))}
