@@ -37,6 +37,15 @@ html {
 .graph-border {
   @apply border rounded-lg border-[#C5C5C5] w-full p-6
 }
+
+.popup-container {
+  border: 5px solid #FFF;
+  background: linear-gradient(180deg, #e5edff -35.05%, #FFF 99.97%);
+}
+
+.popup-container::backdrop {
+  background: linear-gradient(180deg, rgba(217, 217, 217, 0.75) 0%, rgba(115, 115, 115, 0.75) 100%);
+}
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

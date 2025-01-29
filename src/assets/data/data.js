@@ -2,6 +2,7 @@ import predictionImage from "../../assets/images/overview-screen.png";
 import alertsImage from "../../assets/images/notifications-screen.png";
 import visualizeImage from "../../assets/images/visualize-screen.png";
 import xaiImage from "../../assets/images/XAI-screen.png";
+import calendarIcon from "../images/calendar.png";
 
 export const featureList = {
     prediction: {
@@ -147,6 +148,13 @@ export const featureList = {
         time: "16:20:55",
         riskScore: "Low"
       }
+    ];
+
+    export const predictionDetails = [
+      { icon: calendarIcon, title: "Date", data: "26th January 2024" },
+      { icon: calendarIcon, title: "Time", data: "17:32:21" },
+      { icon: calendarIcon, title: "Expected Delivery", data: "26th January 2024" },
+      { icon: calendarIcon, title: "Prediction Model", data: "Resnet" },
     ];
   
     

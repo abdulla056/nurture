@@ -1,8 +1,20 @@
-export default function PrimaryButton({ children, onClick, className}) {
+export default function PrimaryButton({
+  children,
+  onClick,
+  className,
+  type,
+  transparent = false,
+}) {
   return (
     <button
+      type={type}
       onClick={onClick}
-      className={`flex items-center justify-center bg-primary text-white py-4 px-8 rounded-xl hover:opacity-90 transition-all duration-150 ${className}`}
+      className={`flex items-center justify-center py-4 px-8 rounded-xl hover:opacity-90 transition-all duration-150 text-xl 
+  ${
+    transparent
+      ? "bg-none text-primary border border-black"
+      : "bg-primary text-white"
+  } ${className}`}
     >
       {children}
     </button>

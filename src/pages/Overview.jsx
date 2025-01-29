@@ -4,17 +4,21 @@ import BlueContainer from "../components/layout/BlueContainer";
 import PrimaryContainer from "../components/layout/PrimaryContainer";
 import PredictedCauseSection from "../components/overview/PredictedCauseSection";
 import RiskScore from "../components/overview/RiskScore";
-import calendarIcon from "../assets/images/calendar.png";
 import PregnancyDetails from "../components/overview/PregnancyDetails";
 import HoveringButton from "../components/overview/HoveringButton";
 import PastPredictions from "../components/overview/PastPredictions";
 import HeadingSection from "../components/common/HeadingSection";
+import ConfirmationPopup from "../components/layout/ConfirmationPopup";
+import { useRef, useState } from "react";
+import { predictionDetails } from "../assets/data/data";
 
 const patient = { id: "RSW31213", cause: "Congenital syphilis" };
 
 export default function Overview() {
+  const dialog = useRef()
   return (
     <div className="flex flex-col gap-8 relative">
+      <ConfirmationPopup ref={dialog}/>
       <HeadingSection patient={patient}/>
       <div className="flex flex-row justify-between" id="mainSection">
         <PredictedCauseSection patient={patient} />
@@ -27,29 +31,12 @@ export default function Overview() {
           >
             <span className="text-2xl text-font">Prediction Details</span>
             <BlueContainer className="grid grid-cols-2 grid-rows-2 gap-6 py-6">
-              <PredictionDetails
-                icon={calendarIcon}
-                title={"Date"}
-                data={"26th January 2024"}
-              />
-              <PredictionDetails
-                icon={calendarIcon}
-                title={"Time"}
-                data={"17:32:21"}
-              />
-              <PredictionDetails
-                icon={calendarIcon}
-                title={"Expected Delivery"}
-                data={"26th January 2024"}
-              />
-              <PredictionDetails
-                icon={calendarIcon}
-                title={"Prediction Model"}
-                data={"Resnet"}
-              />
+              {predictionDetails.map((prediction)=> (
+                <PredictionDetails icon={prediction.icon} title={prediction.title} data={prediction.data}/>
+              ))}
             </BlueContainer>
             <CustomLine />
-            <span className="text-2xl text-font">Pregnancy Details</span>
+            <span className="text-2xl text-font" onClick={()=> dialog.current.showModal()}>Pregnancy Details</span>
             <PregnancyDetails
               data={"Second"}
               title={"Trimester"}
