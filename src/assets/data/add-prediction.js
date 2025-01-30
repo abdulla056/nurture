@@ -54,3 +54,50 @@ export const predictionFields = [
         ]
     }
 ]
+
+export const patientDataVariations = [
+  {
+      "patientId": "RSW21212",
+      "riskLevel": "Low",
+      "riskScore": 25,
+      "date": "Oct 01, 2022",
+      "time": "23:45:21",
+      "keyFactors": [
+          "Maternal Age",
+          "Blood Pressure"
+      ]
+  },
+  {
+      "patientId": "ABC12345",
+      "riskLevel": "Medium",
+      "riskScore": 60,
+      "date": "Nov 15, 2022",
+      "time": "10:30:00",
+      "keyFactors": [
+          "Maternal Age",
+          "Blood Pressure"
+      ]
+  },
+  {
+      "patientId": "XYZ78901",
+      "riskLevel": "High",
+      "riskScore": 85,
+      "date": "Dec 20, 2022",
+      "time": "16:15:00",
+      "keyFactors": [
+          "Maternal Age",
+          "Blood Pressure"
+      ]
+  },
+  {
+      "patientId": "PQR56789",
+      "riskLevel": "Very Low",
+      "riskScore": 10,
+      "date": "Jan 05, 2023",
+      "time": "08:45:00",
+      "keyFactors": [
+          "Maternal Age",
+          "Blood Pressure"
+      ]
+  }
+]

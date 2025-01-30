@@ -27,6 +27,9 @@ module.exports = {
         small: '0.9rem',
         xsmall: '0.75rem'
       },
+      borderColor: {
+        DEFAULT: "#C5C5C5"
+      },
       backgroundImage: {
         'custom-gradient': 'linear-gradient(36deg, #00224F 29.01%, #003D8B 75.13%)',
       },

@@ -34,6 +34,10 @@ html {
   color: white;
 }
 
+span {
+  @apply text-font
+}
+
 .graph-border {
   @apply border rounded-lg border-[#C5C5C5] w-full p-6
 }
@@ -45,6 +49,10 @@ html {
 
 .popup-container::backdrop {
   background: linear-gradient(180deg, rgba(217, 217, 217, 0.75) 0%, rgba(115, 115, 115, 0.75) 100%);
+}
+
+.navbar-button:hover div {
+  @apply w-full
 }
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;

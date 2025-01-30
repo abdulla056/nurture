@@ -9,7 +9,7 @@ export default function PrimaryButton({
     <button
       type={type}
       onClick={onClick}
-      className={`flex items-center justify-center py-4 px-8 rounded-xl hover:opacity-90 transition-all duration-150 text-xl 
+      className={`flex items-center justify-center py-4 px-12 rounded-xl hover:opacity-90 transition-all duration-150 text-xl 
   ${
     transparent
       ? "bg-none text-primary border border-black"
