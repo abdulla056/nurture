@@ -8,7 +8,6 @@ import PregnancyDetails from "../components/overview/PregnancyDetails";
 import HoveringButton from "../components/overview/HoveringButton";
 import PastPredictions from "../components/overview/PastPredictions";
 import HeadingSection from "../components/common/HeadingSection";
-import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { useRef, useState } from "react";
 import { predictionDetails } from "../assets/data/data";
 
@@ -18,7 +17,6 @@ export default function Overview() {
   const dialog = useRef()
   return (
     <div className="flex flex-col gap-8 relative">
-      <ConfirmationPopup ref={dialog}/>
       <HeadingSection patient={patient}/>
       <div className="flex flex-row justify-between" id="mainSection">
         <PredictedCauseSection patient={patient} />
@@ -36,7 +34,7 @@ export default function Overview() {
               ))}
             </BlueContainer>
             <CustomLine />
-            <span className="text-2xl text-font" onClick={()=> dialog.current.showModal()}>Pregnancy Details</span>
+            <span className="text-2xl text-font">Pregnancy Details</span>
             <PregnancyDetails
               data={"Second"}
               title={"Trimester"}

@@ -3,8 +3,9 @@ import TextField from "../components/common/TextField";
 
 import { addPredictionFields } from "../assets/data/add-prediction";
 import PrimaryButton from "../components/common/PrimaryButton";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import SelectionDashboardDropDown from "../components/predictions-dashboard/SelectionDashboardDropDown";
+import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 
 const descriptions = [
   "Click Next to start the prediction form. Enter required maternal and fetal health data, including Patient ID, demographics, maternal health indicators, and fetal monitoring data (e.g., CTG readings). Ensure all fields are complete and accurate before submitting for reliable results.",
@@ -13,6 +14,7 @@ const descriptions = [
 
 export default function AddPredictionScreen() {
   const [pageNumber, updatePageNumber] = useState(-1);
+  const patientAddedDialog = useRef();
 
   function onNextClicked() {
     updatePageNumber((currentPageNumber) => currentPageNumber + 1);
@@ -27,6 +29,13 @@ export default function AddPredictionScreen() {
 
   return (
     <PrimaryContainer className="items-center !p-12 !px-16 !gap-6">
+      <ConfirmationPopup
+        ref={patientAddedDialog}
+        firstButton={"Go to dashboard"}
+        secondButton={"See all predictions"}
+        title={"Prediction has been processed successfully!"}
+        description={"You can either choose to go to the dashboard or see all predictions again"}
+      />
       <div className="flex flex-col items-center gap-4">
         <h3 className="text-center">
           {start ? "Add a prediction" : addPredictionFields[pageNumber].title}
@@ -51,7 +60,11 @@ export default function AddPredictionScreen() {
         >
           Go back
         </PrimaryButton>
-        <PrimaryButton onClick={!end && (() => onNextClicked())}>
+        <PrimaryButton
+          onClick={
+            end ? ()=>patientAddedDialog.current.showModal() : () => onNextClicked()
+          }
+        >
           {end ? "Make prediction" : "Continue"}
         </PrimaryButton>
       </div>

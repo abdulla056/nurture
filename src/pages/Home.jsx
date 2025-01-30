@@ -5,7 +5,7 @@ import Features from "../components/Home/Features";
 import ellipse from "../assets/images/ellipse-home-screen.png";
 import HomeFooter from "../components/Home/HomeFooter";
 
-export function Home() {
+export default function Home() {
   return (
     <div className="flex flex-col bg-custom-gradient px-16 py-8 w-full h-full gap-16">
       <div

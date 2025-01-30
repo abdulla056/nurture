@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
-import PopUpButton from "../common/PopUpButton";
+import PrimaryButton from "../common/PrimaryButton";
 
 const ConfirmationPopup = forwardRef(function ConfirmationPopup(
-  { className = "", firstButton, secondButton },
+  { className = "", firstButton, secondButton, title, description },
   ref
 ) {
   return (
@@ -13,18 +13,17 @@ const ConfirmationPopup = forwardRef(function ConfirmationPopup(
       <div className="flex flex-col items-center gap-12">
         <div className="flex flex-col items-center">
           <h3 className="text-font">
-            Recommendation has been tracked successfully
+            {title}
           </h3>
           <span className="text-sm text-font">
-            This recommendation will be used to improve the model and provide
-            better results
+            {description}
           </span>
         </div>
         <div className="flex flex-col gap-2">
 
-          <PopUpButton>{firstButton}</PopUpButton>
+          <PrimaryButton>{firstButton}</PrimaryButton>
           {secondButton && (
-            <PopUpButton transparent={true}>{secondButton}</PopUpButton>
+            <PrimaryButton transparent={true}>{secondButton}</PrimaryButton>
           )}
           {/* <form method="dialog">
           <PrimaryButton className={"text-xl"}>fnajksfnjk</PrimaryButton>

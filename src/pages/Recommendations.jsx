@@ -9,7 +9,12 @@ export default function Recommendations() {
   const dialog = useRef();
   return (
     <PrimaryContainer disableHover={true}>
-      <ConfirmationPopup ref={dialog} firstButton="Go to dashboard"/>
+      <ConfirmationPopup
+        ref={dialog}
+        firstButton="Go to dashboard"
+        title={"Recommendation has been tracked successfully"}
+        description={"This recommendation will be used to improve the model and provide better results"}
+      />
       <form className="flex flex-col gap-2 items-center">
         <OptionsPicker>Please rate our system accuracy:</OptionsPicker>
         <TextField

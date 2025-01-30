@@ -1,15 +1,16 @@
-import Dashboard from './components/layout/Dashboard.jsx'
-import PredictionSelectionDashboard from './components/layout/PredictionSelectionDashboard.jsx'
-import AddPredictionScreen from './pages/AddPredictionScreen.jsx'
+import { useRoutes } from "react-router-dom";
+import routes from "./routes";
 // import {SignUpPage} from "./pages/SignUpPage.jsx"
 
 function App() {
-
   return (
     <>
-      <Dashboard/>
+      <AppRoutes />
     </>
-  )
+  );
+}
+function AppRoutes() {
+  return useRoutes(routes);
 }
 
-export default App
+export default App;

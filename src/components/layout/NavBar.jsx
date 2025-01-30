@@ -29,10 +29,10 @@ export default function NavBar() {
       hasShadow ? "shadow-sm -mx-12 px-12" : ""}`}>
       <Logo color={"black"} />
       <div className="flex flex-row w-7/12 justify-between gap-2">
-        <NavBarButtons to="/overview">Overview</NavBarButtons>
-        <NavBarButtons to="/analysis">Analysis</NavBarButtons>
-        <NavBarButtons to="/exploration">Data Exploration</NavBarButtons>
-        <NavBarButtons to="/recommendation">Recommendation</NavBarButtons>
+        <NavBarButtons to="overview">Overview</NavBarButtons>
+        <NavBarButtons to="analysis">Analysis</NavBarButtons>
+        <NavBarButtons to="exploration">Data Exploration</NavBarButtons>
+        <NavBarButtons to="recommendation">Recommendation</NavBarButtons>
       </div>
       <div className="flex flex-row gap-1.5">
         <IconButton icon={notification} />

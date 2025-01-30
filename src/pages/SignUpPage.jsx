@@ -4,7 +4,7 @@ import { SignUpForm } from "../components/auth/SignUpForm.jsx";
 import { Footer } from "../components/common/Footer.jsx";
 import { useState } from "react";
 
-export function SignUpPage() {
+export default function SignUpPage() {
   const [signUpPage, setPage] = useState(true);
 
   function togglePage() {

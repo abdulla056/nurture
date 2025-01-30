@@ -1,10 +1,9 @@
-import { Link, useMatch, useResolvedPath, useLocation } from "react-router-dom";
+import { Link, useMatch, useResolvedPath } from "react-router-dom";
 
 export default function NavBarButtons({ to, children }) {
-  // const resolvedPath = useResolvedPath(to);
-  // const isActive = useMatch({ path: resolvedPath.pathname, end: true });
-  const location = useLocation();
-  const isActive = location.pathname.startsWith(to);
+  const resolvedPath = useResolvedPath(to);
+  const isActive = useMatch({ path: resolvedPath.pathname, end: false });
+
   return (
     <Link
       to={to}
