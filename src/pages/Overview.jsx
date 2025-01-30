@@ -14,7 +14,6 @@ import { predictionDetails } from "../assets/data/data";
 const patient = { id: "RSW31213", cause: "Congenital syphilis" };
 
 export default function Overview() {
-  const dialog = useRef()
   return (
     <div className="flex flex-col gap-8 relative">
       <HeadingSection patient={patient}/>
@@ -26,6 +25,7 @@ export default function Overview() {
           <PrimaryContainer
             className="row-span-2 items-start"
             id="predictionDetails"
+            disableHover={false}
           >
             <span className="text-2xl text-font">Prediction Details</span>
             <BlueContainer className="grid grid-cols-2 grid-rows-2 gap-6 py-6">

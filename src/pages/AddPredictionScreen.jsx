@@ -6,6 +6,7 @@ import PrimaryButton from "../components/common/PrimaryButton";
 import { useRef, useState } from "react";
 import SelectionDashboardDropDown from "../components/predictions-dashboard/SelectionDashboardDropDown";
 import ConfirmationPopup from "../components/layout/ConfirmationPopup";
+import { useNavigate } from "react-router-dom";
 
 const descriptions = [
   "Click Next to start the prediction form. Enter required maternal and fetal health data, including Patient ID, demographics, maternal health indicators, and fetal monitoring data (e.g., CTG readings). Ensure all fields are complete and accurate before submitting for reliable results.",
@@ -27,11 +28,14 @@ export default function AddPredictionScreen() {
   const end = addPredictionFields.length === pageNumber + 1;
   const start = pageNumber === -1;
 
+  const navigate = useNavigate()
+
   return (
     <PrimaryContainer className="items-center !p-12 !px-16 !gap-6">
       <ConfirmationPopup
         ref={patientAddedDialog}
         firstButton={"Go to dashboard"}
+        actionFirstButton={() => navigate("/dashboard")}
         secondButton={"See all predictions"}
         title={"Prediction has been processed successfully!"}
         description={"You can either choose to go to the dashboard or see all predictions again"}

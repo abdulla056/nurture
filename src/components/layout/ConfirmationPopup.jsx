@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import PrimaryButton from "../common/PrimaryButton";
 
 const ConfirmationPopup = forwardRef(function ConfirmationPopup(
-  { className = "", firstButton, secondButton, title, description },
+  { className = "", firstButton, secondButton, title, description, actionFirstButton, actionSecondButton },
   ref
 ) {
   return (
@@ -21,9 +21,9 @@ const ConfirmationPopup = forwardRef(function ConfirmationPopup(
         </div>
         <div className="flex flex-col gap-2">
 
-          <PrimaryButton>{firstButton}</PrimaryButton>
+          <PrimaryButton onClick={actionFirstButton}>{firstButton}</PrimaryButton>
           {secondButton && (
-            <PrimaryButton transparent={true}>{secondButton}</PrimaryButton>
+            <PrimaryButton onClick={actionSecondButton} transparent={true}>{secondButton}</PrimaryButton>
           )}
           {/* <form method="dialog">
           <PrimaryButton className={"text-xl"}>fnajksfnjk</PrimaryButton>

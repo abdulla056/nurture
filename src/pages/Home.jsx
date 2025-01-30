@@ -4,6 +4,7 @@ import dashboardImage from "../assets/images/dashboard-image.png";
 import Features from "../components/Home/Features";
 import ellipse from "../assets/images/ellipse-home-screen.png";
 import HomeFooter from "../components/Home/HomeFooter";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
@@ -17,7 +18,9 @@ export default function Home() {
           <a href="" className="text-white text-3xl font-thin">
             Sign in
           </a>
-          <DashboardButton>Go to Prediction Dashboard</DashboardButton>
+          <Link to={"/selection-dashboard"}>
+            <DashboardButton>Go to Prediction Dashboard</DashboardButton>
+          </Link>
         </div>
       </div>
       <div className="flex flex-row justify-between" id="firstSection">
@@ -47,10 +50,10 @@ export default function Home() {
         </span>
         <Features />
       </div>
-      <div  className="-mx-16 w-screen">
-        <img src={ellipse} alt="" className="invisible"/>
+      <div className="-mx-16 w-screen">
+        <img src={ellipse} alt="" className="invisible" />
       </div>
-      <HomeFooter/>
+      <HomeFooter />
     </div>
   );
 }

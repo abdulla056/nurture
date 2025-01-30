@@ -67,6 +67,11 @@ span {
   animation: fadeIn 0.5s forwards;
 }
 
+.custom-hover:hover {
+  --tw-scale-x: 1.025;
+  --tw-scale-y: 1.025;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
 
 /* .prediction-selection * {
   @apply transition-none
