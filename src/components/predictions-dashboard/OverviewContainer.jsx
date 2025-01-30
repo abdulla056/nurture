@@ -3,9 +3,13 @@ import calendaricon from "../../assets/images/calendar-black.png";
 import PrimaryButton from "../common/PrimaryButton";
 import trashIcon from "../../assets/images/trash-icon.png";
 
-export default function OverviewContainer({ patientData, results }) {
+export default function OverviewContainer({
+  patientData,
+  results,
+  enableOverview,
+}) {
   return (
-    <div className="flex flex-row border rounded-2xl items-center justify-between px-10 py-2">
+    <div className="flex flex-row border rounded-2xl items-center justify-between px-6 py-2">
       {results && (
         <PredictionInfo titleBottom={false} title={"Patient ID"}>
           <span className="text-lg font-semibold text-secondary">
@@ -44,10 +48,12 @@ export default function OverviewContainer({ patientData, results }) {
         </PredictionInfo>
       )}
       <PredictionInfo title={"Delete"}>
-        <img src={trashIcon} alt="trash icon" className="w-1/4" />
+        <img src={trashIcon} alt="trash icon" className="w-1/5" />
       </PredictionInfo>
       <div className="flex flex-col scale-75 gap-2 -mr-3">
-        <PrimaryButton>View more details</PrimaryButton>
+        <PrimaryButton onClick={results && enableOverview}>
+          {results ? "View more details" : "View all predictions"}
+        </PrimaryButton>
         <PrimaryButton transparent={true}>Go to dashboard</PrimaryButton>
       </div>
     </div>
