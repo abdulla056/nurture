@@ -7,8 +7,7 @@ export default function NavBarButtons({ to, children }) {
 
   return (
     <motion.div
-      whileHover={{ scale: 1.05}} 
-      whileTap={{ scale: 0.95 }}
+      whileTap={{y:2 }}
       className="w-full"
     >
       <Link

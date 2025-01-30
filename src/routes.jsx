@@ -16,7 +16,7 @@ import AddPredictionScreen from "./pages/AddPredictionScreen";
 import AddPatientScreen from "./pages/AddPatientScreen";
 
 const routes = [
-  { path: "/", element: <Navigate to="/signup-page" /> },
+  { path: "/", element: <Navigate to="/authentication" /> },
   { path: "/authentication", element: <SignUpPage />,},
   { path: "/home", element: <Home /> },
   {
