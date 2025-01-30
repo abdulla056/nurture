@@ -1,4 +1,4 @@
-export const predictionFields = [
+export const addPredictionFields = [
     {
         title: "Lifestyle factors",
         fields: [

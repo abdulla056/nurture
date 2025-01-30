@@ -1,15 +1,20 @@
+import { motion } from "framer-motion";
+
 export default function PrimaryButton({
   children,
   onClick,
   className,
   type,
   transparent = false,
+  animate = true
 }) {
   return (
-    <button
+    <motion.button
       type={type}
       onClick={onClick}
-      className={`flex items-center justify-center py-4 px-12 rounded-xl hover:opacity-90 transition-all duration-150 text-xl 
+      whileHover={animate && { scale: 1.07 }} 
+      whileTap={animate && { scale: 0.95 }}
+      className={`flex items-center justify-center py-4 px-12 rounded-xl hover:opacity-90 text-xl 
   ${
     transparent
       ? "bg-none text-primary border border-black"
@@ -17,6 +22,6 @@ export default function PrimaryButton({
   } ${className}`}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }
