@@ -18,7 +18,7 @@ export default function PredictionSelectionSection({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="w-full gap-4 flex flex-col"
+            className="w-full gap-4 flex flex-col p-4"
           >
             <h3>{results ? "Predicted Results" : "List of Patients"}</h3>
             {patientDataVariations.map((patient, index) => (
