@@ -19,7 +19,7 @@ export default function PredictionSelectionScreen() {
   const isResultsScreen = activeButton === "results";
 
   return (
-    <div className="flex flex-col items-center gap-4 prediction-selection">
+    <div className="flex flex-col items-center gap-4 prediction-selection relative">
       <AnimatePresence mode="popLayout">
         {!overViewActivated && (
           <motion.div

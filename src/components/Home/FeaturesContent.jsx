@@ -1,7 +1,13 @@
+import { motion } from "framer-motion";
+
 export default function FeaturesContent({ feature, isActive, onClick }) {
   return (
-    <div
+    <motion.div
       onClick={onClick}
+      initial={{ opacity: 0, x: 0 }}
+      whileInView={{ opacity: 1, x:0 }}
+      transition={{ duration: 1.5, ease:"easeInOut"}} 
+      viewport={{ once: true }}
       className={`flex rounded-xl w-2/3 py-4 flex-col items-start px-4 transition-all duration-300 gap-2
         ${
           isActive
@@ -11,6 +17,6 @@ export default function FeaturesContent({ feature, isActive, onClick }) {
     >
       <p className="text-xl">{feature.title}</p>
       {isActive && <p className="text-small">{feature.description}</p>}
-    </div>
+    </motion.div>
   );
 }
