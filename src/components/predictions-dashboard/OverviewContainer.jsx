@@ -44,7 +44,7 @@ export default function OverviewContainer({
           {patientData.keyFactors.map((factor, index) => (
             <span key={index}>{factor}</span>
           ))}
-          <PrimaryButton className={"scale-50 p-2"}>View all</PrimaryButton>
+          <PrimaryButton className={"scale-50 p-2"} animate={false}>View all</PrimaryButton>
         </PredictionInfo>
       )}
       <PredictionInfo title={"Delete"}>

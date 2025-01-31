@@ -12,8 +12,8 @@ export default function PrimaryButton({
     <motion.button
       type={type}
       onClick={onClick}
-      whileHover={{ scale: 1.07 }} 
-      whileTap={{ scale: 0.95 }}
+      whileHover={animate && { scale: 1.07 }} 
+      whileTap={animate &&{ scale: 0.95 }}
       className={`flex items-center justify-center py-4 px-12 rounded-xl hover:opacity-90 text-xl 
   ${
     transparent

@@ -28,7 +28,7 @@ export default function PredictedResultOverview({ isActive = true }) {
           >
             <div className="flex flex-row justify-between items-center">
               <h2 className="font-medium">Predicted Result #42738</h2>
-              <PrimaryButton className={"scale-90 text-lg"}>
+              <PrimaryButton className={"scale-90 text-lg"} animate={false}>
                 Click to see patient dashbaord
               </PrimaryButton>
             </div>
@@ -62,7 +62,7 @@ export default function PredictedResultOverview({ isActive = true }) {
           <motion.span className="text-font-tertiary text-center" initial={{ opacity: 0, y: -7 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.5, delay: 0.5 }}>
+          transition={{ duration: 0.5, delay: 0.3 }}>
             Please select a result to view more details
           </motion.span>
         )}
