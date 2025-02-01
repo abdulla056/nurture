@@ -14,11 +14,13 @@ import PredictionHistory from "./components/exploration/PredictionHistory";
 import PredictionSelectionScreen from "./pages/PredictionSelectionScreen";
 import AddPredictionScreen from "./pages/AddPredictionScreen";
 import AddPatientScreen from "./pages/AddPatientScreen";
+import ProfileScreen from "./pages/ProfileScreen";
 
 const routes = [
   { path: "/", element: <Navigate to="/authentication" /> },
   { path: "/authentication", element: <SignUpPage />,},
   { path: "/home", element: <Home /> },
+  { path: "/profile", element: <ProfileScreen /> },
   {
     path: "/selection-dashboard",
     element: <PredictionSelectionDashboard />,
