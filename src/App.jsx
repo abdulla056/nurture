@@ -1,22 +1,22 @@
-// import { useRoutes } from "react-router-dom";
-// import routes from "./routes";
-// // import {SignUpPage} from "./pages/SignUpPage.jsx"
+import { useRoutes } from "react-router-dom";
+import routes from "./routes";
+// import {SignUpPage} from "./pages/SignUpPage.jsx"
 
-// function App() {
-//   return (
-//     <>
-//       <AppRoutes />
-//     </>
-//   );
-// }
-// function AppRoutes() {
-//   return useRoutes(routes);
-// }
+function App() {
+  return (
+    <>
+      <AppRoutes />
+    </>
+  );
+}
+function AppRoutes() {
+  return useRoutes(routes);
+}
 
-// export default App;
+export default App;
 
 
-import api from "./services/api";
+/* import api from "./services/api";
 import { useState, useEffect } from "react";
 
 export default function App() {
@@ -43,4 +43,4 @@ export default function App() {
       )}
     </div>
   );
-}
+} */
