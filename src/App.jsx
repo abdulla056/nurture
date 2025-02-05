@@ -1,16 +1,45 @@
-import { useRoutes } from "react-router-dom";
-import routes from "./routes";
-// import {SignUpPage} from "./pages/SignUpPage.jsx"
+// import { useRoutes } from "react-router-dom";
+// import routes from "./routes";
+// // import {SignUpPage} from "./pages/SignUpPage.jsx"
 
-function App() {
+// function App() {
+//   return (
+//     <>
+//       <AppRoutes />
+//     </>
+//   );
+// }
+// function AppRoutes() {
+//   return useRoutes(routes);
+// }
+
+// export default App;
+
+
+import { useState, useEffect } from "react";
+
+export default function App() {
+  const [data, setData] = useState([{}]);
+  useEffect(() => {
+    fetch("/members").then(
+      res => res.json()
+    ).then(
+      data => {
+        setData(data)
+        console.log(data)
+      }
+    )
+  }, [])
+  
   return (
-    <>
-      <AppRoutes />
-    </>
+    <div>
+      {(typeof data.members === 'undefined') ? (
+        <p>Loading...</p>
+      ) : (
+        data.members.map((member, index) => (
+          <p key={index}>{member}</p>
+        ))
+      )}
+    </div>
   );
 }
-function AppRoutes() {
-  return useRoutes(routes);
-}
-
-export default App;
