@@ -24,22 +24,18 @@ export default function App() {
   const [data, setData] = useState([{}]);
 
   useEffect(() => {
-    api.get("/members").then(
-      res => {
-        console.log(res.data)
-        setData(res.data)
-      }
-    )
-  }, [])
-  
+    api.get("/members").then((res) => {
+      console.log(res.data);
+      setData(res.data);
+    });
+  }, []);
+
   return (
     <div>
-      {(typeof data.members === 'undefined') ? (
+      {typeof data.members === "undefined" ? (
         <p>Loading...</p>
       ) : (
-        data.members.map((member, index) => (
-          <p key={index}>{member}</p>
-        ))
+        data.members.map((member, index) => <p key={index}>{member}</p>)
       )}
     </div>
   );
