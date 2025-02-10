@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 CORS(app)
-
+print("dawg")
 # Members API route
 @app.route('/members')
 def members():
