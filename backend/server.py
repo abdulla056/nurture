@@ -3,10 +3,11 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)
-
+print("dawg")
 # Members API route
 @app.route('/members')
 def members():
@@ -23,13 +24,13 @@ def add_doctor():
     try:
         ## Takes in a .json file
         data = request.json
-        doctor_ref = db.collection('doctors').document(data['DoctorID'])
+        doctor_ref = db.collection('doctors').document(data['doctorId'])
         doctor_ref.set({
-            'FirstName': data['FirstName'],
-            'LastName': data['LastName'],
-            'Email': data['Email'],
-            'LicenseNumber': data['LicenseNumber'],
-            'Workplace': data['Workplace']
+            'firstName': data['firstName'],
+            'lastName': data['lastName'],
+            'email': data['email'],
+            'licenseNumber': data['licenseNumber'],
+            'workplace': data['workplace']
         })
         return jsonify({"message": "Doctor added successfully"}), 201
     except Exception as e:
@@ -78,10 +79,10 @@ def get_doctor(DoctorID):
 def add_patient():
     try:
         data = request.json
-        patient_ref = db.collection('patients').document(data['PatientID'])
+        patient_ref = db.collection('patients').document(data['patientId'])
         patient_ref.set({
-            'DoctorID': data['DoctorID'],
-            'DetailID': data['DetailID']
+            'doctorId': data['doctorId'],
+            'detailId': data['detailId']
         })
         return jsonify({"message": "Patient added successfully"}), 201
     except Exception as e:
@@ -92,8 +93,8 @@ def add_patient():
 @app.route('/get_patients/<DoctorID>', methods=['GET'])
 def get_patients(DoctorID):
     try:
-        patients_ref = db.collection('patients').where("DoctorID", "==", DoctorID).stream()
-        patients = [{doc.id: doc.to_dict()} for doc in patients_ref]
+        patients_ref = db.collection('patients').where("doctorId", "==", DoctorID).stream()
+        patients = [doc.to_dict() for doc in patients_ref]
         
         if patients:
             return jsonify(patients), 200
@@ -108,14 +109,14 @@ def get_patients(DoctorID):
 def add_feedback():
     try:
         data = request.json
-        feedback_ref = db.collection('feedback').document(data['FeedbackID'])
+        feedback_ref = db.collection('feedback').document(data['feedbackId'])
         feedback_ref.set({
-            'DoctorID': data['DoctorID'],
-            'SystemAccuracy': data['SystemAccuracy'],
-            'PredictionTime': data['PredictionTime'],
-            'Interface': data['Interface'],
-            'Helpfulness': data['Helpfulness'],
-            'AdditionalComments': data['AdditionalComments']
+            'doctorId': data['doctorId'],
+            'systemAccuracy': data['systemAccuracy'],
+            'predictionTime': data['predictionTime'],
+            'interface': data['interface'],
+            'helpfulness': data['helpfulness'],
+            'additionalComments': data['additionalComments']
         })
         return jsonify({"message": "Feedback added successfully"}), 201
     except Exception as e:
@@ -140,67 +141,62 @@ def get_feedback(FeedbackID):
 @app.route('/add_patient_details', methods=['POST'])
 def add_patient_details():
     try:
-        data = request.get_json()
-
-        # Extract DoctorID and PatientID from request
-        doctor_id = data["DoctorID"]
-        patient_id = data["PatientID"]
-
-        # Generate accurate timestamp
-        timestamp = datetime.now()
-
-        # Add to Details Collection
-        details_data = {
-            "DoctorID": doctor_id,
-            "PatientID": patient_id,
-            "TimeDate": timestamp  # Store accurate timestamp
-        }
-        details_ref = db.collection("Details").add(details_data)
-        detail_id = details_ref[1].id  # Get Firestore-generated ID
-
-        # Add Demographic Data
-        demographic_data = data["Details"]["Demographic"]
-        demographic_data["DetailID"] = detail_id
-        db.collection("Demographic").add(demographic_data)
-
-        # Add Lifestyle Data
-        lifestyle_data = data["Details"]["Lifestyle"]
-        lifestyle_data["DetailID"] = detail_id
-        db.collection("Lifestyle").add(lifestyle_data)
-
-        # Add Conditions Data
-        conditions_data = data["Details"]["Conditions"]
-        conditions_data["DetailID"] = detail_id
-        db.collection("Conditions").add(conditions_data)
-
-        # Add BirthInfo Data
-        birthinfo_data = data["Details"]["BirthInfo"]
-        birthinfo_data["DetailID"] = detail_id
-        db.collection("BirthInfo").add(birthinfo_data)
-
-        # Add Flags Data
-        flags_data = data["Details"]["Flags"]
-        flags_data["DetailID"] = detail_id
-        db.collection("Flags").add(flags_data)
-
-        return jsonify({"message": "Patient details added successfully!"}), 200
+        data = request.json
+        details_ref = db.collection('details').document(data['detailId'])
+        details_ref.set({
+            'patientId': data['patientId'],
+            'timestamp': datetime.utcnow(),
+            'age': data['age'],
+            'gender': data['gender'],
+            'weight': data['weight'],
+            'height': data['height'],
+            'bmi': data['bmi'],
+            'bloodPressure': data['bloodPressure'],
+            'heartRate': data['heartRate'],
+            'smokingStatus': data['smokingStatus'],
+            'alcoholConsumption': data['alcoholConsumption'],
+            'dietaryHabits': data['dietaryHabits'],
+            'exerciseFrequency': data['exerciseFrequency'],
+            'existingConditions': data['existingConditions'],
+            'medications': data['medications'],
+            'surgicalHistory': data['surgicalHistory'],
+            'familyMedicalHistory': data['familyMedicalHistory'],
+            'birthWeight': data['birthWeight'],
+            'gestationalAge': data['gestationalAge'],
+            'maternalHealthComplications': data['maternalHealthComplications'],
+            'multiplePregnancy': data['multiplePregnancy'],
+            'congenitalAnomalies': data['congenitalAnomalies'],
+            'pretermBirth': data['pretermBirth'],
+            'lowBirthWeight': data['lowBirthWeight']
+        })
+        return jsonify({"message": "Patient details added successfully"}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 500
 
 ## Add prediction for patient
 @app.route('/add_prediction', methods=['POST'])
 def add_prediction():
     try:
         data = request.json
-        prediction_ref = db.collection('Predictions').document(data['PredictionID'])
+        prediction_ref = db.collection('predictions').document(data['predictionId'])
         prediction_ref.set({
-            'PatientID': data['PatientID'],
-            'DoctorID': data['DoctorID'],
-            'PredictionResult': data['PredictionResult'],
-            'ConfidenceScore': data['ConfidenceScore'],
-            'Timestamp': datetime.utcnow()
+            'patientId': data['patientId'],
+            'doctorId': data['doctorId'],
+            'detailId' : data['detailId'],
+            'predictionResult': data['predictionResult'],
+            'confidenceScore': data['confidenceScore'],
+            'timestamp': datetime.utcnow()
         })
+
+        contributing_factors_ref = prediction_ref.collection('contributingFactors')
+        for factor, details in data['contributingFactors'].items():
+            contributing_factors_ref.document(factor).set({
+                'factor': factor,
+                'description': details['desc'],
+                'contributionPercentage': details['percentage']
+        })
+        
         return jsonify({"message": "Prediction added successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -208,7 +204,7 @@ def add_prediction():
 ## Fetch prediction by predictionID
 @app.route('/get_prediction/<PredictionID>', methods=['GET'])
 def get_prediction(PredictionID):
-    prediction_ref = db.collection('Predictions').document(PredictionID)
+    prediction_ref = db.collection('predictions').document(PredictionID)
     prediction = prediction_ref.get()
 
     if prediction.exists:
@@ -219,8 +215,8 @@ def get_prediction(PredictionID):
 ## Fetch all predictions for a certain patient
 @app.route('/get_predictions/<PatientID>', methods=['GET'])
 def get_predictions(PatientID):
-    predictions_ref = db.collection('Predictions').where("PatientID", "==", PatientID).stream()
-    predictions = [{doc.id: doc.to_dict()} for doc in predictions_ref]
+    predictions_ref = db.collection('predictions').where("patientId", "==", PatientID).stream()
+    predictions = [doc.to_dict() for doc in predictions_ref]
 
     if predictions:
         return jsonify(predictions), 200
