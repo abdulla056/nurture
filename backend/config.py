@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 import os
 import json
 
@@ -19,5 +19,5 @@ class Config:
         "token_uri": os.getenv("FIREBASE_TOKEN_URI"),
         "auth_provider_x509_cert_url": os.getenv("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
         "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_X509_CERT_URL"),
-        "databaseURL": os.getenv("FIREBASE_DATABASE_URL"),
+        "universe_domain": os.getenv("FIREBASE_UNIVERSE_DOMAIN"),
     }
