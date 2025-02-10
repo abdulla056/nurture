@@ -1,20 +1,22 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import firebase_admin
-from firebase_admin import credentials, firestore
+from flask import Flask, request, jsonify # type: ignore
+from flask_cors import CORS # type: ignore
+import firebase_admin # type: ignore
+from firebase_admin import credentials, firestore # type: ignore
 from datetime import datetime
-import os
+from config import Config
 
 app = Flask(__name__)
+app.config.from_object(Config)
 CORS(app)
-print("dawg")
+
 # Members API route
 @app.route('/members')
 def members():
     return {"members": ["Member1", "Member2", "Member3"]}
 
 ## Access the Firestore 
-cred = credentials.Certificate("../secrets/serviceAccountKey.json")
+firebase_config_json = Config.FIREBASE_CONFIG
+cred = credentials.Certificate(firebase_config_json)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -225,5 +227,5 @@ def get_predictions(PatientID):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=app.config['PORT'])
 
