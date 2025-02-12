@@ -1,0 +1,318 @@
+
+# Dummy Data
+
+doctors = {
+  "D001": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "licenseNumber": "MD123456",
+    "workplace": "General Hospital"
+  },
+  "D002": {
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "email": "alice.smith@example.com",
+    "licenseNumber": "MD789012",
+    "workplace": "City Medical Center"
+  },
+  "D003": {
+    "firstName": "David",
+    "lastName": "Miller",
+    "email": "david.miller@example.com",
+    "licenseNumber": "MD345678",
+    "workplace": "Sunrise Clinic"
+  },
+  "D004": {
+    "firstName": "Emma",
+    "lastName": "Davis",
+    "email": "emma.davis@example.com",
+    "licenseNumber": "MD901234",
+    "workplace": "Metropolitan Hospital"
+  }
+}
+
+patients = {
+    "P001": {"doctorId": "D001"},
+    "P002": {"doctorId": "D002"},
+    "P003": {"doctorId": "D001"},
+    "P004": {"doctorId": "D003"},
+    "P005": {"doctorId": "D004"}
+}
+
+details = {
+    "DD001":{
+    "patientId": "P001",
+    "timestamp": "2025-02-12T10:00:00Z",
+    "deliveryMonth": 5,
+    "deliveryYear": 2024,
+    "prepregnancyDiabetes": False,
+    "gestationalDiabetes": False,
+    "mothersRaceRecode31": 2,
+    "mothersAge1": 27,
+    "sexOfInfant": "Male",
+    "pluralityRecode": "Singleton",
+    "cigarettesBeforePregnancy": 0,
+    "WICStatus": True
+    },
+    "DD002":{
+    "patientId": "P002",
+    "timestamp": "2025-02-12T10:30:00Z",
+    "deliveryMonth": 8,
+    "deliveryYear": 2024,
+    "prepregnancyDiabetes": True,
+    "gestationalDiabetes": False,
+    "mothersRaceRecode31": 4,
+    "mothersAge1": 33,
+    "sexOfInfant": "Female",
+    "pluralityRecode": "Singleton",
+    "cigarettesBeforePregnancy": 5,
+    "WICStatus": False
+    },
+    "DD003":{
+    "patientId": "P003",
+    "timestamp": "2025-02-12T11:00:00Z",
+    "deliveryMonth": 6,
+    "deliveryYear": 2024,
+    "prepregnancyDiabetes": False,
+    "gestationalDiabetes": True,
+    "mothersRaceRecode31": 3,
+    "mothersAge1": 31,
+    "sexOfInfant": "Male",
+    "pluralityRecode": "Twin",
+    "cigarettesBeforePregnancy": 0,
+    "WICStatus": True
+    },
+    "DD004":{
+    "patientId": "P004",
+    "timestamp": "2025-02-12T12:00:00Z",
+    "deliveryMonth": 7,
+    "deliveryYear": 2024,
+    "prepregnancyDiabetes": False,
+    "gestationalDiabetes": False,
+    "mothersRaceRecode31": 1,
+    "mothersAge1": 29,
+    "sexOfInfant": "Male",
+    "pluralityRecode": "Singleton",
+    "cigarettesBeforePregnancy": 0,
+    "WICStatus": True
+    },
+    "DD005":{
+    "detailId": "D005",
+    "patientId": "P005",
+    "timestamp": "2025-02-12T12:30:00Z",
+    "deliveryMonth": 9,
+    "deliveryYear": 2024,
+    "prepregnancyDiabetes": True,
+    "gestationalDiabetes": True,
+    "mothersRaceRecode31": 3,
+    "mothersAge1": 35,
+    "sexOfInfant": "Female",
+    "pluralityRecode": "Twin",
+    "cigarettesBeforePregnancy": 10,
+    "WICStatus": False
+    }
+}
+
+predictions = {
+    'PR001':{
+    "patientId": "P001",
+    "doctorId": "D001",
+    "detailId": "D001",
+    "predictionResult": "Low risk",
+    "confidenceScore": 95.2,
+    "timestamp": "2025-02-12T10:00:00Z",
+    "contributingFactors": {
+        "mothersAge1": {
+            "desc": "Healthy maternal age",
+            "percentage": 30.0
+            },
+        "prepregnancyDiabetes": {
+            "desc": "No prepregnancy diabetes lowers risk",
+            "percentage": 25.0
+            },
+        "gestationalDiabetes": {
+            "desc": "No gestational diabetes detected",
+            "percentage": 20.0
+            },
+        "cigarettesBeforePregnancy": {
+            "desc": "No smoking history contributes to positive health",
+            "percentage": 15.0
+            },
+        "WICStatus": {
+            "desc": "WIC assistance contributes to better nutrition",
+            "percentage": 10.0
+            }
+        }
+    },
+    "PR002" : {
+    "patientId": "P002",
+    "doctorId": "D002",
+    "detailId": "D002",
+    "predictionResult": "Moderate risk",
+    "confidenceScore": 78.4,
+    "timestamp": "2025-02-12T10:30:00Z",
+    "contributingFactors": {
+        "mothersAge1": {
+            "desc": "Higher maternal age slightly increases risk",
+            "percentage": 25.0
+            },
+        "prepregnancyDiabetes": {
+            "desc": "History of prepregnancy diabetes increases risk",
+            "percentage": 30.0
+            },
+        "gestationalDiabetes": {
+            "desc": "No gestational diabetes",
+            "percentage": 15.0
+            },
+        "cigarettesBeforePregnancy": {
+            "desc": "Moderate smoking history increases risk",
+            "percentage": 20.0
+            },
+        "WICStatus": {
+            "desc": "Lack of WIC assistance may impact nutrition",
+            "percentage": 10.0
+            }
+        }
+    },
+    "PR003": {
+    "patientId": "P003",
+    "doctorId": "D003",
+    "detailId": "D003",
+    "predictionResult": "Moderate risk",
+    "confidenceScore": 80.7,
+    "timestamp": "2025-02-12T11:00:00Z",
+    "contributingFactors": {
+        "mothersAge1": {
+            "desc": "Maternal age is slightly above average",
+            "percentage": 20.0
+            },
+        "prepregnancyDiabetes": {
+            "desc": "No prepregnancy diabetes lowers risk",
+            "percentage": 15.0
+            },
+        "gestationalDiabetes": {
+            "desc": "Gestational diabetes increases risk",
+            "percentage": 30.0
+            },
+        "pluralityRecode": {
+            "desc": "Multiple pregnancy adds slight risk",
+            "percentage": 25.0
+            },
+        "cigarettesBeforePregnancy": {
+            "desc": "No smoking history contributes to better outcomes",
+            "percentage": 10.0
+            }
+        }
+    },
+    "PR004": {
+    "patientId": "P004",
+    "doctorId": "D003",
+    "detailId": "D004",
+    "predictionResult": "Low risk of fetal complications",
+    "confidenceScore": 91.8,
+    "timestamp": "2025-02-12T12:00:00Z",
+    "contributingFactors": {
+        "mothersAge1": {
+            "desc": "Age is within a healthy range for pregnancy",
+            "percentage": 30.0
+            },
+        "prepregnancyDiabetes": {
+            "desc": "No history of prepregnancy diabetes lowers risk",
+            "percentage": 20.0
+            },
+        "gestationalDiabetes": {
+            "desc": "No gestational diabetes detected",
+            "percentage": 25.0
+            },
+        "cigarettesBeforePregnancy": {
+            "desc": "No smoking history positively impacts fetal health",
+            "percentage": 15.0
+            },
+        "WICStatus": {
+            "desc": "WIC assistance contributes to better nutrition",
+            "percentage": 10.0
+            }
+        }
+    },
+    "PR005": {
+    "patientId": "P005",
+    "doctorId": "D002",
+    "detailId": "D005",
+    "predictionResult": "Moderate risk of fetal complications",
+    "confidenceScore": 75.6,
+    "timestamp": "2025-02-12T12:30:00Z",
+    "contributingFactors": {
+        "mothersAge1": {
+            "desc": "Higher maternal age slightly increases risk",
+            "percentage": 25.0
+            },
+        "prepregnancyDiabetes": {
+            "desc": "History of prepregnancy diabetes increases risk",
+            "percentage": 30.0
+            },
+        "gestationalDiabetes": {
+            "desc": "Gestational diabetes adds to potential complications",
+            "percentage": 20.0
+            },
+        "cigarettesBeforePregnancy": {
+            "desc": "Smoking before pregnancy can impact fetal health",
+            "percentage": 15.0
+            },
+        "pluralityRecode": {
+            "desc": "Multiple pregnancy slightly increases complications",
+            "percentage": 10.0
+            }
+        }
+    }
+}
+
+feedback = {
+    "F001": {
+    "doctorId": "D001",
+    "systemAccuracy": 4.5,
+    "predictionTime": 3.2,
+    "interface": 4.8,
+    "helpfulness": 4.9,
+    "additionalComments": "Very helpful in decision making."
+  },
+    "F002": {
+    "doctorId": "D002",
+    "systemAccuracy": 3.8,
+    "predictionTime": 4.0,
+    "interface": 4.2,
+    "helpfulness": 3.9,
+    "additionalComments": "Could improve UI for better navigation."
+  },
+    "F003": {
+    "doctorId": "D003",
+    "systemAccuracy": 4.2,
+    "predictionTime": 2.8,
+    "interface": 4.5,
+    "helpfulness": 4.6,
+    "additionalComments": "Accurate but slow results."
+  },
+    "F004": {
+    "doctorId": "D004",
+    "systemAccuracy": 4.9,
+    "predictionTime": 3.0,
+    "interface": 5.0,
+    "helpfulness": 5.0,
+    "additionalComments": "Great tool! Highly recommend."
+  }
+}
+
+# Insert Data into Firestore
+def insert_data(collection_name, data):
+    for key, value in data.items():
+        db.collection(collection_name).document(key).set(value)
+        print(f"Inserted {key} into {collection_name}")
+
+# Execute Inserts
+insert_data("doctors", doctors)
+insert_data("patients", patients)
+insert_data("details", details)
+insert_data("predictions", predictions)
+insert_data("feedback", feedback)
+
+print("Dummy data insertion completed.")

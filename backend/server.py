@@ -25,7 +25,7 @@ app.register_blueprint(doctor_bp, url_prefix='/doctor')
 app.register_blueprint(patient_bp, url_prefix='/patient')
 app.register_blueprint(prediction_bp, url_prefix='/prediction')
 app.register_blueprint(feedback_bp, url_prefix='/feedback')
- 
+
 if __name__ == '__main__':
     app.run(debug=True, port=app.config['PORT'])
 
