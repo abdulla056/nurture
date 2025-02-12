@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PredictionSelectionSection from "../components/predictions-dashboard/PredictionSelectionSection";
 import PredictionToggle from "../components/predictions-dashboard/PredictionToggle";
 import PredictedResultOverview from "../components/predictions-dashboard/PredictedResultOverview";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../services/api";
 
 export default function PredictionSelectionScreen() {
   const [activeButton, changeActiveButton] = useState("results");
   const [overViewActivated, changeOverView] = useState(false);
+  const [predictions, setPredictions] = useState([]);
 
   function onToggleClicked(pressedButton) {
     changeActiveButton(pressedButton);
@@ -18,6 +20,20 @@ export default function PredictionSelectionScreen() {
 
   const isResultsScreen = activeButton === "results";
 
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      try {
+        const res = await api.get("/get_predictions");
+        console.log(res.data);
+        setPredictions(res.data);
+      } catch (error) {
+        console.error("Error fetching predictions:", error);
+      }
+    };
+  
+    fetchPredictions();
+  }, []);
+
   return (
     <div className="flex flex-col items-center gap-4 prediction-selection relative">
       <AnimatePresence mode="popLayout">
@@ -27,7 +43,7 @@ export default function PredictionSelectionScreen() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.1}}
+            transition={{ duration: 0.1 }}
           >
             <PredictionToggle
               activeButton={activeButton}
@@ -36,14 +52,15 @@ export default function PredictionSelectionScreen() {
           </motion.div>
         )}
       </AnimatePresence>
-      <motion.div className="flex flex-row gap-4 w-full" layout>
-        <PredictionSelectionSection
-          results={isResultsScreen}
-          isActive={!overViewActivated}
-          changeOverViewStatus={() => onOverviewChanged()}
-        />
-        <PredictedResultOverview isActive={overViewActivated} />
-      </motion.div>
+        <motion.div className="flex flex-row gap-4 w-full" layout>
+          <PredictionSelectionSection
+            predictions={predictions}
+            results={isResultsScreen}
+            isActive={!overViewActivated}
+            changeOverViewStatus={() => onOverviewChanged()}
+          />
+          <PredictedResultOverview isActive={overViewActivated} />
+        </motion.div>
     </div>
   );
 }

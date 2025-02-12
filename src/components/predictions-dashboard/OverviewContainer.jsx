@@ -3,8 +3,13 @@ import calendaricon from "../../assets/images/calendar-black.png";
 import PrimaryButton from "../common/PrimaryButton";
 import trashIcon from "../../assets/images/trash-icon.png";
 
+const keyFactors = [
+  "Maternal age",
+  "Gestational diabetes",
+]
+
 export default function OverviewContainer({
-  patientData,
+  predictionData,
   results,
   enableOverview,
 }) {
@@ -13,35 +18,35 @@ export default function OverviewContainer({
       {results && (
         <PredictionInfo titleBottom={false} title={"Patient ID"}>
           <span className="text-lg font-semibold text-secondary">
-            {patientData.patientId}
+            {predictionData.PatientID}
           </span>
         </PredictionInfo>
       )}
       <PredictionInfo title={"Risk level"}>
         <div>Indicator</div>
-        <span>{patientData.riskLevel}</span>
+        <span>{"patientData.riskLevel"}</span>
       </PredictionInfo>
       {!results && (
         <PredictionInfo title={"Patient ID"}>
-          <h3 className=" text-primary">{patientData.patientId}</h3>
+          <h3 className=" text-primary">{"patientData.patientId"}</h3>
         </PredictionInfo>
       )}
       {results && (
         <PredictionInfo title={"Risk score"}>
-          <span className="text-2xl">{patientData.riskScore + "%"}</span>
+          <span className="text-2xl">{"patientData.riskScore "+ "%"}</span>
         </PredictionInfo>
       )}
-      <PredictionInfo title={"Risk score"}>
+      <PredictionInfo title={ results ? "Date" : "Birth Date"}>
         <img src={calendaricon} alt="Icon" className="w-1/4" />
-        <span>{patientData.date}</span>
+        <span>{'patientData.date'}</span>
       </PredictionInfo>
-      <PredictionInfo title={"Risk score"}>
+      <PredictionInfo title={results ? "Time" : "Pregnancy Date"}>
         <img src={calendaricon} alt="Icon" className="w-1/4" />
-        <span>{patientData.time}</span>
+        <span>{"patientData.time"}</span>
       </PredictionInfo>
       {results && (
         <PredictionInfo titleBottom={false} title={"Key factors"}>
-          {patientData.keyFactors.map((factor, index) => (
+          {keyFactors.map((factor, index) => (
             <span key={index}>{factor}</span>
           ))}
           <PrimaryButton className={"scale-50 p-2"} animate={false}>View all</PrimaryButton>

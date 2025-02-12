@@ -2,12 +2,13 @@ import PrimaryContainer from "../layout/PrimaryContainer";
 import OverviewContainer from "./OverviewContainer";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { patientDataVariations } from "../../assets/data/add-prediction";
+// import { patientDataVariations } from "../../assets/data/add-prediction";
 
 export default function PredictionSelectionSection({
   results = true,
   isActive = false,
-  changeOverViewStatus
+  changeOverViewStatus,
+  predictions = predictions,
 }) {
   return (
     <PrimaryContainer className={` ${isActive ? "w-full" : "w-2/12 justify-center cursor-pointer"}`} onClick={!isActive && changeOverViewStatus}>
@@ -21,9 +22,17 @@ export default function PredictionSelectionSection({
             className="w-full gap-4 flex flex-col p-4"
           >
             <h3>{results ? "Predicted Results" : "List of Patients"}</h3>
-            {patientDataVariations.map((patient, index) => (
+            {/* {patientDataVariations.map((patient, index) => (
               <OverviewContainer
                 patientData={patient}
+                key={index}
+                results={results}
+                enableOverview={changeOverViewStatus}
+              />
+            ))} */}
+            {predictions.map((prediction, index) => (
+              <OverviewContainer
+                predictionData={prediction}
                 key={index}
                 results={results}
                 enableOverview={changeOverViewStatus}
