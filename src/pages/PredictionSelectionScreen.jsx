@@ -9,6 +9,7 @@ export default function PredictionSelectionScreen() {
   const [activeButton, changeActiveButton] = useState("results");
   const [overViewActivated, changeOverView] = useState(false);
   const [predictions, setPredictions] = useState([]);
+  const [patients, setPatients] = useState([]);
 
   function onToggleClicked(pressedButton) {
     changeActiveButton(pressedButton);
@@ -23,15 +24,25 @@ export default function PredictionSelectionScreen() {
   useEffect(() => {
     const fetchPredictions = async () => {
       try {
-        const res = await api.get("/get_predictions");
+        const res = await api.get("/prediction/get_all_predictions");
         console.log(res.data);
         setPredictions(res.data);
       } catch (error) {
         console.error("Error fetching predictions:", error);
       }
     };
-  
+
+    const fetchPatients = async () => {
+      try {
+        const res = await api.get("/patient/get_all/D001");
+        console.log(res.data);
+        setPatients(res.data);
+      } catch (error) {
+        console.error("Error fetching patients:", error);
+      }
+    };
     fetchPredictions();
+    fetchPatients();
   }, []);
 
   return (
@@ -52,15 +63,16 @@ export default function PredictionSelectionScreen() {
           </motion.div>
         )}
       </AnimatePresence>
-        <motion.div className="flex flex-row gap-4 w-full" layout>
-          <PredictionSelectionSection
-            predictions={predictions}
-            results={isResultsScreen}
-            isActive={!overViewActivated}
-            changeOverViewStatus={() => onOverviewChanged()}
-          />
-          <PredictedResultOverview isActive={overViewActivated} />
-        </motion.div>
+      <motion.div className="flex flex-row gap-4 w-full" layout>
+        <PredictionSelectionSection
+          predictions={predictions}
+          patients={patients}
+          isPrediction={isResultsScreen}
+          isActive={!overViewActivated}
+          changeOverViewStatus={() => onOverviewChanged()}
+        />
+        <PredictedResultOverview isActive={overViewActivated} />
+      </motion.div>
     </div>
   );
 }
