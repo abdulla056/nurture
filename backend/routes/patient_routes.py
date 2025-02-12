@@ -15,6 +15,7 @@ def add_patient():
         data = request.json
         patient_ref = db.collection('patients').document(data['patientId'])
         patient_ref.set({
+            'patientId': data['patientId'],
             'doctorId': data['doctorId'],
             'detailId': data['detailId']
         })

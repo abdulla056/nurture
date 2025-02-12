@@ -16,6 +16,7 @@ def add_doctor():
         data = request.json
         doctor_ref = db.collection('doctors').document(data['doctorId'])
         doctor_ref.set({
+            'doctorId' : data['doctorId'],
             'firstName': data['firstName'],
             'lastName': data['lastName'],
             'email': data['email'],
