@@ -1,14 +1,18 @@
 from flask import Flask, request, jsonify
 import numpy as np
 import joblib
+import os
 from flask_cors import CORS  # Allow cross-origin requests
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS
 
 # Load trained model and scaler
-model = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/best_DEMOoverall_model.pkl")
-scaler = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/DEMOscaler.pkl")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "best_DEMOoverall_model.pkl")
+model = joblib.load(MODEL_PATH)
+
+SCALER_PATH = os.path.join(os.path.dirname(__file__), "models", "DEMOscaler.pkl")
+scaler = joblib.load(SCALER_PATH)
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -36,4 +40,4 @@ def predict():
         return jsonify({"error": str(e)}), 500  # Return error response with status code 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

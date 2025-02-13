@@ -51,7 +51,7 @@ export default function OverviewContainer({
         <img src={trashIcon} alt="trash icon" className="w-1/5" />
       </PredictionInfo>
       <div className="flex flex-col scale-75 gap-2 -mr-3">
-        <PrimaryButton onClick={results && enableOverview}>
+        <PrimaryButton onClick={results ? enableOverview : undefined}>
           {results ? "View more details" : "View all predictions"}
         </PrimaryButton>
         <PrimaryButton transparent={true}>Go to dashboard</PrimaryButton>

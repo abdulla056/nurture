@@ -52,15 +52,15 @@ export default function AddPredictionScreen() {
         <SelectionDashboardDropDown title={"Patient ID"} />
       ) : (
         <div className="grid grid-cols-2 w-full gap-x-24">
-          {addPredictionFields[pageNumber].fields.map((field) => (
-            <TextField label={field} type={"text"} />
+          {addPredictionFields[pageNumber].fields.map((field, index) => (
+            <TextField label={field} type={"text"} key={index} />
           ))}
         </div>
       )}
       <div className="flex flex-row gap-4">
         <PrimaryButton
           transparent={true}
-          onClick={!start && (() => onBackClick())}
+          onClick={start ? () => navigate("/selection-dashboard") : (() => onBackClick()) }
         >
           Go back
         </PrimaryButton>

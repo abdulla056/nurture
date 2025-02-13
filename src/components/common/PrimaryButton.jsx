@@ -2,16 +2,14 @@ import { motion } from "framer-motion";
 
 export default function PrimaryButton({
   children,
-  onClick,
   className,
-  type,
   transparent = false,
-  animate = true
+  animate = true,
+  ...props
 }) {
   return (
     <motion.button
-      type={type}
-      onClick={onClick}
+      {...props}
       whileHover={animate && { scale: 1.07 }} 
       whileTap={animate &&{ scale: 0.95 }}
       className={`flex items-center justify-center py-4 px-12 rounded-xl hover:opacity-90 text-xl 
