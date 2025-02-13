@@ -17,6 +17,7 @@ def add_patient_details():
         data = request.json
         details_ref = db.collection('details').document(data['detailId'])
         details_ref.set({
+            'detailId': data['detailId'],
             'patientId': data['patientId'],
             'timestamp': datetime.utcnow(),
             'deliveryMonth': data['deliveryMonth'],
@@ -35,6 +36,17 @@ def add_patient_details():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+## Fetch patient details by detailID
+@prediction_bp.route('/get_details/<DetailID>', methods=['GET'])
+def get_patient_details(DetailID):
+    details_ref = db.collection('details').document(DetailID)
+    details = details_ref.get()
+
+    if details.exists:
+        return jsonify(details.to_dict()), 200
+    else:
+        return jsonify({"error": "Details not found"}), 404
+
 ## Add prediction for patient
 @prediction_bp.route('/add_prediction', methods=['POST'])
 def add_prediction():
@@ -42,6 +54,7 @@ def add_prediction():
         data = request.json
         prediction_ref = db.collection('predictions').document(data['predictionId'])
         prediction_ref.set({
+            'predictionId': data['predictionId'],
             'patientId': data['patientId'],
             'doctorId': data['doctorId'],
             'detailId' : data['detailId'],

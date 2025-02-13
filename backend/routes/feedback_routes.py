@@ -15,6 +15,7 @@ def add_feedback():
         data = request.json
         feedback_ref = db.collection('feedback').document(data['feedbackId'])
         feedback_ref.set({
+            'feedbackId': data['feedbackId'],
             'doctorId': data['doctorId'],
             'systemAccuracy': data['systemAccuracy'],
             'predictionTime': data['predictionTime'],
