@@ -17,6 +17,49 @@ export default function AddPredictionScreen() {
   const [pageNumber, updatePageNumber] = useState(-1);
   const patientAddedDialog = useRef();
 
+  const [lifeStyleData, setLifeStyleData] = useState({
+    ...addPredictionFields[0].fields.reduce((acc, field) => {
+      acc[field.id] = "";
+      return acc;
+    }, {}),
+  });
+
+  const [riskData, setRiskData] = useState({
+    ...addPredictionFields[1].fields.reduce((acc, field) => {
+      acc[field.id] = "";
+      return acc;
+    }, {}),
+  });
+
+  const [demographicData, setDemographicData] = useState({
+    ...addPredictionFields[2].fields.reduce((acc, field) => {
+      acc[field.id] = "";
+      return acc;
+    }, {}),
+  });
+
+  const [flagsData, setFlagsData] = useState({
+    ...addPredictionFields[3].fields.reduce((acc, field) => {
+      acc[field.id] = "";
+      return acc;
+    }, {}),
+  });
+
+  const formData = [lifeStyleData, riskData, demographicData, flagsData];
+  const setFormData = [
+    setLifeStyleData,
+    setRiskData,
+    setDemographicData,
+    setFlagsData,
+  ];
+
+  function formDataChanged(newValue, id) {
+    setFormData[pageNumber]((prevFormData) => ({
+      ...prevFormData,
+      [id]: newValue,
+    }));
+  }
+
   function onNextClicked() {
     updatePageNumber((currentPageNumber) => currentPageNumber + 1);
   }
@@ -25,10 +68,17 @@ export default function AddPredictionScreen() {
     updatePageNumber((currentPageNumber) => currentPageNumber - 1);
   }
 
+  function onFormSubmit() {
+    console.log(formData);
+    patientAddedDialog.current.showModal();
+  }
+
   const end = addPredictionFields.length === pageNumber + 1;
   const start = pageNumber === -1;
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  console.log(formData);
 
   return (
     <PrimaryContainer className="items-center !p-12 !px-16 !gap-6">
@@ -38,7 +88,9 @@ export default function AddPredictionScreen() {
         actionFirstButton={() => navigate("/dashboard")}
         secondButton={"See all predictions"}
         title={"Prediction has been processed successfully!"}
-        description={"You can either choose to go to the dashboard or see all predictions again"}
+        description={
+          "You can either choose to go to the dashboard or see all predictions again"
+        }
       />
       <div className="flex flex-col items-center gap-4">
         <h3 className="text-center">
@@ -52,22 +104,29 @@ export default function AddPredictionScreen() {
         <SelectionDashboardDropDown title={"Patient ID"} />
       ) : (
         <div className="grid grid-cols-2 w-full gap-x-24">
-          {addPredictionFields[pageNumber].fields.map((field) => (
-            <TextField label={field} type={"text"} />
+          {addPredictionFields[pageNumber].fields.map((field, index) => (
+            <TextField
+              formDataChanged={formDataChanged}
+              label={field.label}
+              value={formData[pageNumber][field.id] || ""}
+              id={field.id}
+              type={"text"}
+              key={index}
+            />
           ))}
         </div>
       )}
       <div className="flex flex-row gap-4">
         <PrimaryButton
           transparent={true}
-          onClick={!start && (() => onBackClick())}
+          onClick={
+            start ? () => navigate("/selection-dashboard") : () => onBackClick()
+          }
         >
           Go back
         </PrimaryButton>
         <PrimaryButton
-          onClick={
-            end ? ()=>patientAddedDialog.current.showModal() : () => onNextClicked()
-          }
+          onClick={end ? () => onFormSubmit() : () => onNextClicked()}
         >
           {end ? "Make prediction" : "Continue"}
         </PrimaryButton>

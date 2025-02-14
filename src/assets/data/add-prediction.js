@@ -1,59 +1,60 @@
 export const addPredictionFields = [
     {
-        title: "Lifestyle factors",
+        title: "Lifestyle Factors",
         fields: [
-            "WIC Status",
-            "Cigarettes Second Trimester",
-            "Tobacco Use",
-            "Cigarettes Before Pregnancy",
-            "Cigarettes First Trimester",
-            "Cigarettes Third Trimester",
-            "Month Prenatal Care Began"
+            { id: "wicStatus", label: "WIC Status" },
+            { id: "cigarettesSecondTrimester", label: "Cigarettes Second Trimester" },
+            { id: "tobaccoUse", label: "Tobacco Use" },
+            { id: "cigarettesBeforePregnancy", label: "Cigarettes Before Pregnancy" },
+            { id: "cigarettesFirstTrimester", label: "Cigarettes First Trimester" },
+            { id: "cigarettesThirdTrimester", label: "Cigarettes Third Trimester" },
+            { id: "monthPrenatalCareBegan", label: "Month Prenatal Care Began" }
         ]
     },
     {
         title: "Risk Data",
         fields: [
-            "Pre Pregnancy Diabetes",
-            "Gestational Hypertension",
-            "Infertility Treatment",
-            "Asst Reproductive Technology",
-            "Ruptured Uterus",
-            "Was Autopsy Performed",
-            "Gestational Diabetes",
-            "Pre Pregnancy Hypertension",
-            "Hypertension Eclampsia",
-            "Fertility Enhancing Drugs",
-            "Previous Cesareans",
-            "Admit to Intensive Care",
-            "Was histological Placental Exam Performed"
+            { id: "prePregnancyDiabetes", label: "Pre Pregnancy Diabetes" },
+            { id: "gestationalHypertension", label: "Gestational Hypertension" },
+            { id: "infertilityTreatment", label: "Infertility Treatment" },
+            { id: "assistedReproductiveTechnology", label: "Asst Reproductive Technology" },
+            { id: "rupturedUterus", label: "Ruptured Uterus" },
+            { id: "wasAutopsyPerformed", label: "Was Autopsy Performed" },
+            { id: "gestationalDiabetes", label: "Gestational Diabetes" },
+            { id: "prePregnancyHypertension", label: "Pre Pregnancy Hypertension" },
+            { id: "hypertensionEclampsia", label: "Hypertension Eclampsia" },
+            { id: "fertilityEnhancingDrugs", label: "Fertility Enhancing Drugs" },
+            { id: "previousCesareans", label: "Previous Cesareans" },
+            { id: "admitToIntensiveCare", label: "Admit to Intensive Care" },
+            { id: "histologicalPlacentalExam", label: "Was Histological Placental Exam Performed" }
         ]
     },
     {
         title: "Demographic Factors",
         fields: [
-            "Delivery Year",
-            "Delivery Month",
-            "Delivery Weekday",
-            "Mother's Single Year of Age",
-            "Mother's Age Recode 14",
-            "Mother's Race Recode 31",
-            "Mother's Education Revised",
-            "Mother's Height (inches)",
-            "Prepregnancy Weight Recode",
-            "Birth Weight Details (g)",
-            "Father's Combined Age"
+            { id: "deliveryYear", label: "Delivery Year" },
+            { id: "deliveryMonth", label: "Delivery Month" },
+            { id: "deliveryWeekday", label: "Delivery Weekday" },
+            { id: "mothersAge", label: "Mother's Single Year of Age" },
+            { id: "mothersAgeRecode", label: "Mother's Age Recode 14" },
+            { id: "mothersRace", label: "Mother's Race Recode 31" },
+            { id: "mothersEducation", label: "Mother's Education Revised" },
+            { id: "mothersHeight", label: "Mother's Height (inches)" },
+            { id: "prepregnancyWeight", label: "Prepregnancy Weight Recode" },
+            { id: "birthWeight", label: "Birth Weight Details (g)" },
+            { id: "fathersAge", label: "Father's Combined Age" }
         ]
     },
     {
         title: "Flags Factors",
         fields: [
-            "Sex imputed",
-            "Plurality imputed",
-            "Gestation imputed"
+            { id: "sexImputed", label: "Sex Imputed" },
+            { id: "pluralityImputed", label: "Plurality Imputed" },
+            { id: "gestationImputed", label: "Gestation Imputed" }
         ]
     }
-]
+];
+
 
 export const patientDataVariations = [
   {

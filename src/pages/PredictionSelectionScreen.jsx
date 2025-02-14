@@ -4,6 +4,8 @@ import PredictionToggle from "../components/predictions-dashboard/PredictionTogg
 import PredictedResultOverview from "../components/predictions-dashboard/PredictedResultOverview";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../services/api";
+import HoveringButton from "../components/overview/HoveringButton";
+import { useNavigate } from "react-router-dom";
 
 export default function PredictionSelectionScreen() {
   const [activeButton, changeActiveButton] = useState("results");
@@ -11,12 +13,22 @@ export default function PredictionSelectionScreen() {
   const [predictions, setPredictions] = useState([]);
   const [patients, setPatients] = useState([]);
 
+  const navigate = useNavigate();
+
   function onToggleClicked(pressedButton) {
     changeActiveButton(pressedButton);
   }
 
   function onOverviewChanged() {
     changeOverView((currentStatus) => !currentStatus);
+  }
+
+  function navigateToAddScreen() {
+    if (isResultsScreen) {
+      navigate("/selection-dashboard/add-prediction");
+    } else {
+      navigate("/selection-dashboard/add-patient");
+    }
   }
 
   const isResultsScreen = activeButton === "results";
@@ -73,6 +85,11 @@ export default function PredictionSelectionScreen() {
         />
         <PredictedResultOverview isActive={overViewActivated} />
       </motion.div>
+      <HoveringButton onClick={navigateToAddScreen}>
+        {isResultsScreen || overViewActivated
+          ? "Add a prediction"
+          : "Add a patient"}
+      </HoveringButton>
     </div>
   );
 }

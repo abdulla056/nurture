@@ -12,12 +12,7 @@ export default function PredictionSelectionSection({
   patients = patients,
 }) {
   return (
-    <PrimaryContainer
-      className={` ${
-        isActive ? "w-full" : "w-2/12 justify-center cursor-pointer"
-      }`}
-      onClick={!isActive && changeOverViewStatus}
-    >
+    <PrimaryContainer className={` ${isActive ? "w-full" : "w-2/12 justify-center cursor-pointer"}`} onClick={!isActive ? changeOverViewStatus : undefined}>
       <AnimatePresence>
         {isActive ? (
           <motion.div
