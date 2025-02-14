@@ -28,7 +28,7 @@ def add_patient():
 @patient_bp.route('/get_all/<DoctorID>', methods=['GET'])
 def get_patients(DoctorID):
     try:
-        patients_ref = db.collection('patients').where(filter = ("doctorId", "==", DoctorID)).stream()
+        patients_ref = db.collection('patients').where("doctorId", "==", DoctorID).stream()
         patients = [doc.to_dict() for doc in patients_ref]
         
         if patients:

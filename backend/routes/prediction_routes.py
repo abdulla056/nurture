@@ -60,7 +60,9 @@ def add_prediction():
             'detailId' : data['detailId'],
             'predictionResult': data['predictionResult'],
             'confidenceScore': data['confidenceScore'],
-            'timestamp': datetime.utcnow()
+            'timestamp': datetime.utcnow(),
+            'riskLevel': data['riskLevel'],
+            'riskScore': data['riskScore'],
         })
 
         contributing_factors_ref = prediction_ref.collection('contributingFactors')
@@ -87,9 +89,19 @@ def get_prediction(PredictionID):
         return jsonify({"error": "Prediction not found"}), 404
 
 ## Fetch all predictions for a certain patient
-@prediction_bp.route('/get_all_predictions/<PatientID>', methods=['GET'])
+@prediction_bp.route('/get_predictions/<PatientID>', methods=['GET'])
 def get_predictions(PatientID):
     predictions_ref = db.collection('predictions').where("patientId", "==", PatientID).stream()
+    predictions = [doc.to_dict() for doc in predictions_ref]
+
+    if predictions:
+        return jsonify(predictions), 200
+    else:
+        return jsonify({"message": "No predictions found for this patient"}), 404
+    
+@prediction_bp.route('/get_all_predictions', methods=['GET'])
+def get_all_predictions():
+    predictions_ref = db.collection('predictions').stream()
     predictions = [doc.to_dict() for doc in predictions_ref]
 
     if predictions:

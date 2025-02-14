@@ -3,56 +3,66 @@ import calendaricon from "../../assets/images/calendar-black.png";
 import PrimaryButton from "../common/PrimaryButton";
 import trashIcon from "../../assets/images/trash-icon.png";
 
+const keyFactors = ["Maternal age", "Gestational diabetes"];
+
 export default function OverviewContainer({
+  predictionData,
   patientData,
-  results,
+  isPrediction,
   enableOverview,
 }) {
+  const data = isPrediction ? predictionData : patientData;
+  const timestamp = data?.timestamp || null;
+  const dateObj = timestamp ? new Date(timestamp) : null;
+  const date = dateObj ? dateObj.toISOString().split("T")[0] : "N/A";
+  const time = dateObj ? dateObj.toTimeString().split(" ")[0].slice(0, 5) : "N/A";
   return (
     <div className="flex flex-row border rounded-2xl items-center justify-between px-6 py-2">
-      {results && (
+      {isPrediction && (
         <PredictionInfo titleBottom={false} title={"Patient ID"}>
           <span className="text-lg font-semibold text-secondary">
-            {patientData.patientId}
+            {predictionData.patientId}
           </span>
         </PredictionInfo>
       )}
       <PredictionInfo title={"Risk level"}>
         <div>Indicator</div>
-        <span>{patientData.riskLevel}</span>
+        <span>{isPrediction ? predictionData.riskLevel : "Low"}</span>
       </PredictionInfo>
-      {!results && (
+      {!isPrediction && (
         <PredictionInfo title={"Patient ID"}>
           <h3 className=" text-primary">{patientData.patientId}</h3>
         </PredictionInfo>
       )}
-      {results && (
+      {isPrediction && (
         <PredictionInfo title={"Risk score"}>
-          <span className="text-2xl">{patientData.riskScore + "%"}</span>
+          <span className="text-2xl">{predictionData.riskScore}</span>
         </PredictionInfo>
       )}
-      <PredictionInfo title={"Risk score"}>
+      <PredictionInfo title={isPrediction ? "Date" : "Birth Date"}>
         <img src={calendaricon} alt="Icon" className="w-1/4" />
-        <span>{patientData.date}</span>
+        <span>{date}</span>
       </PredictionInfo>
-      <PredictionInfo title={"Risk score"}>
+      <PredictionInfo title={isPrediction ? "Time" : "Pregnancy Date"}>
         <img src={calendaricon} alt="Icon" className="w-1/4" />
-        <span>{patientData.time}</span>
+        <span>{time}</span>
       </PredictionInfo>
-      {results && (
+      {isPrediction && (
         <PredictionInfo titleBottom={false} title={"Key factors"}>
-          {patientData.keyFactors.map((factor, index) => (
+          {keyFactors.map((factor, index) => (
             <span key={index}>{factor}</span>
           ))}
-          <PrimaryButton className={"scale-50 p-2"} animate={false}>View all</PrimaryButton>
+          <PrimaryButton className={"scale-50 p-2"} animate={false}>
+            View all
+          </PrimaryButton>
         </PredictionInfo>
       )}
       <PredictionInfo title={"Delete"}>
         <img src={trashIcon} alt="trash icon" className="w-1/5" />
       </PredictionInfo>
       <div className="flex flex-col scale-75 gap-2 -mr-3">
-        <PrimaryButton onClick={results ? enableOverview : undefined}>
-          {results ? "View more details" : "View all predictions"}
+        <PrimaryButton onClick={isPrediction ? enableOverview : undefined}>
+          {isPrediction ? "View more details" : "View all predictions"}
         </PrimaryButton>
         <PrimaryButton transparent={true}>Go to dashboard</PrimaryButton>
       </div>
