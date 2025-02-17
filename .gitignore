@@ -26,3 +26,4 @@ venv/
 secrets/
 .env
 .codegpt
+dummy.txt

@@ -8,10 +8,10 @@ firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 
 db = firestore.client()
-prediction_bp = Blueprint('prediction_bp', __name__)
+details_bp = Blueprint('details_bp', __name__)
 
 ## Adding patient details    
-@prediction_bp.route('/add_details', methods=['POST'])
+@details_bp.route('/add_details', methods=['POST'])
 def add_patient_details():
     try:
         data = request.json
@@ -37,7 +37,7 @@ def add_patient_details():
         return jsonify({"error": str(e)}), 500
 
 ## Fetch patient details by detailID
-@prediction_bp.route('/get_details/<DetailID>', methods=['GET'])
+@details_bp.route('/get_details/<DetailID>', methods=['GET'])
 def get_patient_details(DetailID):
     details_ref = db.collection('details').document(DetailID)
     details = details_ref.get()
@@ -48,7 +48,7 @@ def get_patient_details(DetailID):
         return jsonify({"error": "Details not found"}), 404
 
 ## Add prediction for patient
-@prediction_bp.route('/add_prediction', methods=['POST'])
+@details_bp.route('/add_prediction', methods=['POST'])
 def add_prediction():
     try:
         data = request.json
@@ -78,7 +78,7 @@ def add_prediction():
         return jsonify({"error": str(e)}), 400
 
 ## Fetch prediction by predictionID
-@prediction_bp.route('/get_prediction/<PredictionID>', methods=['GET'])
+@details_bp.route('/get_prediction/<PredictionID>', methods=['GET'])
 def get_prediction(PredictionID):
     prediction_ref = db.collection('predictions').document(PredictionID)
     prediction = prediction_ref.get()
@@ -89,7 +89,7 @@ def get_prediction(PredictionID):
         return jsonify({"error": "Prediction not found"}), 404
 
 ## Fetch all predictions for a certain patient
-@prediction_bp.route('/get_predictions/<PatientID>', methods=['GET'])
+@details_bp.route('/get_predictions/<PatientID>', methods=['GET'])
 def get_predictions(PatientID):
     predictions_ref = db.collection('predictions').where("patientId", "==", PatientID).stream()
     predictions = [doc.to_dict() for doc in predictions_ref]
@@ -99,7 +99,7 @@ def get_predictions(PatientID):
     else:
         return jsonify({"message": "No predictions found for this patient"}), 404
     
-@prediction_bp.route('/get_all_predictions', methods=['GET'])
+@details_bp.route('/get_all_predictions', methods=['GET'])
 def get_all_predictions():
     predictions_ref = db.collection('predictions').stream()
     predictions = [doc.to_dict() for doc in predictions_ref]
@@ -107,4 +107,4 @@ def get_all_predictions():
     if predictions:
         return jsonify(predictions), 200
     else:
-        return jsonify({"message": "No predictions found for this patient"}), 404
+        return jsonify({"message": "No predictions found"}), 404
