@@ -27,3 +27,4 @@ secrets/
 .env
 .codegpt
 dummy.txt
+**/__pycache__/
