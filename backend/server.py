@@ -13,8 +13,9 @@ db = firestore.client()
 
 from routes.doctor_routes import doctor_bp
 from routes.patient_routes import patient_bp
-from routes.prediction_routes import prediction_bp
+from backend.routes.details_routes import details_bp
 from routes.feedback_routes import feedback_bp
+from routes.supervised_routes import supervised_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -23,8 +24,9 @@ CORS(app)
 
 app.register_blueprint(doctor_bp, url_prefix='/doctor')
 app.register_blueprint(patient_bp, url_prefix='/patient')
-app.register_blueprint(prediction_bp, url_prefix='/prediction')
+app.register_blueprint(details_bp, url_prefix='/details')
 app.register_blueprint(feedback_bp, url_prefix='/feedback')
+app.register_blueprint(supervised_bp, url_prefix='/supervised')
 
 if __name__ == '__main__':
     app.run(debug=True, port=app.config['PORT'])
