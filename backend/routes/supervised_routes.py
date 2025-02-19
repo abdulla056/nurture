@@ -14,10 +14,10 @@ db = firestore.client()
 supervised_bp = Blueprint('supervised_bp', __name__)
 
 # Load trained model and scaler
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "best_DEMOoverall_model.pkl")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..","models", "best_DEMOoverall_model.pkl")
 model = joblib.load(MODEL_PATH)
 
-SCALER_PATH = os.path.join(os.path.dirname(__file__), "models", "DEMOscaler.pkl")
+SCALER_PATH = os.path.join(os.path.dirname(__file__), "..","models", "DEMOscaler.pkl")
 scaler = joblib.load(SCALER_PATH)
 
 @supervised_bp.route("/predict", methods=["POST"])

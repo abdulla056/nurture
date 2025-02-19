@@ -15,26 +15,63 @@ details_bp = Blueprint('details_bp', __name__)
 def add_patient_details():
     try:
         data = request.json
-        details_ref = db.collection('details').document(data['detailId'])
+        detailId = data['detailId']  # Generate a unique document ID
+
+        details_ref = db.collection('details').document(detailId)
         details_ref.set({
-            'detailId': data['detailId'],
+            'detailId': detailId,
             'patientId': data['patientId'],
             'timestamp': datetime.utcnow(),
-            'deliveryMonth': data['deliveryMonth'],
-            'deliveryYear': data['deliveryYear'],
-            'prepregnancyDiabetes': data['prepregnancyDiabetes'],
-            'gestationalDiabetes': data['gestationalDiabetes'],
-            'mothersRaceRecode31': data['mothersRaceRecode31'],
-            'mothersAge1': data['mothersAge1'],
-            'sexOfInfant': data['sexOfInfant'],
-            'pluralityRecode': data['pluralityRecode'],
-            'cigarettesBeforePregnancy': data['cigarettesBeforePregnancy'],
-            'WICStatus': data['WICStatus'],
+
+            # Store lifestyle factors as a map
+            'lifestyleFactors': {
+                'WICStatus': data.get('WICStatus'),
+                'cigarettesSecondTrimester': data.get('cigarettesSecondTrimester'),
+                'tobaccoUse': data.get('tobaccoUse'),
+                'cigarettesBeforePregnancy': data.get('cigarettesBeforePregnancy'),
+                'cigarettesFirstTrimester': data.get('cigarettesFirstTrimester'),
+                'cigarettesThirdTrimester': data.get('cigarettesThirdTrimester'),
+                'monthPrenatalCareBegan': data.get('monthPrenatalCareBegan')
+            },
+
+            # Store risk data as a map
+            'riskData': {
+                'prePregnancyDiabetes': data.get('prePregnancyDiabetes'),
+                'gestationalHypertension': data.get('gestationalHypertension'),
+                'infertilityTreatment': data.get('infertilityTreatment'),
+                'asstReproductiveTechnology': data.get('asstReproductiveTechnology'),
+                'rupturedUterus': data.get('rupturedUterus'),
+                'wasAutopsyPerformed': data.get('wasAutopsyPerformed'),
+                'gestationalDiabetes': data.get('gestationalDiabetes'),
+                'prePregnancyHypertension': data.get('prePregnancyHypertension'),
+                'hypertensionEclampsia': data.get('hypertensionEclampsia'),
+                'fertilityEnhancingDrugs': data.get('fertilityEnhancingDrugs'),
+                'previousCesareans': data.get('previousCesareans'),
+                'admitToIntensiveCare': data.get('admitToIntensiveCare'),
+                'wasHistologicalPlacentalExamPerformed': data.get('wasHistologicalPlacentalExamPerformed')
+            },
+
+            # Store demographic data as a map
+            'demographicData': {
+                'deliveryYear': data.get('deliveryYear'),
+                'deliveryMonth': data.get('deliveryMonth'),
+                'deliveryWeekday': data.get('deliveryWeekday'),
+                'mothersSingleYearOfAge': data.get('mothersSingleYearOfAge'),
+                'mothersAgeRecode14': data.get('mothersAgeRecode14'),
+                'mothersRaceRecode31': data.get('mothersRaceRecode31'),
+                'mothersEducationRevised': data.get('mothersEducationRevised'),
+                'mothersHeightInches': data.get('mothersHeightInches'),
+                'prepregnancyWeightRecode': data.get('prepregnancyWeightRecode'),
+                'birthWeightDetailsGrams': data.get('birthWeightDetailsGrams'),
+                'fathersCombinedAge': data.get('fathersCombinedAge')
+            }
         })
-        return jsonify({"message": "Patient details added successfully"}), 201
+
+        return jsonify({"message": "Patient details added successfully", "detailId": detailId}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 ## Fetch patient details by detailID
 @details_bp.route('/get_details/<DetailID>', methods=['GET'])
@@ -52,6 +89,11 @@ def get_patient_details(DetailID):
 def add_prediction():
     try:
         data = request.json
+        
+        contributing_factors_map = {
+            factor: details['percentage'] for factor, details in data['contributingFactors'].items()
+        }
+
         prediction_ref = db.collection('predictions').document(data['predictionId'])
         prediction_ref.set({
             'predictionId': data['predictionId'],
@@ -63,16 +105,10 @@ def add_prediction():
             'timestamp': datetime.utcnow(),
             'riskLevel': data['riskLevel'],
             'riskScore': data['riskScore'],
+            'expectedOutcome': data['expectedOutcome'],
+            'contributingFactors': contributing_factors_map            
         })
 
-        contributing_factors_ref = prediction_ref.collection('contributingFactors')
-        for factor, details in data['contributingFactors'].items():
-            contributing_factors_ref.document(factor).set({
-                'factor': factor,
-                'description': details['desc'],
-                'contributionPercentage': details['percentage']
-        })
-        
         return jsonify({"message": "Prediction added successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400

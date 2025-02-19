@@ -11,25 +11,27 @@ cred = credentials.Certificate(firebase_config_json)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+## Import the routes
 from routes.doctor_routes import doctor_bp
 from routes.patient_routes import patient_bp
-from backend.routes.details_routes import details_bp
+from routes.details_routes import details_bp
 from routes.feedback_routes import feedback_bp
 from routes.supervised_routes import supervised_bp
+from routes.authentication_routes import auth_bp
 
+## Create the Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
 CORS(app)
 
-
+## Register the routes
 app.register_blueprint(doctor_bp, url_prefix='/doctor')
 app.register_blueprint(patient_bp, url_prefix='/patient')
 app.register_blueprint(details_bp, url_prefix='/details')
 app.register_blueprint(feedback_bp, url_prefix='/feedback')
 app.register_blueprint(supervised_bp, url_prefix='/supervised')
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
+## Default route
 if __name__ == '__main__':
     app.run(debug=True, port=app.config['PORT'])
-
-
-print ("Hello")
