@@ -10,17 +10,26 @@ from io import BytesIO
 import matplotlib
 matplotlib.use('Agg')  # Set the backend to 'Agg'
 import matplotlib.pyplot as plt
+import os
 
 app = Flask(__name__)
 CORS(app)
 
 # Load trained models and scalers
-DEMOmodel = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/best_DEMOoverall_model.pkl")
-DEMOscaler = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/DEMOscaler.pkl")
-LFmodel = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/best_LFoverall_model.pkl")
-LFscaler = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/LFscaler.pkl")
-riskmodel = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/best_RiskFactorsoverall_model.PKL")
-riskscaler = joblib.load("D:/Taylors/Y3S5/Capstone Project 1/RiskFactorsscaler.pkl")
+DEMO_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..","models","best_DEMOoverall_model.pkl")
+DEMOmodel = joblib.load(DEMO_MODEL_PATH)
+DEMO_SCALER_PATH = os.path.join(os.path.dirname(__file__), "..","models","DEMOscaler.pkl")
+DEMOscaler = joblib.load(DEMO_SCALER_PATH)
+
+LF_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..","models","best_LFoverall_model.pkl")
+LFmodel = joblib.load(LF_MODEL_PATH)
+LF_SCALER_PATH = os.path.join(os.path.dirname(__file__), "..","models","LFscaler.pkl")
+LFscaler = joblib.load(LF_SCALER_PATH)
+
+RISK_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..","models","best_RiskFactorsoverall_model.pkl")
+RISKmodel = joblib.load(RISK_MODEL_PATH)
+RISK_SCALER_PATH = os.path.join(os.path.dirname(__file__), "..","models","RiskFactorsscaler.pkl")
+RISKscaler = joblib.load(RISK_SCALER_PATH)
 
 # Feature names for LIME explanation
 demographics = ['Delivery_Year', 'Delivery_Month', 'Weekday', 'Mothers_Age_1', 'Mothers_Race_Recode6', 'Mothers_Education_Revised', 
@@ -35,7 +44,8 @@ risk_factors = ['Prepregnancy_Diabetes', 'Gestational_Diabetes', 'Prepregnancy_H
                 'Admit_to_Intensive_Care', 'Was_Autopsy_Performed', 'Was_Histological_Placental_Exam_Performed']
 
 # Load full training data
-full_training_data = pd.read_csv("D:/Taylors/Y3S5/Capstone Project 1/preprocessed_data.csv")
+FULL_TRAINING_DATA_PATH = os.path.join(os.path.dirname(__file__), "..","models","preprocessed_data.csv")
+full_training_data = pd.read_csv(FULL_TRAINING_DATA_PATH)
 
 # Initialize LIME Explainers
 demoexplainer = LimeTabularExplainer(training_data=DEMOscaler.transform(full_training_data[demographics]), feature_names=demographics, class_names=['No Risk', 'At Risk'], mode='classification')
