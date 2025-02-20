@@ -5,7 +5,7 @@ certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
 click==8.1.8
-cryptography==44.0.0
+cryptography==44.0.1
 firebase-admin==6.6.0
 Flask==3.1.0
 Flask-Cors==5.0.0
@@ -36,12 +36,12 @@ pyasn1_modules==0.4.1
 pycparser==2.22
 PyJWT==2.10.1
 pyparsing==3.2.1
+python-dotenv==1.0.1
 requests==2.32.3
 rsa==4.9
 scikit-learn==1.6.1
 scipy==1.15.1
 threadpoolctl==3.5.0
-firebase-admin==6.6.0
 uritemplate==4.1.1
 urllib3==2.3.0
 Werkzeug==3.1.3

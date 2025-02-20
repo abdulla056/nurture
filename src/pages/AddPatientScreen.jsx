@@ -1,11 +1,11 @@
-import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../components/common/PrimaryButton";
 import TextField from "../components/common/TextField";
-import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import PrimaryContainer from "../components/layout/PrimaryContainer";
 import SelectionDashboardDropDown from "../components/predictions-dashboard/SelectionDashboardDropDown";
 
 export default function AddPatientScreen() {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col gap-6">
       <PrimaryContainer className="items-center mx-32">
@@ -26,7 +26,7 @@ export default function AddPatientScreen() {
         </div>
       </PrimaryContainer>
       <div className="flex flex-row justify-center gap-4">
-        <PrimaryButton transparent={true}>Go back</PrimaryButton>
+        <PrimaryButton transparent={true} onClick= {() => navigate("/selection-dashboard")}>Go back</PrimaryButton>
         <PrimaryButton>Add patient</PrimaryButton>
       </div>
     </div>

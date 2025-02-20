@@ -5,9 +5,17 @@ import PrimaryButton from "../components/common/PrimaryButton";
 import { useRef } from "react";
 import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { AnimatePresence, motion } from "framer-motion";
+// import {useForm} from "react-hook-form";
 
 export default function Recommendations() {
+  // const { register, handleSubmit } = useForm();
   const dialog = useRef();
+  const systemAccuracy = useRef();
+  const helpfulness = useRef();
+  const interfaceUsefullnes = useRef();
+  const predictionTime = useRef(); 
+  const additionalComments = useRef();
+
   return (
     <AnimatePresence>
       <motion.div
