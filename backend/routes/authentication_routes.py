@@ -7,6 +7,7 @@ firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 auth_bp = Blueprint('auth_bp', __name__)
 
+## Not tested
 @auth_bp.route('/verify_phone', methods=['POST'])
 def verify_phone():
     try:
