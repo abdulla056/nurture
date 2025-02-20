@@ -7,6 +7,8 @@ import { useRef, useState } from "react";
 import SelectionDashboardDropDown from "../components/predictions-dashboard/SelectionDashboardDropDown";
 import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { useNavigate } from "react-router-dom";
+import CustomDropDown from "../components/common/CustomDropDown";
+import AddPredictionDropDown from "../components/predictions-dashboard/AddPredictionDropDown";
 
 const descriptions = [
   "Click Next to start the prediction form. Enter required maternal and fetal health data, including Patient ID, demographics, maternal health indicators, and fetal monitoring data (e.g., CTG readings). Ensure all fields are complete and accurate before submitting for reliable results.",
@@ -105,14 +107,27 @@ export default function AddPredictionScreen() {
       ) : (
         <div className="grid grid-cols-2 w-full gap-x-24">
           {addPredictionFields[pageNumber].fields.map((field, index) => (
-            <TextField
-              formDataChanged={formDataChanged}
-              label={field.label}
-              value={formData[pageNumber][field.id] || ""}
-              id={field.id}
-              type={"text"}
-              key={index}
-            />
+            <>
+              {field.options ? (
+                <AddPredictionDropDown
+                  options={field.options}
+                  label={field.label}
+                  value={formData[pageNumber][field.id]}
+                  id={field.id}
+                  key={index}
+                  formDataChanged={formDataChanged}
+                />
+              ) : (
+                <TextField
+                  formDataChanged={formDataChanged}
+                  label={field.label}
+                  value={formData[pageNumber][field.id] || ""}
+                  id={field.id}
+                  type={"text"}
+                  key={index}
+                />
+              )}
+            </>
           ))}
         </div>
       )}
