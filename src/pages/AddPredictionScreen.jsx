@@ -17,14 +17,14 @@ const descriptions = [
 ];
 
 const predictionSelector = [
-  { key: "risk", selector: "Risk Factors", active: false },
-  { key: "lifestyle", selector: "Life Style Factors", active: false },
-  { key: "demographic", selector: "Demographic Factors", active: false },
+  { key: "risk", selector: "Risk Factors",},
+  { key: "lifestyle", selector: "Life Style Factors",},
+  { key: "demographic", selector: "Demographic Factors"},
 ];
 
 export default function AddPredictionScreen() {
   const [modelSelected, setModelSelected] = useState();
-  const [pageNumber, updatePageNumber] = useState(4);
+  const [pageNumber, updatePageNumber] = useState(-1);
   const patientAddedDialog = useRef();
 
   const [lifeStyleData, setLifeStyleData] = useState({
