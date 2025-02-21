@@ -30,3 +30,5 @@ dummy.txt
 **/pycache/
 **/__pycache__/
 **/*.pyc
+backend/routes/__pycache__/
+backend/__pycache__/

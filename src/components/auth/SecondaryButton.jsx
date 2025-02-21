@@ -1,15 +1,15 @@
 import { motion } from "framer-motion";
 
 export default function SecondaryButton({
-  onClick,
   type = "button",
   children,
   className = "",
+  ...props
 }) {
   return (
     <motion.button
+      {...props}
       type={type}
-      onClick={onClick}
       whileHover={{ scale: 1.07 }}
       whileTap={{ scale: 0.95 }}
       className={`bg-opacity-90 gap-2.5 self-stretch px-16 py-3 mt-12 max-w-full text-base font-semibold
