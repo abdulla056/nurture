@@ -132,7 +132,7 @@ def LFexplain():
 def riskpredict():
     try:
         data = request.get_json()
-        prediction, confidence = predict(riskmodel, riskscaler, data["features"], risk_factors)
+        prediction, confidence = predict(RISKmodel, RISKscaler, data["features"], risk_factors)
         return jsonify({"Expected outcome": prediction, "Confidence": confidence})
     except Exception as e:
         print("Error in /riskpredict:", str(e))
@@ -143,7 +143,7 @@ def riskpredict():
 def riskexplain():
     try:
         data = request.get_json()
-        image_base64 = explain(riskexplainer, riskmodel, riskscaler, data["features"], risk_factors)
+        image_base64 = explain(riskexplainer, RISKmodel, RISKscaler, data["features"], risk_factors)
         return jsonify({"explanation_image": image_base64})
     except Exception as e:
         print("Error in /riskexplain:", str(e))
