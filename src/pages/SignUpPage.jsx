@@ -1,4 +1,5 @@
 import LoginForm from "../components/auth/LoginForm.jsx";
+import { useNavigate } from "react-router-dom";
 import { SignUpFeatures } from "../components/auth/SignUpFeatures.jsx";
 import { SignUpForm } from "../components/auth/SignUpForm.jsx";
 import { Footer } from "../components/common/Footer.jsx";
@@ -8,6 +9,7 @@ export default function SignUpPage() {
   const [signUpPage, setPage] = useState(true);
   const [signupError, setSignupError] = useState(null); // Lifted state
   const [signupSuccess, setSignupSuccess] = useState(null);
+  const navigate = useNavigate();
 
   function togglePage() {
     setPage((prevValue) => !prevValue);
@@ -17,8 +19,9 @@ export default function SignUpPage() {
     setSignupError(null); // Clear previous errors
     try {
         const response = await axios.post("/api/signup", data);
+        localStorage.setItem('token', token);
         setSignupSuccess("Signup successful!"); // Set success message
-        // ... any other actions (e.g., redirect)
+        navigate("/dashboard");
     } catch (error) {
         // ... (error handling as before, but now setSignupError)
         if (error.response && error.response.data && error.response.data.message) {
