@@ -1,19 +1,24 @@
-from flask import Flask, request, jsonify
-import numpy as np
-import pandas as pd
+from flask import Flask, request, jsonify, Blueprint # type: ignore
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
 import joblib
 from flask_cors import CORS
 from lime.lime_tabular import LimeTabularExplainer
 import traceback
 import base64
 from io import BytesIO
-import matplotlib
-matplotlib.use('Agg')  # Set the backend to 'Agg'
-import matplotlib.pyplot as plt
+import matplotlib as plt
+plt.use('Agg')  # Set the backend to 'Agg'
 import os
+import firebase_admin # type: ignore
+from firebase_admin import credentials,firestore # type: ignore
+from config import Config
 
-app = Flask(__name__)
-CORS(app)
+firebase_config_json = Config.FIREBASE_CONFIG
+cred = credentials.Certificate(firebase_config_json)
+
+db = firestore.client()
+supervised_bp = Blueprint('supervised_bp', __name__)
 
 # Load trained models and scalers
 DEMO_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..","models","best_DEMOoverall_model.pkl")
@@ -50,7 +55,7 @@ full_training_data = pd.read_csv(FULL_TRAINING_DATA_PATH)
 # Initialize LIME Explainers
 demoexplainer = LimeTabularExplainer(training_data=DEMOscaler.transform(full_training_data[demographics]), feature_names=demographics, class_names=['No Risk', 'At Risk'], mode='classification')
 lfexplainer = LimeTabularExplainer(training_data=LFscaler.transform(full_training_data[lifestyle_factors]), feature_names=lifestyle_factors, class_names=['No Risk', 'At Risk'], mode='classification')
-riskexplainer = LimeTabularExplainer(training_data=riskscaler.transform(full_training_data[risk_factors]), feature_names=risk_factors, class_names=['No Risk', 'At Risk'], mode='classification')
+riskexplainer = LimeTabularExplainer(training_data=RISKscaler.transform(full_training_data[risk_factors]), feature_names=risk_factors, class_names=['No Risk', 'At Risk'], mode='classification')
 
 def predict(model, scaler, features, feature_names):
     features_array = np.array(features).reshape(1, -1)
@@ -76,7 +81,7 @@ def explain(explainer, model, scaler, features, feature_names):
     buf.close()
     return image_base64
 
-@app.route("/demopredict", methods=["POST"])
+@supervised_bp.route("/demopredict", methods=["POST"])
 def demopredict():
     try:
         data = request.get_json()
@@ -87,7 +92,7 @@ def demopredict():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/demoexplain", methods=["POST"])
+@supervised_bp.route("/demoexplain", methods=["POST"])
 def demoexplain():
     try:
         data = request.get_json()
@@ -100,7 +105,7 @@ def demoexplain():
 
 
 #Lifestyle
-@app.route("/LFpredict", methods=["POST"])
+@supervised_bp.route("/LFpredict", methods=["POST"])
 def LFpredict():
     try:
         data = request.get_json()
@@ -111,7 +116,7 @@ def LFpredict():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/LFexplain", methods=["POST"])
+@supervised_bp.route("/LFexplain", methods=["POST"])
 def LFexplain():
     try:
         data = request.get_json()
@@ -123,27 +128,25 @@ def LFexplain():
         return jsonify({"error": str(e)}), 500
 
 ##risk
-@app.route("/riskpredict", methods=["POST"])
+@supervised_bp.route("/riskpredict", methods=["POST"])
 def riskpredict():
     try:
         data = request.get_json()
-        prediction, confidence = predict(riskmodel, riskscaler, data["features"], risk_factors)
+        prediction, confidence = predict(RISKmodel, RISKscaler, data["features"], risk_factors)
         return jsonify({"Expected outcome": prediction, "Confidence": confidence})
     except Exception as e:
         print("Error in /riskpredict:", str(e))
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/riskexplain", methods=["POST"])
+@supervised_bp.route("/riskexplain", methods=["POST"])
 def riskexplain():
     try:
         data = request.get_json()
-        image_base64 = explain(riskexplainer, riskmodel, riskscaler, data["features"], risk_factors)
+        image_base64 = explain(riskexplainer, RISKmodel, RISKscaler, data["features"], risk_factors)
         return jsonify({"explanation_image": image_base64})
     except Exception as e:
         print("Error in /riskexplain:", str(e))
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-if __name__ == "__main__":
-    app.run(debug=True)
