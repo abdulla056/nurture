@@ -64,10 +64,10 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
           {success && <p className="text-green-500 mt-2">{success}</p>} {/* Display success from parent */}
         </form>
       </div>
-      <div className="gap-2.5 px-36 pt-20 pb-6 -mt-14 text-lg bg-white rounded-3xl min-h-[132px] text-sky-950 max-md:px-5 max-md:mt-10">
-        Already have an account?{" "}
+      <div className="flex justify-center gap-2.5 px-24 pt-20 pb-6 -mt-14 text-lg bg-white rounded-3xl min-h-[132px] text-sky-950 max-md:px-5 max-md:mt-10">
+        Already have an account?
         <span
-          className="font-bold text-primary hover:cursor-pointer"
+          className="font-bold text-primary hover:cursor-pointer text-nowrap"
           onClick={togglePage}
         >
           Sign in
