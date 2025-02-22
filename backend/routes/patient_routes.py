@@ -13,9 +13,16 @@ patient_bp = Blueprint('patient_bp', __name__)
 def add_patient():
     try:
         data = request.json
-        patient_ref = db.collection('patients').document(data['patientId'])
+        counter_ref = db.collection("counter").document("patient_id")
+        count = counter_ref.get()
+        if not count.exists:
+            raise Exception("Counter does not exist")
+        next_id = count.to_dict()["nextId"]
+        patientId = f"P{next_id:03}" # Format with leading zeros
+        counter_ref.update({"nextId":int(next_id+1)})
+        patient_ref = db.collection('patients').document(patientId)
         patient_ref.set({
-            'patientId': data['patientId'],
+            'patientId': patientId,
             'doctorId': data['doctorId'],
             'detailId': data['detailId']
         })

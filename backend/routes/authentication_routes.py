@@ -1,5 +1,5 @@
-import firebase_admin
 from firebase_admin import credentials, auth, firestore # type: ignore
+import firebase_admin.exceptions as firebase_exceptions #type: ignore
 from flask import request, jsonify, Blueprint
 from config import Config
 from marshmallow import Schema, fields, validate
@@ -19,6 +19,7 @@ class SignUpSchema(Schema):
     lastName = fields.Str(required=True, validate=validate.Length(min=2))
     emailAddress = fields.Email(required=True)
     doctorLicense = fields.Str(required=True)
+    workplace = fields.Str(required=True)
     password = fields.Str(required=True, validate=validate.Length(min=6))
 
 schema = SignUpSchema()
@@ -39,7 +40,7 @@ def verify_phone():
         # User is authenticated! Do what you need (e.g., create a session, issue a JWT)
         return jsonify({'uid': user.uid}), 200 # Send back user ID or a JWT
 
-    except auth.AuthError as e:
+    except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
     except Exception as e:
         return jsonify({'error': str(e)}), 500  # Handle other errors
@@ -53,6 +54,16 @@ def register():
         email = validated_data['emailAddress']
         password = validated_data['password']
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        counter_ref = db.collection("counter").document("doctor_id")
+        count = counter_ref.get()
+        if not count.exists:
+            raise Exception("Counter does not exist")
+        next_id = count.to_dict()["nextId"]
+        doctor_id = f"D{next_id:03}" # Format with leading zeros
+        counter_ref.update({"nextId":int(next_id+1)})
+
+                                       
         try:
             user = auth.create_user(
                 email=email,
@@ -60,18 +71,20 @@ def register():
                 password=hashed_password.decode('utf-8'),
                 display_name=data["firstName"] + " " + data["lastName"] # Set user's name
             )
-        except auth.AuthError as firebase_error:
-            return jsonify({'error': str(firebase_error)}), 400
+            print(data)
+            print(password)
+        except firebase_exceptions.OutOfRangeError as e:
+            return jsonify({'error': str(e)}), 400
         try:
             print("Adding doctor")
             data = request.json
-            doctor_ref = db.collection('doctors').document(data['doctorId'])
+            doctor_ref = db.collection('doctors').document(doctor_id)
             doctor_ref.set({
-                'doctorId' : data['doctorId'],
+                'doctorId' : doctor_id,
                 'firstName': data['firstName'],
                 'lastName': data['lastName'],
-                'email': data['email'],
-                'licenseNumber': data['licenseNumber'],
+                'email': email,
+                'licenseNumber': data['doctorLicense'],
                 'workplace': data['workplace']
             })
         except Exception as e:
@@ -87,5 +100,5 @@ def register():
 
         return jsonify({'token': token}), 201  # Send back user ID or a JWT
 
-    except auth.AuthError as e:
+    except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors

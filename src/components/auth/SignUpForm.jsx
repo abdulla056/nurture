@@ -5,6 +5,7 @@ import axios from "axios"; // Import axios
 import { useForm } from 'react-hook-form'; // Import react-hook-form
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useState } from 'react'; 
 
 // Validates the inputs
 const schema = yup.object().shape({
@@ -16,10 +17,21 @@ const schema = yup.object().shape({
 });
 
 export function SignUpForm({ togglePage, onSignup, error, success }) {
-  async function authenticate(data) {
-    // ... (no need to manage error state here anymore)
-    onSignup(data); // Call the callback in the parent
-  }
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    emailAddress: '',
+    doctorLicense: '',
+    password: '',
+  }); // Store form data
+
+  const handleFormDataChange = (newValue, id) => {
+    setFormData({ ...formData, [id]: newValue });  // Update state
+  };
+  const handleSubmit = async (event) => { // Handles form submission
+    event.preventDefault(); // Prevent page refresh!
+    onSignup(formData); // Send the form data to the parent
+  };
   return (
     <div className="flex flex-col rounded-none min-w-[240px] w-[561px] max-md:max-w-full">
       <div className="flex z-10 flex-col items-center px-9 py-8 w-full bg-white rounded-3xl border border-solid border-neutral-300 shadow-[0px_0px_40px_rgba(0,0,0,0.12)] max-md:px-5 max-md:max-w-full">
@@ -31,33 +43,50 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
             Welcome! Please fill in the details to get started
           </p>
         </div>
-        <form className="flex flex-col mt-12 w-full text-base font-semibold text-black max-w-[490px] max-md:mt-10 max-md:max-w-full" >
+        <form className="flex flex-col mt-12 w-full text-base font-semibold text-black max-w-[490px] max-md:mt-10 max-md:max-w-full" onSubmit={handleSubmit}>
           <div className="flex flex-row gap-4">
             <TextField
               label={"First Name"}
               id={"firstName"}
               type={"text"}
+              formDataChanged={handleFormDataChange}
+              value={formData.firstName}
             />
             <TextField
               label={"Last Name"}
               id={"lastName"}
               type={"text"}
+              formDataChanged={handleFormDataChange}
+              value={formData.lastName}
             />
           </div>
           <TextField
             label={"Email Address"}
             id={"emailAddress"}
             type={"email"}
+            formDataChanged={handleFormDataChange}
+            value={formData.emailAddress}
           />
           <TextField
             label={"Doctor License"}
             id={"doctorLicense"}
             type={"text"}
+            formDataChanged={handleFormDataChange}
+            value={formData.doctorLicense}
+          />
+          <TextField
+            label={"Workplace"}
+            id={"workplace"}
+            type={"text"}
+            formDataChanged={handleFormDataChange}
+            value={formData.workplace}
           />
           <TextField
             label={"Password"}
             id={"password"}
             type={"password"}
+            formDataChanged={handleFormDataChange}
+            value={formData.password}
           />
           <SecondaryButton type="submit"> Continue </SecondaryButton>
           {error && <p className="text-red-500 mt-2">{error}</p>} {/* Display error from parent */}
