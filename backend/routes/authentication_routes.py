@@ -72,7 +72,7 @@ def register():
                 display_name=data["firstName"] + " " + data["lastName"] # Set user's name
             )
             print(data)
-            print(password)
+            print("Password received and processed.")
         except firebase_exceptions.OutOfRangeError as e:
             return jsonify({'error': str(e)}), 400
         try:
