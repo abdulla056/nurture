@@ -32,9 +32,6 @@ const schema = yup.object().shape({
 });
 
 export function SignUpForm({ togglePage, onSignup, error, success }) {
-  // const { register, handleSubmit, formState: { errors } } = useForm({
-  //   resolver: yupResolver(schema),
-  // });
 
   const [formData, setFormData] = useState({
     firstName: '',
