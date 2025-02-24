@@ -18,8 +18,10 @@ class SignUpSchema(Schema):
     firstName = fields.Str(required=True, validate=validate.Length(min=2))
     lastName = fields.Str(required=True, validate=validate.Length(min=2))
     emailAddress = fields.Email(required=True)
-    doctorLicense = fields.Str(required=True)
-    workplace = fields.Str(required=True)
+    phoneNumber = fields.Str(required=True, validate=validate.Length(min=10))
+    phoneNumber = fields.Str(required=True, validate=[validate.Regexp(r"^[0-9]+$"), validate.Length(min=7, max=15)]) 
+    doctorLicense = fields.Str(required=True, validate=validate.Length(min=2))
+    workplace = fields.Str(required=True, validate=validate.Length(min=2))
     password = fields.Str(required=True, validate=validate.Length(min=6))
 
 schema = SignUpSchema()
@@ -89,7 +91,12 @@ def register():
     try:
         data = request.get_json()
         validated_data = schema.load(data)
+        firstName = validated_data['firstName']
+        lastName = validated_data['lastName']
         email = validated_data['emailAddress']
+        phoneNumber = validated_data['phoneNumber']
+        license = validated_data['doctorLicense']
+        workplace = validated_data['workplace']
         password = validated_data['password']
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
@@ -117,11 +124,11 @@ def register():
             doctor_ref = db.collection('doctors').document(doctor_id)
             doctor_ref.set({
                 'doctorId' : doctor_id,
-                'firstName': data['firstName'],
-                'lastName': data['lastName'],
+                'firstName': firstName,
+                'lastName': lastName,
                 'email': email,
-                'licenseNumber': data['doctorLicense'],
-                'workplace': data['workplace']
+                'licenseNumber': license,
+                'workplace': workplace
             })
         except Exception as e:
             return jsonify({"error": str(e)}), 500

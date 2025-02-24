@@ -6,6 +6,9 @@ import { useForm } from 'react-hook-form'; // Import react-hook-form
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useState } from 'react'; 
+import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
+import api from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 // Validates the inputs
 const schema = yup.object().shape({
@@ -14,14 +17,32 @@ const schema = yup.object().shape({
   emailAddress: yup.string().required("Email is required").email("Invalid email format"),
   doctorLicense: yup.string().required("Doctor license is required"),
   password: yup.string().required("Password is required").min(6, "Password must be at least 6 characters"),
+  phoneNumber: yup.string()
+    .required("Phone number is required")
+    .test('is-valid-phone-number', 'Invalid phone number format', (value) => {
+      if (!value) return false; // Allow empty if not required. Change to true if empty is not allowed.
+
+      try {
+        const phoneNumber = parsePhoneNumber(value);
+        return isValidPhoneNumber(phoneNumber);
+      } catch (error) {
+        return false;
+      }
+    }),
 });
 
 export function SignUpForm({ togglePage, onSignup, error, success }) {
+  // const { register, handleSubmit, formState: { errors } } = useForm({
+  //   resolver: yupResolver(schema),
+  // });
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     emailAddress: '',
+    phoneNumber: '',
     doctorLicense: '',
+    workplace:'',
     password: '',
   }); // Store form data
 
@@ -32,9 +53,10 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
     event.preventDefault(); // Prevent page refresh!
     onSignup(formData); // Send the form data to the parent
   };
+
   return (
     <div className="flex flex-col rounded-none min-w-[240px] w-[561px] max-md:max-w-full">
-      <div className="flex z-10 flex-col items-center px-9 py-8 w-full bg-white rounded-3xl border border-solid border-neutral-300 shadow-[0px_0px_40px_rgba(0,0,0,0.12)] max-md:px-5 max-md:max-w-full">
+      <div className="flex z-10 flex-col items-center px-9 py-8 w-full bg-white rounded-3xl border border-solid border-neutral-300 shadow-[0px_0px_40px_rgba(0,0,0,0.12)] max-md:px-5 max-md:max-w-full" onSubmit={handleSubmit}>
         <div className="flex flex-col max-w-full w-[393px]">
           <h3 className="font-semibold text-center text-black">
             Create your account
@@ -43,7 +65,7 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
             Welcome! Please fill in the details to get started
           </p>
         </div>
-        <form className="flex flex-col mt-12 w-full text-base font-semibold text-black max-w-[490px] max-md:mt-10 max-md:max-w-full" onSubmit={handleSubmit}>
+        <form className="flex flex-col mt-12 w-full text-base font-semibold text-black max-w-[490px] max-md:mt-10 max-md:max-w-full">
           <div className="flex flex-row gap-4">
             <TextField
               label={"First Name"}
@@ -66,6 +88,13 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
             type={"email"}
             formDataChanged={handleFormDataChange}
             value={formData.emailAddress}
+          />
+          <TextField
+            label={"Phone Number"}
+            id={"phoneNumber"}
+            type={"tel"}
+            formDataChanged={handleFormDataChange}
+            value={formData.phoneNumber}
           />
           <TextField
             label={"Doctor License"}
