@@ -13,9 +13,16 @@ feedback_bp = Blueprint('feedback_bp', __name__)
 def add_feedback():
     try:
         data = request.json
-        feedback_ref = db.collection('feedback').document(data['feedbackId'])
+        counter_ref = db.collection("counter").document("feedback_id")
+        count = counter_ref.get()
+        if not count.exists:
+            raise Exception("Counter does not exist")
+        next_id = count.to_dict()["nextId"]
+        feedbackId = f"F{next_id:03}" # Format with leading zeros
+        counter_ref.update({"nextId":int(next_id+1)})
+        feedback_ref = db.collection('feedback').document(feedbackId)
         feedback_ref.set({
-            'feedbackId': data['feedbackId'],
+            'feedbackId': feedbackId,
             'doctorId': data['doctorId'],
             'systemAccuracy': data['systemAccuracy'],
             'predictionTime': data['predictionTime'],

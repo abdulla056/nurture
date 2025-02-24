@@ -4,6 +4,7 @@ import { SignUpFeatures } from "../components/auth/SignUpFeatures.jsx";
 import { SignUpForm } from "../components/auth/SignUpForm.jsx";
 import { Footer } from "../components/common/Footer.jsx";
 import { useState } from "react";
+import api from "../services/api";
 
 export default function SignUpPage() {
   const [signUpPage, setPage] = useState(true);
@@ -14,11 +15,12 @@ export default function SignUpPage() {
   function togglePage() {
     setPage((prevValue) => !prevValue);
   }
-
+  
   const handleSignup = async (data) => { // Callback from SignUpForm
     setSignupError(null); // Clear previous errors
     try {
-        const response = await axios.post("/api/signup", data);
+        console.log(data);  
+        const res = await api.post("/auth/register", data);
         localStorage.setItem('token', token);
         setSignupSuccess("Signup successful!"); // Set success message
         navigate("/dashboard");

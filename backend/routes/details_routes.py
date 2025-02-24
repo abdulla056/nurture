@@ -15,7 +15,13 @@ details_bp = Blueprint('details_bp', __name__)
 def add_patient_details():
     try:
         data = request.json
-        detailId = data['detailId']  # Generate a unique document ID
+        counter_ref = db.collection("counter").document("detail_id")
+        count = counter_ref.get()
+        if not count.exists:
+            raise Exception("Counter does not exist")
+        next_id = count.to_dict()["nextId"]
+        detailId = f"DD{next_id:03}" # Format with leading zeros
+        counter_ref.update({"nextId":int(next_id+1)})
 
         details_ref = db.collection('details').document(detailId)
         details_ref.set({
