@@ -17,18 +17,18 @@ const schema = yup.object().shape({
   emailAddress: yup.string().required("Email is required").email("Invalid email format"),
   doctorLicense: yup.string().required("Doctor license is required"),
   password: yup.string().required("Password is required").min(6, "Password must be at least 6 characters"),
-  phoneNumber: yup.string()
-    .required("Phone number is required")
-    .test('is-valid-phone-number', 'Invalid phone number format', (value) => {
-      if (!value) return false; // Allow empty if not required. Change to true if empty is not allowed.
+  // phoneNumber: yup.string()
+  //   .required("Phone number is required")
+  //   .test('is-valid-phone-number', 'Invalid phone number format', (value) => {
+  //     if (!value) return false; // Allow empty if not required. Change to true if empty is not allowed.
 
-      try {
-        const phoneNumber = parsePhoneNumber(value);
-        return isValidPhoneNumber(phoneNumber);
-      } catch (error) {
-        return false;
-      }
-    }),
+  //     try {
+  //       const phoneNumber = parsePhoneNumber(value);
+  //       return isValidPhoneNumber(phoneNumber);
+  //     } catch (error) {
+  //       return false;
+  //     }
+  //   }),
 });
 
 export function SignUpForm({ togglePage, onSignup, error, success }) {
@@ -43,12 +43,32 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
     password: '',
   }); // Store form data
 
+  const [formErrors, setFormErrors] = useState({}); // Store validation errors
+
   const handleFormDataChange = (newValue, id) => {
     setFormData({ ...formData, [id]: newValue });  // Update state
+    setFormErrors({ ...formErrors, [id]: "" }); // Clear error for the specific field when changed
   };
   const handleSubmit = async (event) => { // Handles form submission
-    event.preventDefault(); // Prevent page refresh!
-    onSignup(formData); // Send the form data to the parent
+    event.preventDefault(); // Prevent page refresh!'
+    console.log("starting")
+        try {
+            console.log(formData);
+            const validatedData = await schema.validate(formData, { abortEarly: true });// Validate with yup
+            console.log("Validated Data:", validatedData);
+            setFormErrors({}); // Clear all errors if validation passes
+
+            onSignup(formData); // Call API if validation is successful
+
+        } catch (validationError) {
+            if (validationError.inner) {
+                const errors = {};
+                validationError.inner.forEach(error => {
+                    errors[error.path] = error.message;
+                });
+                setFormErrors(errors); // Set validation errors to state
+            }
+        }
   };
 
   return (
