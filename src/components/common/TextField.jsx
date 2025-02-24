@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function TextField({ id, label, formDataChanged, value, options, ...props }) {
+export default function TextField({ id, label, formDataChanged, value, options,error, ...props }) {
   const [fieldValue, setFieldValue] = useState(value || "");
 
   useEffect(() => {
@@ -22,6 +22,7 @@ export default function TextField({ id, label, formDataChanged, value, options, 
         id={id}
         className="flex pr-2 pl-2 mt-2.5 w-full text-font-tertiary bg-white rounded-xl border border-solid border-stone-300 min-h-[38px]"
       />
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </div>
   );
 }
