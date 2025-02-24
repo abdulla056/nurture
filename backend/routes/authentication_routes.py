@@ -24,7 +24,38 @@ class SignUpSchema(Schema):
 
 schema = SignUpSchema()
 
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
 
+        try:
+            user = auth.get_user_by_email(email)  # Get user from Firebase
+
+            # Verify password (compare with stored hash)
+            stored_hash = user.password.encode('utf-8')
+            if not bcrypt.checkpw(password.encode('utf-8'), stored_hash):
+                return jsonify({'error': 'Invalid email or password'}), 401
+
+            # JWT generation (same as phone auth):
+            payload = {
+                'uid': user.uid,
+                'iat': datetime.utcnow(),
+                'exp': datetime.utcnow() + timedelta(hours=1),
+            }
+            token = jwt.encode(payload, 'your_secret_key', algorithm='HS256')
+
+            return jsonify({'token': token}), 200
+
+        except auth.UserNotFoundError:
+            return jsonify({'error': 'Invalid email or password'}), 401
+        except auth.AuthError as e:
+            return jsonify({'error': str(e)}), 401 # Other Firebase Auth errors
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 ## Not tested
 @auth_bp.route('/verify_phone', methods=['POST'])
@@ -37,8 +68,15 @@ def verify_phone():
         credential = auth.PhoneAuthProvider.credential(verification_id, verification_code)
         user = auth.verify_credential(credential)  # Verify on the server!
         
-        # User is authenticated! Do what you need (e.g., create a session, issue a JWT)
-        return jsonify({'uid': user.uid}), 200 # Send back user ID or a JWT
+        payload = {
+            'uid': user.uid,
+            'iat': datetime.utcnow(),
+            'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
+        }
+
+        token = jwt.encode(payload, secret_key, algorithm='HS256') 
+
+        return jsonify({'token': token}), 201  # Send back user ID or a JWT
 
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
@@ -61,9 +99,7 @@ def register():
             raise Exception("Counter does not exist")
         next_id = count.to_dict()["nextId"]
         doctor_id = f"D{next_id:03}" # Format with leading zeros
-        counter_ref.update({"nextId":int(next_id+1)})
-
-                                       
+        counter_ref.update({"nextId":int(next_id+1)})                         
         try:
             user = auth.create_user(
                 email=email,
@@ -102,3 +138,42 @@ def register():
 
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
+
+@auth_bp.route('/check_header', methods=['GET'])
+def protected_resource():
+    try:
+        auth_header = request.headers.get('Authorization')
+
+        if not auth_header:
+            return jsonify({'error': 'Authorization header missing'}), 401
+        token = auth_header.split(' ')[1]  # Extract the token (remove "Bearer ")
+        # Verify the token
+        try:
+            payload = jwt.decode(token, secret_key, algorithms=['HS256']) # Use the same secret
+            user_id = payload['uid'] # Access the uid from the payload
+            return jsonify({'message': 'Protected resource accessed', 'user_id': user_id}), 200
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Invalid token'}), 401
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@auth_bp.route('/send_password_reset_email', methods=['POST'])
+def send_password_reset_email():
+    try:
+        data = request.get_json()  # Get the email from the request
+        email = data.get('email')
+
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
+
+        auth.send_password_reset_email(email)
+
+        return jsonify({'message': 'Password reset email sent'}), 200
+
+    except Exception as e:
+        print(f"Error sending password reset email: {e}") # Log the error
+        return jsonify({'error': 'An error occurred'}), 500  # Generic error message
