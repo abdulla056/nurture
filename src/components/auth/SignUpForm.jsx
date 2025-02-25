@@ -12,19 +12,66 @@ import { useNavigate } from "react-router-dom";
 
 // Validates the inputs
 const schema = yup.object().shape({
-  firstName: yup.string().required("First name is required").min(2, "First name must be at least 2 characters"),
-  lastName: yup.string().required("Last name is required").min(2, "Last name must be at least 2 characters"),
-  emailAddress: yup.string().required("Email is required").email("Invalid email format"),
-  doctorLicense: yup.string().required("Doctor license is required").min(2, "Doctor license must be at least 2 characters"),
-  password: yup.string().required("Password is required").min(6, "Password must be at least 6 characters"),
-  phoneNumber: yup.string()
-    .required("Phone number is required")
-    .matches(/^\+[0-9]+$/, "Invalid phone number format (numbers only) (must have a `+` in the front)") // Simple regex
-    .min(7, "Phone number must be at least 7 digits") // Optional: Minimum length
-    .max(15, "Phone number must be at most 15 digits"), // Optional: Maximum length
-  workplace: yup.string().required("Workplace is required").min(2, "Workplace must be at least 2 characters"),
-});
+  firstName: yup
+    .string()
+    .required("First name is required")
+    .min(2, "First name must be at least 2 characters")
+    .matches(
+      /^[A-Za-z\s]+$/,
+      "Only letters and spaces"
+    ),
 
+  lastName: yup
+    .string()
+    .required("Last name is required")
+    .min(2, "Last name must be at least 2 characters")
+    .matches(
+      /^[A-Za-z\s]+$/,
+      "Only letters and spaces"
+    ),
+
+  emailAddress: yup
+    .string()
+    .required("Email is required")
+    .email("Invalid email format"),
+
+  doctorLicense: yup
+    .string()
+    .required("Doctor license is required")
+    .min(2, "Doctor license must be at least 2 characters")
+    .matches(
+      /^[A-Za-z0-9\s]+$/,
+      "Only letters, numbers, and spaces, no special characters"
+    ),
+
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+      "Required at least a uppercase, a lowercase, a number, and a special character"
+    ),
+
+  phoneNumber: yup
+    .string()
+    .required("Phone number is required")
+    .matches(
+      /^\+[0-9]+$/,
+      "Invalid phone number format (numbers only) (must have a `+` in the front)"
+    )
+    .min(7, "Phone number must be at least 7 digits")
+    .max(15, "Phone number must be at most 15 digits"),
+
+  workplace: yup
+    .string()
+    .required("Workplace is required")
+    .min(2, "Workplace must be at least 2 characters")
+    .matches(
+      /^[A-Za-z\s]+$/,
+      "Workplace must contain only letters and spaces (no special characters)"
+    ),
+});
 export function SignUpForm({ togglePage, onSignup, error, success }) {
 
   const [formData, setFormData] = useState({
@@ -48,7 +95,7 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
     console.log("starting")
     try {
       console.log(formData);
-      const validatedData = await schema.validate(formData, { abortEarly: true });// Validate with yup
+      const validatedData = await schema.validate(formData, { abortEarly: false });// Validate with yup
       console.log("Validated Data:", validatedData);
       setFormErrors({}); // Clear all errors if validation passes
 
