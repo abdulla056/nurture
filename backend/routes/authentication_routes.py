@@ -2,7 +2,7 @@ from firebase_admin import credentials, auth, firestore # type: ignore
 import firebase_admin.exceptions as firebase_exceptions #type: ignore
 from flask import request, jsonify, Blueprint
 from config import Config
-from marshmallow import Schema, fields, validate
+from marshmallow import Schema, fields, validate, ValidationError
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
@@ -15,23 +15,83 @@ auth_bp = Blueprint('auth_bp', __name__)
 
 # Marshmallow schema for validation
 class SignUpSchema(Schema):
-    firstName = fields.Str(required=True, validate=validate.Length(min=2))
-    lastName = fields.Str(required=True, validate=validate.Length(min=2))
-    emailAddress = fields.Email(required=True)
-    phoneNumber = fields.Str(required=True, validate=validate.Length(min=10))
-    phoneNumber = fields.Str(required=True, validate=[validate.Regexp(r"^[0-9]+$"), validate.Length(min=7, max=15)]) 
-    doctorLicense = fields.Str(required=True, validate=validate.Length(min=2))
-    workplace = fields.Str(required=True, validate=validate.Length(min=2))
-    password = fields.Str(required=True, validate=validate.Length(min=6))
+    firstName = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=2, error="First name must be at least 2 characters"),
+            validate.Regexp(r"^[A-Za-z\s]+$", error="Only letters and spaces are allowed")
+        ]
+    )
+    lastName = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=2, error="Last name must be at least 2 characters"),
+            validate.Regexp(r"^[A-Za-z\s]+$", error="Only letters and spaces are allowed")
+        ]
+    )
+    emailAddress = fields.Email(
+        required=True,
+        error="Invalid email format"
+    )
+    doctorLicense = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=2, error="Doctor license must be at least 2 characters"),
+            validate.Regexp(r"^[A-Za-z0-9\s]+$", error="Only letters, numbers, and spaces are allowed")
+        ]
+    )
+    password = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=6, error="Password must be at least 6 characters"),
+            validate.Regexp(
+                r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$",
+                error="Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+            )
+        ]
+    )
+    phoneNumber = fields.Str(
+        required=True,
+        validate=[
+            validate.Regexp(r"^\+[0-9]+$", error="Invalid phone number format (numbers only) (must have a `+` in the front)"),
+            validate.Length(min=7, max=15, error="Phone number must be between 7 and 15 digits")
+        ]
+    )
+    workplace = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=2, error="Workplace must be at least 2 characters"),
+            validate.Regexp(r"^[A-Za-z\s]+$", error="Workplace must contain only letters and spaces (no special characters)")
+        ]
+    )
 
-schema = SignUpSchema()
+class LoginSchema(Schema):
+    emailAddress = fields.Email(
+        required=True,
+        error="Invalid email format"
+    )
+    password = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=6, error="Password must be at least 6 characters"),
+            validate.Regexp(
+                r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$",
+                error="Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+            )
+        ]
+    )
+
+signupSchema = SignUpSchema()
+
+loginSchema = LoginSchema()
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
     try:
         data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
+        validated_data = loginSchema.load(data)
+        email = validated_data['emailAddress']
+        password = validated_data['password']
 
         try:
             user = auth.get_user_by_email(email)  # Get user from Firebase
@@ -55,7 +115,9 @@ def login():
             return jsonify({'error': 'Invalid email or password'}), 401
         except auth.AuthError as e:
             return jsonify({'error': str(e)}), 401 # Other Firebase Auth errors
-
+    except ValidationError as e:
+        print(e.messages)
+        return jsonify({'Validation Error': e.messages}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -90,7 +152,7 @@ def verify_phone():
 def register():
     try:
         data = request.get_json()
-        validated_data = schema.load(data)
+        validated_data = signupSchema.load(data)
         firstName = validated_data['firstName']
         lastName = validated_data['lastName']
         email = validated_data['emailAddress']
@@ -127,6 +189,7 @@ def register():
                 'firstName': firstName,
                 'lastName': lastName,
                 'email': email,
+                'phoneNumber': phoneNumber,
                 'licenseNumber': license,
                 'workplace': workplace
             })
