@@ -10,6 +10,9 @@ export default function SignUpPage() {
   const [signUpPage, setPage] = useState(true);
   const [signupError, setSignupError] = useState(null); // Lifted state
   const [signupSuccess, setSignupSuccess] = useState(null);
+  const [loginError, setLoginError] = useState(null); // Lifted state
+  const [loginSuccess, setLoginSuccess] = useState(null);
+  
   const navigate = useNavigate();
 
   function togglePage() {
@@ -19,24 +22,44 @@ export default function SignUpPage() {
   const handleSignup = async (data) => { // Callback from SignUpForm
     setSignupError(null); // Clear previous errors
     try {
-        console.log(data);  
-        const res = await api.post("/auth/register", data);
-        localStorage.setItem('token', token);
-        setSignupSuccess("Signup successful!"); // Set success message
-        navigate("/dashboard");
+      console.log(data);  
+      const res = await api.post("/auth/register", data);
+      localStorage.setItem('token', token);
+      setSignupSuccess("Signup successful!"); // Set success message
+      navigate("/dashboard");
     } catch (error) {
-        // ... (error handling as before, but now setSignupError)
-        if (error.response && error.response.data && error.response.data.message) {
-          setSignupError(error.response.data.message);
-        } else if (error.response && error.response.data && error.response.data.error) {
-           setSignupError(error.response.data.error);
-        }
-        else {
-          setSignupError("An error occurred during signup.");
-        }
+      // ... (error handling as before, but now setSignupError)
+      if (error.response && error.response.data && error.response.data.message) {
+        setSignupError(error.response.data.message);
+      } else if (error.response && error.response.data && error.response.data.error) {
+          setSignupError(error.response.data.error);
+      }
+      else {
+        setSignupError("An error occurred during signup.");
+      }
     }
   };
 
+  const handleLogin = async (data) => { // Callback from LoginForm
+    setSignupError(null); // Clear previous errors
+    try {
+      console.log(data);  
+      const res = await api.post("/auth/login", data);
+      localStorage.setItem('token', token);
+      setLoginSuccess("Signup successful!"); // Set success message
+      navigate("/dashboard");
+    } catch (error) {
+      // ... (error handling as before, but now setSignupError)
+      if (error.response && error.response.data && error.response.data.message) {
+        setLoginError(error.response.data.message);
+      } else if (error.response && error.response.data && error.response.data.error) {
+          setLoginError(error.response.data.error);
+      }
+      else {
+        setLoginError("An error occurred during signup.");
+      }
+    }
+  };
   return (
     <div className="py-16 px-16 bg-custom-gradient flex flex-col items-center">
       {signUpPage ? (
@@ -45,7 +68,7 @@ export default function SignUpPage() {
           <SignUpForm togglePage={togglePage} onSignup={handleSignup} error={signupError} success={signupSuccess} /> {/* Pass the callback and error state */}
         </div>
       ) : (
-        <LoginForm togglePage = {togglePage}/> 
+        <LoginForm togglePage = {togglePage} onLogin={handleLogin} error={loginError} success={loginSuccess}/> 
       )}
       <Footer />
     </div>
