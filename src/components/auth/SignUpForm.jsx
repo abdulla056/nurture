@@ -1,14 +1,8 @@
 import * as React from "react";
 import TextField from "../common/TextField";
 import SecondaryButton from "./SecondaryButton";
-import axios from "axios"; // Import axios
-import { useForm } from 'react-hook-form'; // Import react-hook-form
-import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useState } from 'react';
-import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
-import api from "../../services/api";
-import { useNavigate } from "react-router-dom";
 
 // Validates the inputs
 const schema = yup.object().shape({
