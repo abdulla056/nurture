@@ -12,18 +12,7 @@ plt.use('Agg')  # Set the backend to 'Agg'
 import os
 import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
-from config import Config
-from dotenv import load_dotenv
 import json
-
-
-env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
-load_dotenv(env_path)
-
-class Config:
-    FIREBASE_CONFIG = json.loads(os.getenv("FIREBASE_CONFIG"))
-    
-    
 from config import Config
 import firebase_admin
 from firebase_admin import credentials, firestore
