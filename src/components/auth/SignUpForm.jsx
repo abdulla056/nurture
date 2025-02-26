@@ -66,6 +66,7 @@ const schema = yup.object().shape({
       "Workplace must contain only letters and spaces (no special characters)"
     ),
 });
+
 export function SignUpForm({ togglePage, onSignup, error, success }) {
 
   const [formData, setFormData] = useState({
@@ -84,6 +85,7 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
     setFormData({ ...formData, [id]: newValue });  // Update state
     setFormErrors({ ...formErrors, [id]: "" }); // Clear error for the specific field when changed
   };
+  
   const handleSubmit = async (event) => { // Handles form submission
     event.preventDefault(); // Prevent page refresh!'
     console.log("starting")
