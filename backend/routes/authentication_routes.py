@@ -1,6 +1,6 @@
 from firebase_admin import credentials, auth, firestore # type: ignore
 import firebase_admin.exceptions as firebase_exceptions #type: ignore
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, make_response
 from config import Config
 from marshmallow import Schema, fields, validate, ValidationError
 import bcrypt
@@ -85,45 +85,55 @@ signupSchema = SignUpSchema()
 
 loginSchema = LoginSchema()
 
-@auth_bp.route('/login', methods=['POST'])
-def login():
+@auth_bp.route('/verify_token', methods=['POST'])
+def verify_token():
     try:
         data = request.get_json()
-        validated_data = loginSchema.load(data)
-        email = validated_data['emailAddress']
-        password = validated_data['password']
+        id_token = data.get('token')
 
-        try:
-            user = auth.get_user_by_email(email)  # Get user from Firebase
+        if not id_token:
+            return jsonify({'error': 'Token is required'}), 400
 
-            # Verify password (compare with stored hash)
-            stored_hash = user.password.encode('utf-8')
-            if not bcrypt.checkpw(password.encode('utf-8'), stored_hash):
-                return jsonify({'error': 'Invalid email or password'}), 401
+        # Verify the Firebase ID token
+        decoded_token = auth.verify_id_token(id_token)
+        uid = decoded_token['uid']
 
-            # JWT generation (same as phone auth):
-            payload = {
-                'uid': user.uid,
-                'iat': datetime.utcnow(),
-                'exp': datetime.utcnow() + timedelta(hours=1),
-            }
-            token = jwt.encode(payload, 'your_secret_key', algorithm='HS256')
+        payload = {
+            'uid': uid,
+            'iat': datetime.utcnow(),
+            'exp': datetime.utcnow() + timedelta(hours=1),
+        }
+        token = jwt.encode(payload, 'your_secret_key', algorithm='HS256')
 
-            return jsonify({'token': token}), 200
+        # Create a response object
+        response = make_response(jsonify({"message": "Login successful"}), 201)
 
-        except auth.UserNotFoundError:
-            return jsonify({'error': 'Invalid email or password'}), 401
-        except auth.AuthError as e:
-            return jsonify({'error': str(e)}), 401 # Other Firebase Auth errors
-    except ValidationError as e:
-        print(e.messages)
-        return jsonify({'Validation Error': e.messages}), 400
+        # Set the JWT as a cookie with SameSite attribute
+        response.set_cookie(
+            "token",  # Cookie name
+            value=token,  # JWT as the cookie value
+            httponly=True,  # Prevent client-side JavaScript from accessing the cookie
+            secure=True,  # Only send the cookie over HTTPS
+            samesite="Lax",  # Prevent CSRF attacks
+            max_age=3600,  # Cookie expiration time in seconds (1 hour)
+        )
+
+        return response, 201  # Send back cookie
+
+    except auth.InvalidIdTokenError:
+        return jsonify({'error': 'Invalid token'}), 401
+    except auth.ExpiredIdTokenError:
+        return jsonify({'error': 'Token has expired'}), 401
+    except Exception as e:
+        print(f"Internal Server Error: {str(e)}")
+        return jsonify({'error': 'An internal error occurred. Please try again later.'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 ## Not tested
 @auth_bp.route('/verify_phone', methods=['POST'])
 def verify_phone():
+    print('verify_phone')
     try:
         data = request.get_json()
         verification_id = data.get('verificationId')
@@ -140,7 +150,20 @@ def verify_phone():
 
         token = jwt.encode(payload, secret_key, algorithm='HS256') 
 
-        return jsonify({'token': token}), 201  # Send back user ID or a JWT
+        # Create a response object
+        response = make_response(jsonify({"message": "Login successful"}), 201)
+
+        # Set the JWT as a cookie with SameSite attribute
+        response.set_cookie(
+            "token",  # Cookie name
+            value=token,  # JWT as the cookie value
+            httponly=True,  # Prevent client-side JavaScript from accessing the cookie
+            secure=True,  # Only send the cookie over HTTPS
+            samesite="Lax",  # Prevent CSRF attacks
+            max_age=3600,  # Cookie expiration time in seconds (1 hour)
+        )
+
+        return response, 201  # Send back cookie
 
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
@@ -178,7 +201,7 @@ def register():
             )
             print(data)
             print("Password received and processed.")
-        except firebase_exceptions.OutOfRangeError as e:
+        except firebase_exceptions.UnauthenticatedError as e:
             return jsonify({'error': str(e)}), 400
         try:
             print("Adding doctor")
@@ -204,7 +227,20 @@ def register():
 
         token = jwt.encode(payload, secret_key, algorithm='HS256') 
 
-        return jsonify({'token': token}), 201  # Send back user ID or a JWT
+        # Create a response object
+        response = make_response(jsonify({"message": "Login successful"}), 201)
+
+        # Set the JWT as a cookie with SameSite attribute
+        response.set_cookie(
+            "token",  # Cookie name
+            value=token,  # JWT as the cookie value
+            httponly=True,  # Prevent client-side JavaScript from accessing the cookie
+            secure=True,  # Only send the cookie over HTTPS
+            samesite="Lax",  # Prevent CSRF attacks
+            max_age=3600,  # Cookie expiration time in seconds (1 hour)
+        )
+
+        return response, 201  # Send back cookie
 
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors

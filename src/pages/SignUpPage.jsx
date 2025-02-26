@@ -5,6 +5,7 @@ import { SignUpForm } from "../components/auth/SignUpForm.jsx";
 import { Footer } from "../components/common/Footer.jsx";
 import { useState } from "react";
 import api from "../services/api";
+import { auth, signInWithEmailAndPassword } from "../components/auth/firebase";
 
 export default function SignUpPage() {
   const [signUpPage, setPage] = useState(true);
@@ -24,10 +25,10 @@ export default function SignUpPage() {
     try {
       console.log(data);  
       const res = await api.post("/auth/register", data);
-      localStorage.setItem('token', token);
       setSignupSuccess("Signup successful!"); // Set success message
       navigate("/dashboard");
     } catch (error) {
+      console.error("Login Error:", error);
       // ... (error handling as before, but now setSignupError)
       if (error.response && error.response.data && error.response.data.message) {
         setSignupError(error.response.data.message);
@@ -41,22 +42,30 @@ export default function SignUpPage() {
   };
 
   const handleLogin = async (data) => { // Callback from LoginForm
-    setSignupError(null); // Clear previous errors
+    setLoginError(null); // Clear previous errors
     try {
-      console.log(data);  
-      const res = await api.post("/auth/login", data);
-      localStorage.setItem('token', token);
+      const { emailAddress, password } = data;
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        emailAddress,
+        password
+      );
+      // Get the user's ID token
+      const idToken = await userCredential.user.getIdToken();
+      console.log(idToken);
+      // Optionally, send the token to your backend for further verification
+      const res = await api.post("/auth/verify_token", { token: idToken });
       setLoginSuccess("Signup successful!"); // Set success message
       navigate("/dashboard");
     } catch (error) {
+      console.error("Login Error:", error);
       // ... (error handling as before, but now setSignupError)
-      if (error.response && error.response.data && error.response.data.message) {
-        setLoginError(error.response.data.message);
-      } else if (error.response && error.response.data && error.response.data.error) {
-          setLoginError(error.response.data.error);
-      }
-      else {
-        setLoginError("An error occurred during signup.");
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+        setLoginError("Invalid email or password");
+      } else if (error.code === "auth/too-many-requests") {
+        setLoginError("Too many requests. Please try again later.");
+      } else {
+        setLoginError("An error occurred during login.");
       }
     }
   };

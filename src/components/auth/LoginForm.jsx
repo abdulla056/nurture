@@ -46,6 +46,7 @@ export default function LoginForm({ togglePage,  onLogin, error, success }) {
     setFormData({ ...formData, [id]: newValue });  // Update state
     setFormErrors({ ...formErrors, [id]: "" }); // Clear error for the specific field when changed
   };
+
   const handleSubmit = async (event) => { // Handles form submission
     event.preventDefault(); // Prevent page refresh!'
     console.log("starting")
@@ -54,7 +55,6 @@ export default function LoginForm({ togglePage,  onLogin, error, success }) {
       const validatedData = await schema.validate(formData, { abortEarly: false });// Validate with yup
       console.log("Validated Data:", validatedData);
       setFormErrors({}); // Clear all errors if validation passes
-
       onLogin(formData); // Call API if validation is successful
 
     } catch (validationError) {
