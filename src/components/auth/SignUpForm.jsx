@@ -1,14 +1,8 @@
 import * as React from "react";
 import TextField from "../common/TextField";
 import SecondaryButton from "./SecondaryButton";
-import axios from "axios"; // Import axios
-import { useForm } from 'react-hook-form'; // Import react-hook-form
-import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useState } from 'react';
-import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
-import api from "../../services/api";
-import { useNavigate } from "react-router-dom";
 
 // Validates the inputs
 const schema = yup.object().shape({
@@ -72,6 +66,7 @@ const schema = yup.object().shape({
       "Workplace must contain only letters and spaces (no special characters)"
     ),
 });
+
 export function SignUpForm({ togglePage, onSignup, error, success }) {
 
   const [formData, setFormData] = useState({
@@ -90,6 +85,7 @@ export function SignUpForm({ togglePage, onSignup, error, success }) {
     setFormData({ ...formData, [id]: newValue });  // Update state
     setFormErrors({ ...formErrors, [id]: "" }); // Clear error for the specific field when changed
   };
+  
   const handleSubmit = async (event) => { // Handles form submission
     event.preventDefault(); // Prevent page refresh!'
     console.log("starting")
