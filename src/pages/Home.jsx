@@ -6,8 +6,10 @@ import dashboardImage from "../assets/images/dashboard-image.png";
 import Features from "../components/Home/Features";
 import ellipse from "../assets/images/ellipse-home-screen.png";
 import HomeFooter from "../components/Home/HomeFooter";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col bg-custom-gradient px-16 py-8 w-full h-full gap-16">
       {/* Navbar */}
@@ -20,7 +22,7 @@ export default function Home() {
       >
         <Logo color={"white"} />
         <div className="flex flex-row items-center gap-6">
-          <a href="" className="text-white text-3xl font-thin">
+          <a className="text-white text-3xl font-thin hover:cursor-pointer" onClick={()=>navigate("/authentication")}>
             Sign in
           </a>
           <Link to={"/selection-dashboard"}>
@@ -55,7 +57,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             viewport={{ once: true }}
           >
-            <DashboardButton>Go to Dashboard</DashboardButton>
+            <DashboardButton onClick={() => navigate("/selection-dashboard")} >Go to Dashboard</DashboardButton>
             <button className="opacity-90 text-2xl flex justify-center items-center gap-2 rounded-lg border-white border py-6 px-10 text-white">
               Learn more
             </button>

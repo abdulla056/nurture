@@ -5,9 +5,11 @@ import { SignUpForm } from "../components/auth/SignUpForm.jsx";
 import { Footer } from "../components/common/Footer.jsx";
 import { useState } from "react";
 import api from "../services/api";
+import MFAPage from "../components/auth/MFAPage.jsx";
 
 export default function SignUpPage() {
   const [signUpPage, setPage] = useState(true);
+  const [isMfaPage, setMfaPage] = useState(true);
   const [signupError, setSignupError] = useState(null); // Lifted state
   const [signupSuccess, setSignupSuccess] = useState(null);
   const [loginError, setLoginError] = useState(null); // Lifted state
@@ -61,14 +63,27 @@ export default function SignUpPage() {
     }
   };
   return (
-    <div className="py-16 px-16 bg-custom-gradient flex flex-col items-center">
-      {signUpPage ? (
+    <div className="py-16 px-16 bg-custom-gradient flex flex-col items-center h-screen justify-between">
+      {isMfaPage ? (
+        <MFAPage />
+      ) : signUpPage ? (
         <div className="flex flex-col gap-16 max-md:max-w-full justify-center md:flex-row">
           <SignUpFeatures />
-          <SignUpForm togglePage={togglePage} onSignup={handleSignup} error={signupError} success={signupSuccess} /> {/* Pass the callback and error state */}
+          <SignUpForm
+            togglePage={togglePage}
+            onSignup={handleSignup}
+            error={signupError}
+            success={signupSuccess}
+          />{" "}
+          {/* Pass the callback and error state */}
         </div>
       ) : (
-        <LoginForm togglePage = {togglePage} onLogin={handleLogin} error={loginError} success={loginSuccess}/> 
+        <LoginForm
+          togglePage={togglePage}
+          onLogin={handleLogin}
+          error={loginError}
+          success={loginSuccess}
+        />
       )}
       <Footer />
     </div>
