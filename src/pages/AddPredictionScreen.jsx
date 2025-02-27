@@ -9,23 +9,26 @@ import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { useNavigate } from "react-router-dom";
 import AddPredictionDropDown from "../components/predictions-dashboard/AddPredictionDropDown";
 import AddPredictionModelSelector from "../components/predictions-dashboard/AddPredictionSelector";
+import AddPredictionProgressPopUp from "../components/predictions-dashboard/AddPredictionProgressPopUp";
 
 const descriptions = [
   "Click Next to start the prediction form. Enter required maternal and fetal health data, including Patient ID, demographics, maternal health indicators, and fetal monitoring data (e.g., CTG readings). Ensure all fields are complete and accurate before submitting for reliable results.",
   "Based on the inputs provided, assess and enter the patient's risk data. This includes evaluating maternal health factors, such as age, medical history, and pre-existing conditions. Ensure that all data is thoroughly reviewed and accurately recorded to facilitate precise risk analysis and prediction outcomes.",
-  "Please select the desired data to make the prediction. The data you select here will determine the parameters that are used to make the machine learning prediction."
+  "Please select the desired data to make the prediction. The data you select here will determine the parameters that are used to make the machine learning prediction.",
 ];
 
 const predictionSelector = [
-  { key: "risk", selector: "Risk Factors",},
-  { key: "lifestyle", selector: "Life Style Factors",},
-  { key: "demographic", selector: "Demographic Factors"},
+  { key: "risk", selector: "Risk Factors" },
+  { key: "lifestyle", selector: "Life Style Factors" },
+  { key: "demographic", selector: "Demographic Factors" },
 ];
 
 export default function AddPredictionScreen() {
   const [modelSelected, setModelSelected] = useState();
   const [pageNumber, updatePageNumber] = useState(-1);
+  const [isProgressPopupOpen, setIsProgressPopupOpen] = useState(false);
   const patientAddedDialog = useRef();
+  const progressDialog = useRef();
 
   const [lifeStyleData, setLifeStyleData] = useState({
     ...addPredictionFields[0].fields.reduce((acc, field) => {
@@ -80,7 +83,8 @@ export default function AddPredictionScreen() {
 
   function onFormSubmit() {
     console.log(formData);
-    patientAddedDialog.current.showModal();
+    setIsProgressPopupOpen(true);
+    progressDialog.current.showModal();
   }
 
   function onModelSelectorPressed(selected) {
@@ -110,12 +114,13 @@ export default function AddPredictionScreen() {
           "You can either choose to go to the dashboard or see all predictions again"
         }
       />
+      <AddPredictionProgressPopUp ref={progressDialog} isOpen={isProgressPopupOpen}/>
       {end ? (
         <div className="flex flex-col items-center gap-8 mb-8">
           <h3>Select Data for Prediction</h3>
           <span className="text-font-tertiary w-2/3 text-center">
-              {descriptions[2]}
-            </span>
+            {descriptions[2]}
+          </span>
           {predictionSelector.map((selector) => (
             <AddPredictionModelSelector
               selector={selector.selector}
@@ -126,6 +131,7 @@ export default function AddPredictionScreen() {
           ))}
         </div>
       ) : (
+        // <AddPredictionProgressPopUp/>
         <>
           <div className="flex flex-col items-center gap-4">
             <h3 className="text-center">

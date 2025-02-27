@@ -77,37 +77,24 @@ export const addPredictionFields = [
   },
 ];
 
-// export const patientDataVariations = [
-//   {
-//     patientId: "RSW21212",
-//     riskLevel: "Low",
-//     riskScore: 25,
-//     date: "Oct 01, 2022",
-//     time: "23:45:21",
-//     keyFactors: ["Maternal Age", "Blood Pressure"],
-//   },
-//   {
-//     patientId: "ABC12345",
-//     riskLevel: "Medium",
-//     riskScore: 60,
-//     date: "Nov 15, 2022",
-//     time: "10:30:00",
-//     keyFactors: ["Maternal Age", "Blood Pressure"],
-//   },
-//   {
-//     patientId: "XYZ78901",
-//     riskLevel: "High",
-//     riskScore: 85,
-//     date: "Dec 20, 2022",
-//     time: "16:15:00",
-//     keyFactors: ["Maternal Age", "Blood Pressure"],
-//   },
-//   {
-//     patientId: "PQR56789",
-//     riskLevel: "Very Low",
-//     riskScore: 10,
-//     date: "Jan 05, 2023",
-//     time: "08:45:00",
-//     keyFactors: ["Maternal Age", "Blood Pressure"],
-//   },
-// ];
+export const steps = [
+  {
+    title: "Sending the data to the server",
+    description:
+      "Please wait while we send the data to the server for processing.",
+  },
+  {
+    title: "Processing the data",
+    description: "Please wait while we process the data.",
+  },
+  {
+    title: "Making the prediction",
+    description: "Please wait while we make the prediction.",
+  },
+  {
+    title: "Prediction complete",
+    description:
+      "The prediction is complete. Please click on the button below to view the prediction.",
+  },
+];
+

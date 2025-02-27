@@ -15,10 +15,22 @@ import PredictionSelectionScreen from "./pages/PredictionSelectionScreen";
 import AddPredictionScreen from "./pages/AddPredictionScreen";
 import AddPatientScreen from "./pages/AddPatientScreen";
 import ProfileScreen from "./pages/ProfileScreen";
+import MFAPage from "./components/auth/MFAPage";
 
 const routes = [
   { path: "/", element: <Navigate to="/authentication" /> },
-  { path: "/authentication", element: <SignUpPage />,},
+  {
+    path: "/authentication",
+    element: <SignUpPage />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/authentication/sign-up" />,
+      },
+      { path: "sign-up", element: <SignUpPage /> },
+      { path: "mfa-page", element: <MFAPage /> },
+    ],
+  },
   { path: "/home", element: <Home /> },
   { path: "/profile", element: <ProfileScreen /> },
   {

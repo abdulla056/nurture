@@ -12,6 +12,7 @@ export default function PredictionSelectionScreen() {
   const [overViewActivated, changeOverView] = useState(false);
   const [predictions, setPredictions] = useState([]);
   const [patients, setPatients] = useState([]);
+  const [overViewData, setOverViewData] = useState();
 
   const navigate = useNavigate();
 
@@ -19,7 +20,8 @@ export default function PredictionSelectionScreen() {
     changeActiveButton(pressedButton);
   }
 
-  function onOverviewChanged() {
+  function onOverviewChanged(predictionId) {
+    setOverViewData(predictions.find((prediction) => prediction.detailId === predictionId));
     changeOverView((currentStatus) => !currentStatus);
   }
 
@@ -81,9 +83,9 @@ export default function PredictionSelectionScreen() {
           patients={patients}
           isPrediction={isResultsScreen}
           isActive={!overViewActivated}
-          changeOverViewStatus={() => onOverviewChanged()}
+          changeOverViewStatus={onOverviewChanged}
         />
-        <PredictedResultOverview isActive={overViewActivated} />
+        <PredictedResultOverview isActive={overViewActivated} prediction = {overViewData} />
       </motion.div>
       <HoveringButton onClick={navigateToAddScreen}>
         {isResultsScreen || overViewActivated
