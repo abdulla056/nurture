@@ -12,12 +12,21 @@ plt.use('Agg')  # Set the backend to 'Agg'
 import os
 import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
+import json
 from config import Config
+import firebase_admin
+from firebase_admin import credentials, firestore
 
+# Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 
+# Initialize Firebase app if not already initialized
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
 db = firestore.client()
+
 supervised_bp = Blueprint('supervised_bp', __name__)
 
 # Load trained models and scalers
@@ -55,8 +64,7 @@ full_training_data = pd.read_csv(FULL_TRAINING_DATA_PATH)
 # Initialize LIME Explainers
 demoexplainer = LimeTabularExplainer(training_data=DEMOscaler.transform(full_training_data[demographics]), feature_names=demographics, class_names=['No Risk', 'At Risk'], mode='classification')
 lfexplainer = LimeTabularExplainer(training_data=LFscaler.transform(full_training_data[lifestyle_factors]), feature_names=lifestyle_factors, class_names=['No Risk', 'At Risk'], mode='classification')
-riskexplainer = LimeTabularExplainer(training_data=RISKscaler.transform(full_training_data[risk_factors]), feature_names=risk_factors, class_names=['No Risk', 'At Risk'], mode='classification')
-
+riskexplainer = LimeTabularExplainer(training_data=riskscaler.transform(full_training_data[risk_factors]), feature_names=risk_factors, class_names=['No Risk', 'At Risk'], mode='classification')
 def predict(model, scaler, features, feature_names):
     features_array = np.array(features).reshape(1, -1)
     features_df = pd.DataFrame(features_array, columns=feature_names, dtype=float)
