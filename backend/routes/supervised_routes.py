@@ -64,7 +64,7 @@ full_training_data = pd.read_csv(FULL_TRAINING_DATA_PATH)
 # Initialize LIME Explainers
 demoexplainer = LimeTabularExplainer(training_data=DEMOscaler.transform(full_training_data[demographics]), feature_names=demographics, class_names=['No Risk', 'At Risk'], mode='classification')
 lfexplainer = LimeTabularExplainer(training_data=LFscaler.transform(full_training_data[lifestyle_factors]), feature_names=lifestyle_factors, class_names=['No Risk', 'At Risk'], mode='classification')
-riskexplainer = LimeTabularExplainer(training_data=riskscaler.transform(full_training_data[risk_factors]), feature_names=risk_factors, class_names=['No Risk', 'At Risk'], mode='classification')
+riskexplainer = LimeTabularExplainer(training_data=RISKscaler.transform(full_training_data[risk_factors]), feature_names=risk_factors, class_names=['No Risk', 'At Risk'], mode='classification')
 def predict(model, scaler, features, feature_names):
     features_array = np.array(features).reshape(1, -1)
     features_df = pd.DataFrame(features_array, columns=feature_names, dtype=float)
