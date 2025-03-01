@@ -1,19 +1,38 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import PrimaryContainer from "../layout/PrimaryContainer";
 import { Lock } from "@mui/icons-material";
 import PrimaryButton from "../common/PrimaryButton";
 
 length = 6;
 
-export default function MFAPage() {
+export default function MFAPage(tempToken, uid, onSuccess, onError) {
   const [otp, setOtp] = useState(new Array(length).fill(""));
+  const [errorMessage, setErrorMessage] = useState(""); // State for error message
+  const [confirmationResult, setConfirmationResult] = useState(null); // State for confirmation result
   const inputRefs = Array(length)
     .fill(null)
     .map(() => useRef(null));
 
+  const sendVerificationCode = async () => {
+    try {
+      setErrorMessage("");
+      const res = await api.post("/auth/send-verification-code", { tempToken });
+      setConfirmationResult(res.data.confirmationResult);
+    } catch (error) {
+      setErrorMessage("Failed to send verification code.");
+      onError("Failed to send verification code.");
+    }
+  };
+
+  // Handles input change
   const handleChange = (index, event) => {
     const value = event.target.value;
 
+    // Check if the value is a number
+    if (!/^\d$/.test(value)) {
+      setErrorMessage("Only numbers are allowed.");
+      return;
+    }
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -21,11 +40,47 @@ export default function MFAPage() {
     if (value && index < length - 1) {
       inputRefs[index + 1].current.focus();
     }
+    // Clear error message if input is valid
+    setErrorMessage("");
   };
 
   const handleKeyDown = (index, event) => {
-    if (event.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs[index - 1].current.focus();
+    const key = event.key;
+    if (key === "Backspace" || key === "Delete") {
+      if (!otp[index] && index > 0) {
+        inputRefs[index - 1].current.focus();
+      }
+    } else if (!/^\d$/.test(key)) {
+      // Show error message for invalid keys
+      setErrorMessage("Only numbers are allowed.");
+      event.preventDefault(); // Prevent the invalid key from being entered
+    } else {
+      // Clear error message if the key is valid
+      setErrorMessage("");
+    }
+  };
+  // Verify the OTP
+  const verifyOtp = async () => {
+    try {
+      setErrorMessage("");
+
+      if (!confirmationResult) {
+        setErrorMessage("Verification code not sent.");
+        return;
+      }
+
+      const code = otp.join("");
+      const res = await api.post("/auth/verify-otp", {
+        confirmationResult,
+        otp: code,
+        tempToken,
+      });
+      // Notify the parent component of success
+      onSuccess();
+
+    } catch (error) {
+      setErrorMessage("Invalid verification code.");
+      onError = "Invalid verification code.";
     }
   };
   return (
@@ -53,13 +108,16 @@ export default function MFAPage() {
           />
         ))}
       </div>
+      {errorMessage && (
+        <span className="text-red-500 text-sm">{errorMessage}</span>
+      )}
       <span className="w-full text-center">
         Didn't get the code?{" "}
-        <span className="text-secondary font-semibold hover:cursor-pointer">
+        <span className="text-secondary font-semibold hover:cursor-pointer" onClick={sendVerificationCode}>
           Resend code
         </span>
       </span>
-      <PrimaryButton>Verify account</PrimaryButton>
+      <PrimaryButton onClick={verifyOtp}>Verify account</PrimaryButton>
     </PrimaryContainer>
   );
 }
