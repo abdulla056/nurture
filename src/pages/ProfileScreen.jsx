@@ -6,6 +6,7 @@ import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutli
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import LogoutIcon from "@mui/icons-material/Logout";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import { useNavigate } from "react-router-dom";
 
 const userDetails = {
   firstName: "Mohamed",
@@ -22,11 +23,12 @@ const fields = [
 ];
 
 export default function ProfileScreen() {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center p-8 gap-6">
       <Logo color={"black"} />
       <PrimaryContainer className="w-2/3 !py-10 !px-16 !gap-4">
-        <ArrowBackIosIcon className="absolute" />
+        <ArrowBackIosIcon className="absolute hover:cursor-pointer hover:opacity-60" onClick={ ()=>navigate("/dashboard")}/>
         <h3 className="text-center mb-10">My profile</h3>
         <ProfileContainer
           className={"flex flex-row items-center justify-between"}

@@ -3,11 +3,13 @@ import NavBarButtons from "../common/NavBarButtons";
 import notification from "../../assets/images/notification.png";
 import setting from "../../assets/images/setting.png";
 import IconButton from "../common/IconButton";
+import { useNavigate } from "react-router-dom";
 
 import { useEffect, useState } from "react";
 
 export default function NavBar() {
   const [hasShadow, setHasShadow] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,7 +38,7 @@ export default function NavBar() {
       </div>
       <div className="flex flex-row gap-1.5">
         <IconButton icon={notification} />
-        <IconButton icon={setting} />
+        <IconButton icon={setting} onClick={()=> navigate("/profile")}/>
       </div>
     </div>
   );

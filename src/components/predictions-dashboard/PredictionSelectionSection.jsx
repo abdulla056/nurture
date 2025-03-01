@@ -29,7 +29,7 @@ export default function PredictionSelectionSection({
                   ? { predictionData: item }
                   : { patientData: item })}
                 isPrediction={isPrediction}
-                enableOverview={changeOverViewStatus}
+                enableOverview={()=>changeOverViewStatus(item.detailId)}
               />
             ))}
           </motion.div>
