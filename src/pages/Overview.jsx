@@ -10,10 +10,11 @@ import PastPredictions from "../components/overview/PastPredictions";
 import HeadingSection from "../components/common/HeadingSection";
 import { predictionDetails } from "../assets/data/data";
 import { AnimatePresence, motion } from "framer-motion";
-
-const patient = { id: "RSW31213", cause: "Congenital syphilis" };
+import { PredictionDetailsContext } from "../store/prediction-details-context";
+import { useContext } from "react";
 
 export default function Overview() {
+  const {patientId} = useContext(PredictionDetailsContext);
   return (
     <AnimatePresence>
       <motion.div
@@ -22,12 +23,12 @@ export default function Overview() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <HeadingSection patient={patient} />
+        <HeadingSection patientId={patientId} />
         <div className="flex flex-row justify-between" id="mainSection">
-          <PredictedCauseSection patient={patient} />
+          <PredictedCauseSection />
           <div className="grid grid-flow-col grid-rows-2 gap-6 grid-cols-2">
             <RiskScore />
-            <RiskScore />
+            <RiskScore isConfidence={true}/>
             <PrimaryContainer
               className="row-span-2 items-start"
               id="predictionDetails"
