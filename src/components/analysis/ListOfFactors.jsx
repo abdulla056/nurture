@@ -7,8 +7,8 @@ import {useContext} from "react";
 import { PredictionDetailsContext } from "../../store/prediction-details-context";
 
 export default function ListOfFactors() {
-  const predictionDetails  = useContext(PredictionDetailsContext);
-  const contributingFactors  = predictionDetails?.contributingFactors;
+  const {contributingFactors}  = useContext(PredictionDetailsContext);
+  // const contributingFactors  = predictionDetails?.contributingFactors;
   console.log(contributingFactors)
   return (
     <PrimaryContainer className="!gap-0 w-2/5 hover:scale-100">

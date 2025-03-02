@@ -14,7 +14,7 @@ import { PredictionDetailsContext } from "../store/prediction-details-context";
 import { useContext } from "react";
 
 export default function Overview() {
-  const {patientId} = useContext(PredictionDetailsContext);
+  const { patientId } = useContext(PredictionDetailsContext);
   return (
     <AnimatePresence>
       <motion.div
@@ -28,7 +28,7 @@ export default function Overview() {
           <PredictedCauseSection />
           <div className="grid grid-flow-col grid-rows-2 gap-6 grid-cols-2">
             <RiskScore />
-            <RiskScore isConfidence={true}/>
+            <RiskScore isConfidence={true} />
             <PrimaryContainer
               className="row-span-2 items-start"
               id="predictionDetails"
@@ -36,8 +36,9 @@ export default function Overview() {
             >
               <span className="text-2xl text-font">Prediction Details</span>
               <BlueContainer className="grid grid-cols-2 grid-rows-2 gap-6 py-6">
-                {predictionDetails.map((prediction) => (
+                {predictionDetails.map((prediction, index) => (
                   <PredictionDetails
+                    key={index}
                     icon={prediction.icon}
                     title={prediction.title}
                     data={prediction.data}
