@@ -1,8 +1,11 @@
 import PrimaryButton from "./PrimaryButton";
 import CustomLine from "./CustomLine";
 import { useNavigate } from "react-router-dom";
+import { PredictionDetailsContext } from "../../store/prediction-details-context";
+import { useContext } from "react";
 
-export default function HeadingSection({overview = true, patientId}) {
+export default function HeadingSection({overview = true}) {
+  const { patientId } = useContext(PredictionDetailsContext);
   const navigate = useNavigate();
   return (
     <>
