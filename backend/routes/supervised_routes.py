@@ -97,7 +97,7 @@ def explain(explainer, model, scaler, features, feature_names):
         traceback.print_exc()
         raise e
 
-@app.route("/demopredict", methods=["POST"])
+@supervised_bp.route("/demopredict", methods=["POST"])
 def demopredict():
     try:
         data = request.get_json()
@@ -123,7 +123,7 @@ def demopredict():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/demoexplain", methods=["POST"])
+@supervised_bp.route("/demoexplain", methods=["POST"])
 def demoexplain():
     try:
         data = request.get_json()
@@ -162,7 +162,7 @@ def demoexplain():
         return jsonify({"error": str(e)}), 500
 
 # Lifestyle
-@app.route("/LFpredict", methods=["POST"])
+@supervised_bp.route("/LFpredict", methods=["POST"])
 def LFpredict():
     try:
         data = request.get_json()
@@ -189,7 +189,7 @@ def LFpredict():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/LFexplain", methods=["POST"])
+@supervised_bp.route("/LFexplain", methods=["POST"])
 def LFexplain():
     try:
         data = request.get_json()
@@ -227,7 +227,7 @@ def LFexplain():
         return jsonify({"error": str(e)}), 500
 
 # Risk
-@app.route("/riskpredict", methods=["POST"])
+@supervised_bp.route("/riskpredict", methods=["POST"])
 def riskpredict():
     try:
         data = request.get_json()
@@ -255,7 +255,7 @@ def riskpredict():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route("/riskexplain", methods=["POST"])
+@supervised_bp.route("/riskexplain", methods=["POST"])
 def riskexplain():
     try:
         data = request.get_json()
@@ -292,6 +292,3 @@ def riskexplain():
         logging.error(f"Error in /riskexplain: {str(e)}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    app.run(debug=True)
