@@ -8,10 +8,11 @@ const predictionId = "PR001";
 
 export default function Dashboard() {
   const [predictionDetails, setPredictionDetails] = useState();
+  const [pastPredictions, setPastPredictions] = useState([]);
   useEffect(() => {
     const fetchPredictionDetails = async () => {
       try {
-        const res = await api.get(`/prediction/get_prediction/${predictionId}`);
+        const res = await api.get(`/details/get_prediction/${predictionId}`);
         setPredictionDetails(res.data);
       } catch (error) {
         console.error("Error fetching prediction details:", error);
@@ -19,9 +20,39 @@ export default function Dashboard() {
     };
     fetchPredictionDetails();
   }, []);
+  useEffect(() => {
+    if (predictionDetails?.patientId) {
+      const fetchPastPredictions = async () => {
+        try {
+          const res = await api.get(
+            `/details/get_predictions/${predictionDetails.patientId}`
+          );
+          setPastPredictions(res.data);
+        } catch (error) {
+          console.error("Error fetching past predictions:", error);
+        }
+      };
+      fetchPastPredictions();
+    }
+  }, [predictionDetails]);
+
+  const ctxValue = {
+    riskScore: predictionDetails?.riskScore,
+    predictionId: predictionDetails?.predictionId,
+    timeStamp: predictionDetails?.timeStamp,
+    confidenceScore: predictionDetails?.confidenceScore,
+    contributingFactors: predictionDetails?.contributingFactors,
+    detailId: predictionDetails?.detailId,
+    doctorId: predictionDetails?.doctorId,
+    expectedOutcome: predictionDetails?.expectedOutcome,
+    patientId: predictionDetails?.patientId,
+    predictionResult: predictionDetails?.predictionResult,
+    riskLevel: predictionDetails?.riskLevel,
+    pastPredictions: pastPredictions,
+  };
 
   return (
-    <PredictionDetailsContext.Provider value={predictionDetails}>
+    <PredictionDetailsContext.Provider value={ctxValue}>
       <div className="px-12 py-4 relative">
         <NavBar />
         <Outlet />
