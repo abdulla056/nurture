@@ -164,7 +164,6 @@ def get_number():
         if doctor:
             phone_number = doctor[0].to_dict()['phoneNumber']
             if phone_number:
-                print(phone_number)
                 return jsonify({'message': 'Verification code sent', 'phoneNumber': phone_number}), 200
             else:
                 return jsonify({'error': 'Phone number not found'}), 404
@@ -220,7 +219,7 @@ def verify_phone():
             max_age=3600,  # Cookie expiration time in seconds (1 hour)
         )
 
-        return response, 201  # Send back cookie
+        return response  # Send back cookie
 
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
