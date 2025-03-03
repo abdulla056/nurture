@@ -96,6 +96,15 @@ def explain(explainer, model, scaler, features, feature_names):
         print("Error in explain function:", str(e))  # Debugging log
         traceback.print_exc()
         raise e
+def generate_prediction_id():
+    counter_ref = db.collection("counter").document("prediction_id")
+    count = counter_ref.get()
+    if not count.exists:
+        raise Exception("Counter does not exist")
+    next_id = count.to_dict()["nextId"]
+    predictionId = f"PR{next_id:03}" # Format with leading zeros
+    counter_ref.update({"nextId":int(next_id+1)})
+    return predictionId
 
 @supervised_bp.route("/demopredict", methods=["POST"])
 def demopredict():
@@ -105,9 +114,10 @@ def demopredict():
 
         feature_names = demographics
         features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
-
-        prediction, confidence = predict(DEMOmodel, DEMOscaler, features, demographics)
-        document_id = str(uuid.uuid4())  # Generate a unique document ID.
+        
+        prediction, confidence = predict(DEMOmodel, DEMOscaler,features, demographics)
+        document_id = generate_prediction_id()  # Generate a unique document ID.
+        
 
         prediction_data = {
             "features": features_dict,  # Store features as a dictionary with feature names
@@ -139,7 +149,7 @@ def demoexplain():
 
         image_base64 = explain(demoexplainer, DEMOmodel, DEMOscaler, data["features"], demographics)
         base64_size = len(image_base64)
-        logging.info(f"Base64 string size: {base64_size} bytes")
+        # logging.info(f"Base64 string size: {base64_size} bytes")
 
         db = firestore.client()
         doc_ref = db.collection('predictionsDemographic').document(document_id)
@@ -161,7 +171,7 @@ def demoexplain():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-# Lifestyle
+#Lifestyle
 @supervised_bp.route("/LFpredict", methods=["POST"])
 def LFpredict():
     try:
@@ -172,8 +182,8 @@ def LFpredict():
         features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
 
         prediction, confidence = predict(LFmodel, LFscaler, features, lifestyle_factors)
-        document_id = str(uuid.uuid4())  # Generate a unique document ID.
-
+        document_id = generate_prediction_id()  # Generate a unique document ID.
+        
         prediction_data = {
             "features": features_dict,  # Store features as a dictionary with feature names
             "prediction": prediction,
@@ -204,7 +214,7 @@ def LFexplain():
 
         image_base64 = explain(lfexplainer, LFmodel, LFscaler, features, lifestyle_factors)
         base64_size = len(image_base64)
-        logging.info(f"Base64 string size: {base64_size} bytes")
+        # logging.info (f"Base64 string size: {base64_size} bytes")
 
         db = firestore.client()
         doc_ref = db.collection("predictionsLifestyle").document(document_id)
@@ -236,9 +246,9 @@ def riskpredict():
         # Map feature indices to feature names
         feature_names = risk_factors
         features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
-
+       
         prediction, confidence = predict(RISKmodel, RISKscaler, features, risk_factors)
-        document_id = str(uuid.uuid4())  # Generate a unique document ID.
+        document_id = generate_prediction_id()  # Generate a unique document ID.
 
         prediction_data = {
             "features": features_dict,  # Store features as a dictionary with feature names
@@ -251,7 +261,7 @@ def riskpredict():
 
         return jsonify({"Expected outcome": prediction, "Confidence": confidence, "document_id": document_id})
     except Exception as e:
-        logging.error(f"Error in /riskpredict: {str(e)}")
+        # logging.error(f"Error in /riskpredict: {str(e)}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
@@ -271,7 +281,7 @@ def riskexplain():
 
         image_base64 = explain(riskexplainer, RISKmodel, RISKscaler, features, risk_factors)
         base64_size = len(image_base64)
-        logging.info(f"Base64 string size: {base64_size} bytes")
+        # logging.info(f"Base64 string size: {base64_size} bytes")
 
         db = firestore.client()
         doc_ref = db.collection("predictionsRiskFactors").document(document_id)
@@ -289,6 +299,6 @@ def riskexplain():
             return jsonify({"error": "document not found"}), 404
 
     except Exception as e:
-        logging.error(f"Error in /riskexplain: {str(e)}")
+        # logging.error(f"Error in /riskexplain: {str(e)}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
