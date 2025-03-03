@@ -7,7 +7,7 @@ import { sendVerificationCode, RecaptchaVerifier, verifyCode } from "./firebase"
 
 length = 6;
 
-export default function MFAPage(tempToken,uid, onSuccess, onError) {
+export default function MFAPage({tempToken, onSuccess, onError}) {
   const [otp, setOtp] = useState(new Array(length).fill(""));
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const [confirmationResult, setConfirmationResult] = useState(null); // State for confirmation result
@@ -21,6 +21,7 @@ export default function MFAPage(tempToken,uid, onSuccess, onError) {
 
   const getVerificationCode = async () => {
     try {
+      console.log("Props:", { onSuccess, onError });
       setErrorMessage("");
       const res = await api.post("/auth/get_number", tempToken );
       const phoneNumber = res.data.phoneNumber;
@@ -30,7 +31,7 @@ export default function MFAPage(tempToken,uid, onSuccess, onError) {
       setConfirmationResult(confirmationResult);
     } catch (error) {
       setErrorMessage("Failed to send verification code.");
-      onError="Failed to send verification code.";
+      onError("Failed to send verification code.");
       console.log(error);
     }
   };
@@ -52,7 +53,7 @@ export default function MFAPage(tempToken,uid, onSuccess, onError) {
 
   const handleKeyDown = (index, event) => {
     const key = event.key;
-    if (key === "Backspace" || key === "Delete") {
+    if (key === "Backspace") {
       if (!otp[index] && index > 0) {
         inputRefs[index - 1].current.focus();
       }
@@ -78,25 +79,35 @@ export default function MFAPage(tempToken,uid, onSuccess, onError) {
       }
 
       const code = otp.join("");
-      console.log("Code: ", code);
       const user = await verifyCode(confirmationResult, code);
-      console.log("Phone authentication successful.");
-      tempToken["confirmationResult"] = confirmationResult;
-      // Notify the parent component of success
-       // Send the tempToken and user information to the backend for verification
-      const res = await api.post("/auth/verify_otp",
-        tempToken, // Send the Firebase UID or other user information
-
-      );
-      if (res.data.success) {
-        onSuccess(); // Notify the parent component of success
-      } else {
-        setErrorMessage("Backend verification failed.");
-        onError("Backend verification failed.");
-      }
+      console.log(confirmationResult)
+      if (user.MFA == "Successful"){
+        // Send the tempToken and user information to the backend for verification
+        const res = await api.post("/auth/verify_otp",
+          {tempToken,
+           confirmationResult,
+           otp 
+          }// Send the Firebase UID or other user information
+        );
+        if (res.data.success) {
+          onSuccess(); // Notify the parent component of success
+        } else {
+          setErrorMessage("Backend verification failed.");
+          onError("Backend verification failed.");
+        }
+      } else{
+        setErrorMessage("Verification code is incorrect. Please try again.");
+        onError("Verification code is incorrect. Please try again.");
+      }      
     } catch (error) {
-      setErrorMessage("Invalid verification code.");
-      onError = "Invalid verification code.";
+      if (error.response && error.response.status === 401){
+        setErrorMessage("Your session has expired. Please reload and log in again.");
+        onError("Your session has expired. Please reload and log in again.");
+      } else {
+        console.log(error)
+        setErrorMessage("Invalid verification code.");
+        onError("Invalid verification code.");
+      }
     }
   };
   return (

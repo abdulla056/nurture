@@ -91,7 +91,6 @@ export default function SignUpPage() {
       {isMfaPage ? (
         <MFAPage  
           tempToken={tempToken}
-          uid={uid}
           onSuccess={() => {
             setIsMfaPage(false); // Exit MFA page after success
             navigate("/dashboard"); // Redirect to dashboard

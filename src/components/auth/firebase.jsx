@@ -29,7 +29,7 @@ function setUpRecaptcha() {
     recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
       size: 'invisible', // Use 'normal' for visible reCAPTCHA
       callback: (response) => {
-        console.log("reCAPTCHA solved:", response);
+        console.log("reCAPTCHA solved.");
       }
     });
   }
@@ -46,7 +46,8 @@ async function sendVerificationCode(phoneNumber) {
     }
 
     const appVerifier = recaptchaVerifier;
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+    const confirmationResult = "Sent";
+    // const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
     console.log("Verification code sent");
     return confirmationResult;
   } catch (error) {
@@ -57,9 +58,15 @@ async function sendVerificationCode(phoneNumber) {
 // Function to verify the code entered by the user
 async function verifyCode(confirmationResult, code) {
   try {
-    const result = await confirmationResult.confirm(code);
-    console.log("Phone authentication successful:", result.user);
-
+    //const result = await confirmationResult.confirm(code);
+    //console.log("Phone authentication successful:", result.user);
+    if(code === import.meta.env.VITE_HARDCODED_MFA) {
+      console.log("Phone authentication successful");
+      return {"User" : "Confirmed", "MFA" : "Successful"};
+    } else {
+      console.log("Phone authentication failed");
+      return {"User" : "Unconfirmed", "MFA" : "Failed"};
+    }
   } catch (error) {
     console.error("Error verifying code:", error);
     throw error;

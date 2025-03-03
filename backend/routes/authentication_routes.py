@@ -155,9 +155,8 @@ def get_number():
     try:
         print('get_number')
         data = request.get_json()
-        token = data['tempToken']  
         # Ensure the token is a string
-        decoded_token = jwt.decode(token, temp_key, algorithms=['HS256'])
+        decoded_token = jwt.decode(data, temp_key, algorithms=['HS256'])
         email = decoded_token['email']
         doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
         doctor = doctor_ref.get()
@@ -183,10 +182,12 @@ def verify_phone():
         data = request.get_json()
         confirmation_result = data.get('confirmationResult')
         print(data)
-        token = data['tempToken'] 
+        token = data['tempToken']
+        otp = data['otp']
         decoded_token = jwt.decode(token, temp_key, algorithms=['HS256'])
         email = decoded_token['email']
-        doctor_ref = db.collection('doctors').where("email", "==", email)
+        
+        doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
         doctor = doctor_ref.get()
         uid = doctor[0].to_dict()['doctorId']
         email = doctor[0].to_dict()['email']
@@ -195,7 +196,7 @@ def verify_phone():
             return jsonify({'error': 'Doctor not found'}), 404
 
         if not confirmation_result or not otp:
-            return jsonify({'error': 'Confirmation result is required'}), 400
+            return jsonify({'error': 'Information is missing'}), 400
         
         payload = {
             'uid': uid,
@@ -207,7 +208,7 @@ def verify_phone():
         token = jwt.encode(payload, secret_key, algorithm='HS256') 
 
         # Create a response object
-        response = make_response(jsonify({"message": "Login successful"}), 201)
+        response = make_response(jsonify({"message": "Login successful", "success" : True}), 201)
 
         # Set the JWT as a cookie with SameSite attribute
         response.set_cookie(
@@ -223,6 +224,8 @@ def verify_phone():
 
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
+    except jwt.ExpiredSignatureError or jwt.InvalidTokenError:
+        return jsonify({'error': 'Invalid or expired temporary token'}), 401  # Token has expired
     except Exception as e:
         print(f"Error verifying OTP: {e}")
         return jsonify({'error': str(e)}), 500  # Handle other errors
