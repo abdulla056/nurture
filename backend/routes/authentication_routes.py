@@ -6,6 +6,9 @@ from marshmallow import Schema, fields, validate, ValidationError
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
+from google.cloud.firestore_v1.base_query import FieldFilter
+
+
 
 secret_key = Config.SECRET_KEY
 temp_key = Config.TEMP_KEY
@@ -128,6 +131,7 @@ def verify_token():
 # Verifies the temporary token before sending the user to MFA page
 @auth_bp.route('/verify_mfa', methods=['POST'])
 def verify_mfa():
+    print("verify_mfa")
     temp_token = request.args.get('temp_token')  # Get the temporary token from the query string
 
     if not temp_token:
@@ -146,57 +150,56 @@ def verify_mfa():
     return jsonify({'message': 'MFA page', 'uid': uid}), 200
 
 # Sends verification code to the user's phone number
-@auth_bp.route('/send_verification_code', methods=['POST'])
-def send_verification_code():
+@auth_bp.route('/get_number', methods=['POST'])
+def get_number():
     try:
+        print('get_number')
         data = request.get_json()
-        token = data.get('tempToken')
+        token = data['tempToken']  
+        # Ensure the token is a string
         decoded_token = jwt.decode(token, temp_key, algorithms=['HS256'])
         email = decoded_token['email']
-        doctor_ref = db.collection('doctors').where("email", "==", email)
+        doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
         doctor = doctor_ref.get()
         
-        if doctor.exists:
-            phone_number = doctor.to_dict()['phoneNumber']
+        if doctor:
+            phone_number = doctor[0].to_dict()['phoneNumber']
             if phone_number:
-                # Send verification code using Firebase
-                recaptcha_verifier = auth.RecaptchaVerifier()  # Initialize reCAPTCHA verifier
-                confirmation_result = auth.sign_in_with_phone_number(phone_number, recaptcha_verifier)
-                return jsonify({'message': 'Verification code sent', 'confirmationResult': confirmation_result}), 200
+                print(phone_number)
+                return jsonify({'message': 'Verification code sent', 'phoneNumber': phone_number}), 200
             else:
                 return jsonify({'error': 'Phone number not found'}), 404
         else:
             return jsonify({'error': 'Doctor not found'}), 404
     except Exception as e:
-        print(f"Error sending verification code: {e}")  # Log the error
+        print(f"Error getting number: {e}")  # Log the error
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message    
 
 ## Not tested
-@auth_bp.route('/verify_phone', methods=['POST'])
+@auth_bp.route('/verify_otp', methods=['POST'])
 def verify_phone():
-    print('verify_phone')
+    print('verify_otp')
     try:
         data = request.get_json()
         confirmation_result = data.get('confirmationResult')
-        otp = data.get('otp')
+        print(data)
+        token = data['tempToken'] 
         decoded_token = jwt.decode(token, temp_key, algorithms=['HS256'])
         email = decoded_token['email']
         doctor_ref = db.collection('doctors').where("email", "==", email)
         doctor = doctor_ref.get()
-        uid = doctor.to_dict()['doctorId']
+        uid = doctor[0].to_dict()['doctorId']
+        email = doctor[0].to_dict()['email']
 
         if not uid:
             return jsonify({'error': 'Doctor not found'}), 404
 
         if not confirmation_result or not otp:
-            return jsonify({'error': 'Confirmation result and OTP are required'}), 400
-
-        # Verify the OTP
-        user_credential = confirmation_result.confirm(otp)
+            return jsonify({'error': 'Confirmation result is required'}), 400
         
         payload = {
             'uid': uid,
-            'user_credential': user_credential.uid,
+            'email': email,
             'iat': datetime.utcnow(),
             'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
         }
@@ -221,6 +224,7 @@ def verify_phone():
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
     except Exception as e:
+        print(f"Error verifying OTP: {e}")
         return jsonify({'error': str(e)}), 500  # Handle other errors
 
 ## Registration 

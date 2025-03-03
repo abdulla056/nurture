@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -13,5 +13,57 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+// Global variable to store the RecaptchaVerifier instance
+let recaptchaVerifier = null;
 
-export { auth, signInWithEmailAndPassword };
+// Function to set up reCAPTCHA verifier
+function setUpRecaptcha() {
+  const recaptchaContainer = document.getElementById('recaptcha-container');
+  if (!recaptchaContainer) {
+    console.error("Recaptcha container not found");
+    return;
+  }
+
+  // Initialize RecaptchaVerifier only if it doesn't already exist
+  if (!recaptchaVerifier) {
+    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible', // Use 'normal' for visible reCAPTCHA
+      callback: (response) => {
+        console.log("reCAPTCHA solved:", response);
+      }
+    });
+  }
+}
+
+// Function to send verification code
+async function sendVerificationCode(phoneNumber) {
+  try {
+    setUpRecaptcha(); // Set up reCAPTCHA verifier (if not already set up)
+
+    // Ensure recaptchaVerifier is initialized
+    if (!recaptchaVerifier) {
+      throw new Error("RecaptchaVerifier is not initialized.");
+    }
+
+    const appVerifier = recaptchaVerifier;
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+    console.log("Verification code sent");
+    return confirmationResult;
+  } catch (error) {
+    console.error("Error sending verification code:", error);
+    throw error;
+  }
+}
+// Function to verify the code entered by the user
+async function verifyCode(confirmationResult, code) {
+  try {
+    const result = await confirmationResult.confirm(code);
+    console.log("Phone authentication successful:", result.user);
+
+  } catch (error) {
+    console.error("Error verifying code:", error);
+    throw error;
+  }
+}
+
+export { auth, signInWithEmailAndPassword, sendVerificationCode, verifyCode, RecaptchaVerifier};

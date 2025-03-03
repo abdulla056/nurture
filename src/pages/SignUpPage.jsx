@@ -23,6 +23,8 @@ export default function SignUpPage() {
     setLoginError(null); // Clear login errors
     setSignupError(null); // Clear signup errors
   }
+
+  
   
   const handleSignup = async (data) => { // Callback from SignUpForm
     setSignupError(null); // Clear previous errors
@@ -69,7 +71,6 @@ export default function SignUpPage() {
 
       // Set the temporary token and user ID
       setTempToken(res.data.temp_token);
-      console.log(tempToken);
 
       // Redirect to MFA page
       setIsMfaPage(true);
