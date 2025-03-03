@@ -3,8 +3,12 @@ import { pastPredictions } from "../../assets/data/data";
 import PastPredictionContainer from "./PastPredictionContainer";
 import SecondaryButton from "../auth/SecondaryButton";
 import { useNavigate } from "react-router-dom";
+import {PredictionDetailsContext} from "../../store/prediction-details-context";
+import { useContext } from "react";
 
 export default function PastPredictions() {
+  const { pastPredictions } = useContext(PredictionDetailsContext);
+  console.log(pastPredictions);
   const navigate = useNavigate();
   return (
     <PrimaryContainer className="hover:scale-100 gap-4 hover:cursor-default">
@@ -15,7 +19,7 @@ export default function PastPredictions() {
       <div className="flex flex-row justify-between items-center">
         <div className="flex flex-row gap-4">
           {pastPredictions.map((predcitionItem) => (
-            <PastPredictionContainer key={predcitionItem.date}  {...predcitionItem} />
+            <PastPredictionContainer key={predcitionItem.timestamp}  {...predcitionItem} />
           ))}
         </div>
         <SecondaryButton className="bg-secondary text-small mt-0 h-12 px-10">

@@ -10,8 +10,8 @@ import PastPredictions from "../components/overview/PastPredictions";
 import HeadingSection from "../components/common/HeadingSection";
 import { predictionDetails } from "../assets/data/data";
 import { AnimatePresence, motion } from "framer-motion";
-
-const patient = { id: "RSW31213", cause: "Congenital syphilis" };
+import { PredictionDetailsContext } from "../store/prediction-details-context";
+import { useContext } from "react";
 
 export default function Overview() {
   return (
@@ -22,12 +22,12 @@ export default function Overview() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <HeadingSection patient={patient} />
+        <HeadingSection />
         <div className="flex flex-row justify-between" id="mainSection">
-          <PredictedCauseSection patient={patient} />
+          <PredictedCauseSection />
           <div className="grid grid-flow-col grid-rows-2 gap-6 grid-cols-2">
             <RiskScore />
-            <RiskScore />
+            <RiskScore isConfidence={true} />
             <PrimaryContainer
               className="row-span-2 items-start"
               id="predictionDetails"
@@ -35,8 +35,9 @@ export default function Overview() {
             >
               <span className="text-2xl text-font">Prediction Details</span>
               <BlueContainer className="grid grid-cols-2 grid-rows-2 gap-6 py-6">
-                {predictionDetails.map((prediction) => (
+                {predictionDetails.map((prediction, index) => (
                   <PredictionDetails
+                    key={index}
                     icon={prediction.icon}
                     title={prediction.title}
                     data={prediction.data}
