@@ -18,7 +18,7 @@ export default function MFAPage({ tempToken, onSuccess, onError }) {
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const [confirmationResult, setConfirmationResult] = useState(null); // State for confirmation result
 
-  const { setSignIn } = useContext(UserDetailsContext);
+  const { setSignIn, setCookie } = useContext(UserDetailsContext);
   const inputRefs = Array(length)
     .fill(null)
     .map(() => useRef(null));
@@ -79,6 +79,7 @@ export default function MFAPage({ tempToken, onSuccess, onError }) {
   // Verify the OTP
   const verifyOtp = async () => {
     setSignIn();
+    setCookie();
     try {
       setErrorMessage("");
 
