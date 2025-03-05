@@ -3,18 +3,26 @@ import PrimaryContainer from "../layout/PrimaryContainer";
 import { Lock } from "@mui/icons-material";
 import PrimaryButton from "../common/PrimaryButton";
 import api from "../../services/api";
-import { sendVerificationCode, RecaptchaVerifier, verifyCode } from "./firebase";
+import {
+  sendVerificationCode,
+  RecaptchaVerifier,
+  verifyCode,
+} from "./firebase";
+import { UserDetailsContext } from "../../store/user-details-context";
+import { useContext } from "react";
 
 length = 6;
 
-export default function MFAPage({tempToken, onSuccess, onError}) {
+export default function MFAPage({ tempToken, onSuccess, onError }) {
   const [otp, setOtp] = useState(new Array(length).fill(""));
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const [confirmationResult, setConfirmationResult] = useState(null); // State for confirmation result
+
+  const { setSignIn } = useContext(UserDetailsContext);
   const inputRefs = Array(length)
     .fill(null)
     .map(() => useRef(null));
-  
+
   useEffect(() => {
     getVerificationCode();
   }, []);
@@ -23,7 +31,7 @@ export default function MFAPage({tempToken, onSuccess, onError}) {
     try {
       console.log("Props:", { onSuccess, onError });
       setErrorMessage("");
-      const res = await api.post("/auth/get_number", tempToken );
+      const res = await api.post("/auth/get_number", tempToken);
       const phoneNumber = res.data.phoneNumber;
       console.log(phoneNumber);
       const confirmationResult = await sendVerificationCode(phoneNumber);
@@ -70,6 +78,7 @@ export default function MFAPage({tempToken, onSuccess, onError}) {
   };
   // Verify the OTP
   const verifyOtp = async () => {
+    setSignIn();
     try {
       setErrorMessage("");
 
@@ -80,14 +89,12 @@ export default function MFAPage({tempToken, onSuccess, onError}) {
 
       const code = otp.join("");
       const user = await verifyCode(confirmationResult, code);
-      console.log(confirmationResult)
-      if (user.MFA == "Successful"){
+      console.log(confirmationResult);
+      if (user.MFA == "Successful") {
         // Send the tempToken and user information to the backend for verification
-        const res = await api.post("/auth/verify_otp",
-          {tempToken,
-           confirmationResult,
-           otp 
-          }// Send the Firebase UID or other user information
+        const res = await api.post(
+          "/auth/verify_otp",
+          { tempToken, confirmationResult, otp } // Send the Firebase UID or other user information
         );
         if (res.data.success) {
           onSuccess(); // Notify the parent component of success
@@ -95,16 +102,18 @@ export default function MFAPage({tempToken, onSuccess, onError}) {
           setErrorMessage("Backend verification failed.");
           onError("Backend verification failed.");
         }
-      } else{
+      } else {
         setErrorMessage("Verification code is incorrect. Please try again.");
         onError("Verification code is incorrect. Please try again.");
-      }      
+      }
     } catch (error) {
-      if (error.response && error.response.status === 401){
-        setErrorMessage("Your session has expired. Please reload and log in again.");
+      if (error.response && error.response.status === 401) {
+        setErrorMessage(
+          "Your session has expired. Please reload and log in again."
+        );
         onError("Your session has expired. Please reload and log in again.");
       } else {
-        console.log(error)
+        console.log(error);
         setErrorMessage("Invalid verification code.");
         onError("Invalid verification code.");
       }
@@ -112,7 +121,7 @@ export default function MFAPage({tempToken, onSuccess, onError}) {
   };
   return (
     <PrimaryContainer className="!p-12 !gap-8 mt-12">
-      <div id="recaptcha-container" style={{display: "none"}}></div>
+      <div id="recaptcha-container" style={{ display: "none" }}></div>
       <div className="p-3 bg-background w-fit rounded-lg">
         <Lock />
       </div>
@@ -141,12 +150,14 @@ export default function MFAPage({tempToken, onSuccess, onError}) {
       )}
       <span className="w-full text-center">
         Didn't get the code?{" "}
-        <span className="text-secondary font-semibold hover:cursor-pointer" onClick={getVerificationCode}>
+        <span
+          className="text-secondary font-semibold hover:cursor-pointer"
+          onClick={getVerificationCode}
+        >
           Resend code
         </span>
       </span>
       <PrimaryButton onClick={verifyOtp}>Verify account</PrimaryButton>
     </PrimaryContainer>
-    
   );
 }
