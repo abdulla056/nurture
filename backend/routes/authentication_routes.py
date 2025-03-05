@@ -243,14 +243,6 @@ def register():
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         license = validated_data['doctorLicense']
         workplace = validated_data['workplace']
-
-        counter_ref = db.collection("counter").document("doctor_id")
-        count = counter_ref.get()
-        if not count.exists:
-            raise Exception("Counter does not exist")
-        next_id = count.to_dict()["nextId"]
-        doctor_id = f"D{next_id:03}" # Format with leading zeros
-        counter_ref.update({"nextId":int(next_id+1)})                         
         try:
             user = auth.create_user(
                 email=email,
@@ -262,6 +254,15 @@ def register():
             print("Password received and processed.")
         except firebase_exceptions.UnauthenticatedError as e:
             return jsonify({'error': str(e)}), 400
+        
+        counter_ref = db.collection("counter").document("doctor_id")
+        count = counter_ref.get()
+        if not count.exists:
+            raise Exception("Counter does not exist")
+        next_id = count.to_dict()["nextId"]
+        doctor_id = f"D{next_id:03}" # Format with leading zeros
+        counter_ref.update({"nextId":int(next_id+1)})                         
+        
         try:
             print("Adding doctor")
             data = request.json
@@ -279,7 +280,8 @@ def register():
             return jsonify({"error": str(e)}), 500
         
         payload = {
-            'uid': user.uid,
+            'uid': doctor_id,
+            'email' : email,
             'iat': datetime.utcnow(),
             'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
         }
@@ -304,27 +306,26 @@ def register():
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
 
-# @auth_bp.route('/check_header', methods=['GET'])
-# def protected_resource():
-#     try:
-#         auth_header = request.headers.get('Authorization')
+@auth_bp.route('/check_cookie', methods=['GET'])
+def check_cookie():
+    try:
+        token = request.cookies.get("token")
+        if not token:
+            return jsonify({'error': 'Token missing'}), 403
+        
+        # Verify the token
+        try:
+            payload = jwt.decode(token, secret_key, algorithms=['HS256']) # Use the same secret
+            user_id = payload['uid'] # Access the uid from the payload
+            return jsonify({'message': 'Protected resource accessed', 'user_id': user_id}), 200
 
-#         if not auth_header:
-#             return jsonify({'error': 'Authorization header missing'}), 401
-#         token = auth_header.split(' ')[1]  # Extract the token (remove "Bearer ")
-#         # Verify the token
-#         try:
-#             payload = jwt.decode(token, secret_key, algorithms=['HS256']) # Use the same secret
-#             user_id = payload['uid'] # Access the uid from the payload
-#             return jsonify({'message': 'Protected resource accessed', 'user_id': user_id}), 200
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Invalid token'}), 401
 
-#         except jwt.ExpiredSignatureError:
-#             return jsonify({'error': 'Token expired'}), 401
-#         except jwt.InvalidTokenError:
-#             return jsonify({'error': 'Invalid token'}), 401
-
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     
 @auth_bp.route('/send_password_reset_email', methods=['POST'])
 def send_password_reset_email():
