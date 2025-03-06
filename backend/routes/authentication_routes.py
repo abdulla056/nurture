@@ -1,14 +1,17 @@
 from firebase_admin import credentials, auth, firestore # type: ignore
 import firebase_admin.exceptions as firebase_exceptions #type: ignore
-from flask import request, jsonify, Blueprint, make_response
+from flask import request, jsonify, Blueprint, make_response, session
+from flask_session import Session
 from config import Config
 from marshmallow import Schema, fields, validate, ValidationError
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from google.cloud.firestore_v1.base_query import FieldFilter
-
-
+from auth.email import sendMessage
+from auth.firebase import verify_firebase_token
+from random import randint
+from auth.session_data import get_session_by_sid, update_session
 
 secret_key = Config.SECRET_KEY
 temp_key = Config.TEMP_KEY
@@ -17,7 +20,7 @@ cred = credentials.Certificate(firebase_config_json)
 db = firestore.client()
 auth_bp = Blueprint('auth_bp', __name__)
 
-# Marshmallow schema for validation
+# Marshmallow schema for signing up
 class SignUpSchema(Schema):
     firstName = fields.Str(
         required=True,
@@ -69,6 +72,7 @@ class SignUpSchema(Schema):
         ]
     )
 
+# Marshmallow schema for logging in
 class LoginSchema(Schema):
     emailAddress = fields.Email(
         required=True,
@@ -85,8 +89,8 @@ class LoginSchema(Schema):
         ]
     )
 
+# Loading the schemas
 signupSchema = SignUpSchema()
-
 loginSchema = LoginSchema()
 
 # Login Route to verify token sent in from Firebase, generates a temporary 5 minute token.
@@ -99,130 +103,74 @@ def verify_token():
         if not id_token:
             return jsonify({'error': 'Token is required'}), 400
 
-
-        decoded_token = auth.verify_id_token(id_token)
+        decoded_token = verify_firebase_token(id_token) #auth.verify_id_token(id_token)
         print("decoded")
-        uid = decoded_token['uid']
-
-        payload = {
-            'uid': uid,
-            'email' : email,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(minutes=5),
-        }
-
-        temp_token = jwt.encode(payload, temp_key, algorithm='HS256')
-
+        email = decoded_token['email']
+        session.clear()
+        session['email'] = email
+        print(session.sid)
         return jsonify({
-            'message': 'MFA required',
-            'temp_token': temp_token,  # Include the temporary token
+            'message' : 'MFA required',
+            'session_id' : session.sid
         }), 200
-
-    except auth.InvalidIdTokenError:
-        return jsonify({'error': 'Invalid token'}), 401
-    except auth.ExpiredIdTokenError:
-        return jsonify({'error': 'Token has expired'}), 402
+    
     except Exception as e:
         print(f"Internal Server Error: {str(e)}")
         return jsonify({'error': 'An internal error occurred. Please try again later.'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Verifies the temporary token before sending the user to MFA page
-@auth_bp.route('/verify_mfa', methods=['POST'])
-def verify_mfa():
-    print("verify_mfa")
-    temp_token = request.args.get('temp_token')  # Get the temporary token from the query string
-
-    if not temp_token:
-        return jsonify({'error': 'Temporary token is required'}), 401
-
-    # Verify the temporary token
-    try:
-        uid = jwt.decode(temp_token, temp_key, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError or jwt.InvalidTokenError:
-        return jsonify({'error': 'Invalid or expired temporary token'}), 401  # Token has expired
-    except jwt.InvalidTokenError:
-        return jsonify({'error': 'Invalid or expired temporary token'}), 402  # Invalid token
-        
-
-    # Render the MFA page
-    return jsonify({'message': 'MFA page', 'uid': uid}), 200
-
 # Sends verification code to the user's phone number
-@auth_bp.route('/get_number', methods=['POST'])
-def get_number():
+@auth_bp.route('/send_email', methods=['POST'])
+def send_email():
     try:
-        print('get_number')
         data = request.get_json()
-        # Ensure the token is a string
-        decoded_token = jwt.decode(data, temp_key, algorithms=['HS256'])
-        email = decoded_token['email']
+        session_id = data['sessionId']
+        session_data = get_session_by_sid(session_id)
+        email = session_data['email']
+        session_data['mfa'] = randint(100000, 999999)
         doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
         doctor = doctor_ref.get()
-        
-        if doctor:
-            phone_number = doctor[0].to_dict()['phoneNumber']
-            if phone_number:
-                return jsonify({'message': 'Verification code sent', 'phoneNumber': phone_number}), 200
-            else:
-                return jsonify({'error': 'Phone number not found'}), 404
-        else:
-            return jsonify({'error': 'Doctor not found'}), 404
+        name = doctor[0].to_dict()['firstName'] + " " + doctor[0].to_dict()['lastName'] 
+        sendMessage(email, name, session_data['mfa'])
+        update_session(session_id, session_data)
+        return jsonify({'message' : "MFA code has been sent out", "session_id" : session_id})
     except Exception as e:
         print(f"Error getting number: {e}")  # Log the error
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message    
 
 ## Not tested
 @auth_bp.route('/verify_otp', methods=['POST'])
-def verify_phone():
+def verify_otp():
     print('verify_otp')
     try:
         data = request.get_json()
-        confirmation_result = data.get('confirmationResult')
-        print(data)
-        token = data['tempToken']
-        otp = data['otp']
-        decoded_token = jwt.decode(token, temp_key, algorithms=['HS256'])
-        email = decoded_token['email']
-        
+        session_id = data['sessionId']
+        code = data['code']
+        session_data = get_session_by_sid(session_id)
+        email = session_data['email']
         doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
         doctor = doctor_ref.get()
         uid = doctor[0].to_dict()['doctorId']
         email = doctor[0].to_dict()['email']
-
+        print("Code is ",code)
+        print("MFA is ", session_data['mfa'])
         if not uid:
             return jsonify({'error': 'Doctor not found'}), 404
 
-        if not confirmation_result or not otp:
-            return jsonify({'error': 'Information is missing'}), 400
-        
-        payload = {
+        if int(code) == int(session_data['mfa']):
+            payload = {
             'uid': uid,
             'email': email,
             'iat': datetime.utcnow(),
             'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
-        }
-
-        token = jwt.encode(payload, secret_key, algorithm='HS256') 
-
-        # Create a response object
-        response = make_response(jsonify({"message": "Login successful", "success" : True}), 201)
-
-        # Set the JWT as a cookie with SameSite attribute
-        response.set_cookie(
-            "token",  # Cookie name
-            value=token,  # JWT as the cookie value
-            httponly=True,  # Prevent client-side JavaScript from accessing the cookie
-            secure=True,  # Only send the cookie over HTTPS
-            samesite="Lax",  # Prevent CSRF attacks
-            max_age=3600,  # Cookie expiration time in seconds (1 hour)
-        )
-
-        return response  # Send back cookie
-
-    except firebase_exceptions.OutOfRangeError as e:
-        return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
+            }
+            token = jwt.encode(payload, secret_key, algorithm='HS256') 
+            return jsonify({'token':token}), 200  # Send back JWT
+        
+        elif code != session_data['mfa'] :
+            return jsonify({'error': 'Verification code is incorrect'}), 303
+        
     except jwt.ExpiredSignatureError or jwt.InvalidTokenError:
         return jsonify({'error': 'Invalid or expired temporary token'}), 401  # Token has expired
     except Exception as e:
@@ -235,10 +183,10 @@ def register():
     try:
         data = request.get_json()
         validated_data = signupSchema.load(data)
-        firstName = validated_data['firstName']
-        lastName = validated_data['lastName']
+        first_name = validated_data['firstName']
+        last_name = validated_data['lastName']
         email = validated_data['emailAddress']
-        phoneNumber = validated_data['phoneNumber']
+        phone_number = validated_data['phoneNumber']
         password = validated_data['password']
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         license = validated_data['doctorLicense']
@@ -269,10 +217,10 @@ def register():
             doctor_ref = db.collection('doctors').document(doctor_id)
             doctor_ref.set({
                 'doctorId' : doctor_id,
-                'firstName': firstName,
-                'lastName': lastName,
+                'firstName': first_name,
+                'lastName': last_name,
                 'email': email,
-                'phoneNumber': phoneNumber,
+                'phoneNumber': phone_number,
                 'licenseNumber': license,
                 'workplace': workplace
             })
@@ -306,10 +254,12 @@ def register():
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
 
-@auth_bp.route('/check_cookie', methods=['GET'])
+@auth_bp.route('/check_token', methods=['GET'])
 def check_cookie():
     try:
-        token = request.cookies.get("token")
+        data = request.get_json()
+        token = data['token']
+
         if not token:
             return jsonify({'error': 'Token missing'}), 403
         

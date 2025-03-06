@@ -15,7 +15,7 @@ export default function SignUpPage() {
   const [signupSuccess, setSignupSuccess] = useState(null); // Signup success state
   const [loginError, setLoginError] = useState(null); // Login error state
   const [loginSuccess, setLoginSuccess] = useState(null); // Login success state
-  const [tempToken, setTempToken] = useState(null); // Temporary token for MFA
+  const [sessionId, setSessionId] = useState(null); // Temporary token for MFA
   const [uid, setUid] = useState(null); // User ID for MFA
   const navigate = useNavigate();
   function togglePage() {
@@ -31,12 +31,9 @@ export default function SignUpPage() {
     try {
       console.log(data);  
       const res = await api.post("/auth/register", data);
-
       // Set the temporary token and user ID
-      setTempToken(res.data.temp_token);
+      setSessionId(res.data.sessionId);
       setUid(res.data.uid);
-      console.log(tempToken);
-      console.log(uid);
       // Redirect to MFA page
       setIsMfaPage(true);
     } catch (error) {
@@ -67,11 +64,11 @@ export default function SignUpPage() {
       const idToken = await userCredential.user.getIdToken(true)
       console.log('Firebase ID:',idToken);
 
-      const res = await api.post("/auth/verify_token", { token: idToken, email: emailAddress});    
+      const res = await api.post("/auth/verify_token", { token: idToken});    
 
       // Set the temporary token and user ID
-      setTempToken(res.data.temp_token);
-
+      setSessionId(res.data.session_id);
+      console.log(res.data.session_id)
       // Redirect to MFA page
       setIsMfaPage(true);
     } catch (error) {
@@ -90,10 +87,10 @@ export default function SignUpPage() {
     <div className="py-16 px-16 bg-custom-gradient flex flex-col items-center h-screen justify-between">
       {isMfaPage ? (
         <MFAPage  
-          tempToken={tempToken}
+          sessionId={sessionId}
           onSuccess={() => {
             setIsMfaPage(false); // Exit MFA page after success
-            navigate("/dashboard"); // Redirect to dashboard
+            navigate('/dashboard')
           }}
           onError={(error) => setLoginError(error)} // Handle MFA errors/>
           /> 

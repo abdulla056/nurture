@@ -7,6 +7,9 @@ load_dotenv()  # Load environment variables
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
     TEMP_KEY = os.getenv("TEMP_KEY")
+    APP_PASSWORD = os.getenv("APP_PASSWORD")
+    GMAIL = os.getenv("GMAIL")
+    PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")
     # Load Firebase credentials from environment variables
     PORT = os.getenv("PORT")
     FIREBASE_CONFIG = {
