@@ -26,8 +26,7 @@ def sendMessage(recipient_email, recipient, mfa_code):
         msg = EmailMessage()
         msg['Subject'] = 'Your multi-factor authentication code for Nurture:'
         msg['From'] = gmail
-        print(recipient_email)
-        msg['To'] = "zhehin.shine@gmail.com"
+        msg['To'] = recipient_email
         msg.preamble = 'You will not see this in a MIME-aware mail reader.\n'
         msg.add_header('Content-Type', 'text/html')
         msg.set_content(altbody, subtype = 'html')
