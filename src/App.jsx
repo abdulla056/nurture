@@ -3,6 +3,7 @@ import routes from "./routes";
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
+import PCAClusterScreen from "./pages/PCAClusterScreen";
 
 function App() {
   // useEffect(() => {
@@ -15,7 +16,7 @@ function App() {
   // }, []); 
   return (
     <>
-      <AppRoutes />
+      <PCAClusterScreen />
     </>
   );
 }
