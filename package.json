@@ -21,6 +21,7 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "firebase": "^11.4.0",
     "framer-motion": "^12.0.6",
+    "js-cookie": "^3.0.5",
     "libphonenumber-js": "^1.11.20",
     "nurture": "file:",
     "react": "^18.3.1",
