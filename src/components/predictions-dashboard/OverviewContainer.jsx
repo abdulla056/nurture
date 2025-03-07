@@ -2,6 +2,7 @@ import PredictionInfo from "./PredictionInfo";
 import calendaricon from "../../assets/images/calendar-black.png";
 import PrimaryButton from "../common/PrimaryButton";
 import trashIcon from "../../assets/images/trash-icon.png";
+import { useNavigate } from "react-router-dom";
 
 const keyFactors = ["Maternal age", "Gestational diabetes"];
 
@@ -16,6 +17,7 @@ export default function OverviewContainer({
   const dateObj = timestamp ? new Date(timestamp) : null;
   const date = dateObj ? dateObj.toISOString().split("T")[0] : "N/A";
   const time = dateObj ? dateObj.toTimeString().split(" ")[0].slice(0, 5) : "N/A";
+  const navigate = useNavigate();
   return (
     <div className="flex flex-row border rounded-2xl items-center justify-between px-6 py-2">
       {isPrediction && (
@@ -64,7 +66,7 @@ export default function OverviewContainer({
         <PrimaryButton onClick={isPrediction ? enableOverview : undefined}>
           {isPrediction ? "View more details" : "View all predictions"}
         </PrimaryButton>
-        <PrimaryButton transparent={true}>Go to dashboard</PrimaryButton>
+        <PrimaryButton transparent={true} onClick={()=>navigate("/dashboard")} >Go to dashboard</PrimaryButton>
       </div>
     </div>
   );
