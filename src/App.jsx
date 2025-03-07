@@ -1,25 +1,12 @@
 import { useRoutes } from "react-router-dom";
 import routes from "./routes";
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import axios from 'axios';
+import SUPERVISEDSCREENTEST from "./pages/SUPERVISEDSCREENTEST";
 import { useEffect, useState } from "react";
 import api from "./services/api";
 import { UserDetailsContext } from "./store/user-details-context";
-
-import Cookies from 'js-cookie';
-
-const setCookie = () => {
-  Cookies.set('username', 'Abdulla', { expires: 7 }); // Expires in 7 days
-  console.log('Cookie set!');
-};
-
-const getCookie = () => {
-  const username = Cookies.get('username');
-  console.log(username);
-};
-
-const deleteCookie = () => {
-  Cookies.remove('username');
-  console.log('Cookie removed!');
-};
 
 function App() {
   const [signIn, setSignIn] = useState(false);
