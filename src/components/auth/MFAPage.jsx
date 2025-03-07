@@ -1,12 +1,14 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 import PrimaryContainer from "../layout/PrimaryContainer";
 import { Lock } from "@mui/icons-material";
 import PrimaryButton from "../common/PrimaryButton";
 import api from "../../services/api";
+import { UserDetailsContext } from "../../store/user-details-context";
 
 length = 6;
 
 export default function MFAPage({sessionId, onSuccess, onError}) {
+  const {setToken} = useContext(UserDetailsContext);
   const [otp, setOtp] = useState(new Array(length).fill("")); //
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const inputRefs = Array(length)
@@ -73,13 +75,12 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
 
   // Verify the OTP
   const verifyOtp = async () => {
-    setSignIn();
-    setCookie();
     try {
       setErrorMessage("");
       const code = otp.join("");
       const res = await api.post("/auth/verify_otp",{code, sessionId});
       const token = res.data['token'];
+      setToken(token);
       console.log(token)
       onSuccess()
     } catch (error) {
