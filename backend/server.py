@@ -1,9 +1,12 @@
 from flask import Flask, request, jsonify # type: ignore
 from flask_cors import CORS # type: ignore
+from flask_session import Session # type: ignore
 import firebase_admin # type: ignore
 from firebase_admin import credentials, firestore # type: ignore
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import Config
+import secrets
+import redis
 
 ## Access the Firestore 
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -22,7 +25,13 @@ from routes.authentication_routes import auth_bp
 ## Create the Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app)
+app.config['SESSION_TYPE'] = "redis"
+app.config['SESSION_REDIS'] = redis.from_url("redis://localhost:6341")
+app.config['SESSION_SERIALIZATION_FORMAT'] = 'json'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes = 5)
+CORS(app, supports_credentials=True)
+app.secret_key = secrets.token_hex(256)
+Session(app)
 
 ## Register the routes
 app.register_blueprint(doctor_bp, url_prefix='/doctor')
