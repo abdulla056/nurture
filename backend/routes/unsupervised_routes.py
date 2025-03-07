@@ -3,11 +3,13 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend requests
+
+unsupervised_bp = Blueprint('unsupervised_bp', __name__)
 
 # ✅ Load trained models and scaler
 KMEANS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "kmeans_model.pkl")
@@ -99,7 +101,7 @@ def create_plot_data(data):
         "layout": layout.to_plotly_json()  # Convert Layout to JSON
     }
 
-@app.route('/get_initial_data', methods=['GET'])
+@unsupervised_bp.route('/get_initial_data', methods=['GET'])
 def get_initial_data():
     try:
         # Create the initial plot data using historical data
