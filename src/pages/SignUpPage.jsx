@@ -84,7 +84,7 @@ export default function SignUpPage() {
     }
   };
   return (
-    <div className="py-16 px-16 bg-custom-gradient flex flex-col items-center h-screen justify-between">
+    <div className="py-16 px-16 bg-custom-gradient flex flex-col items-center h-full justify-between">
       {isMfaPage ? (
         <MFAPage  
           sessionId={sessionId}
