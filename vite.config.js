@@ -5,7 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   server: {
     proxy: {
-      '/members': 'http://127.0.0.1:5001', // Proxy requests to backend
+      '/api': {
+           target: 'http://127.0.0.1:5001',
+           changeOrigin: true,
+           secure: false,
+       } // Proxy requests to backend
     }
   },
   plugins: [react()],

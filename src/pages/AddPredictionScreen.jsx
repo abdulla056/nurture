@@ -29,7 +29,7 @@ export default function AddPredictionScreen() {
   const [isProgressPopupOpen, setIsProgressPopupOpen] = useState(false);
   const patientAddedDialog = useRef();
   const progressDialog = useRef();
-  
+
   const [lifeStyleData, setLifeStyleData] = useState({
     ...addPredictionFields[0].fields.reduce((acc, field) => {
       acc[field.id] = "";
@@ -134,7 +134,7 @@ export default function AddPredictionScreen() {
           <span className="text-font-tertiary w-2/3 text-center">
             {descriptions[2]}
           </span>
-          {predictionSelector.map((selector, index) => (
+          {predictionSelector.map((selector) => (
             <AddPredictionModelSelector
               selector={selector.selector}
               key={selector.key}
@@ -195,7 +195,11 @@ export default function AddPredictionScreen() {
           Go back
         </PrimaryButton>
         <PrimaryButton
-          onClick={end ? () => onFormSubmit(modelSelected) : () => onNextClicked()}
+          animate={end ? (modelSelected ? true : false) : true}
+          isActive={end ? (modelSelected ? true : false) : true}
+          onClick={
+            end ? modelSelected ? () => onFormSubmit(modelSelected) : null  : () => onNextClicked()
+          }
         >
           {end ? "Make prediction" : "Continue"}
         </PrimaryButton>
