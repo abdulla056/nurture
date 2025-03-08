@@ -27,7 +27,9 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
     try {
       console.log("Props:", { onSuccess, onError });
       setErrorMessage("");
+      
       const res = await api.post("/auth/send_email", {'sessionId' : sessionId});
+
     } catch (error) {
       if (error.response && error.response.status === 401){
         console.log(error.response)
@@ -77,6 +79,8 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
 
   // Verify the OTP
   const verifyOtp = async () => {
+    setSignIn();
+    setCookie();
     try {
       setErrorMessage("");
       const code = otp.join("");
@@ -88,9 +92,10 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
       if (error.response && error.response.status === 401){
         console.log(error.response)
         setErrorMessage("Your session has expired. Please reload and log in again.");
+
         onError("Your session has expired. Please reload and log in again.");
       } else {
-        console.log(error)
+        console.log(error);
         setErrorMessage("Invalid verification code.");
         onError("Invalid verification code.");
       }
@@ -98,7 +103,7 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
   };
   return (
     <PrimaryContainer className="!p-12 !gap-8 mt-12">
-      <div id="recaptcha-container" style={{display: "none"}}></div>
+      <div id="recaptcha-container" style={{ display: "none" }}></div>
       <div className="p-3 bg-background w-fit rounded-lg">
         <Lock />
       </div>
@@ -127,12 +132,14 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
       )}
       <span className="w-full text-center">
         Didn't get the code?{" "}
-        <span className="text-secondary font-semibold hover:cursor-pointer" onClick={getVerificationCode}>
+        <span
+          className="text-secondary font-semibold hover:cursor-pointer"
+          onClick={getVerificationCode}
+        >
           Resend code
         </span>
       </span>
       <PrimaryButton onClick={verifyOtp}>Verify account</PrimaryButton>
     </PrimaryContainer>
-    
   );
 }

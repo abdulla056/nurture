@@ -29,7 +29,7 @@ export default function AddPredictionScreen() {
   const [isProgressPopupOpen, setIsProgressPopupOpen] = useState(false);
   const patientAddedDialog = useRef();
   const progressDialog = useRef();
-
+  
   const [lifeStyleData, setLifeStyleData] = useState({
     ...addPredictionFields[0].fields.reduce((acc, field) => {
       acc[field.id] = "";
@@ -81,8 +81,18 @@ export default function AddPredictionScreen() {
     updatePageNumber((currentPageNumber) => currentPageNumber - 1);
   }
 
-  function onFormSubmit() {
-    console.log(formData);
+  function onFormSubmit(modelSelected) {
+    switch (modelSelected) {
+      case "risk":
+        console.log("Risk data", riskData);
+        break;
+      case "lifestyle":
+        console.log("Lifestyle data", lifeStyleData);
+        break;
+      case "demographic":
+        console.log("Demographic data", demographicData);
+        break;
+    }
     setIsProgressPopupOpen(true);
     progressDialog.current.showModal();
   }
@@ -114,14 +124,17 @@ export default function AddPredictionScreen() {
           "You can either choose to go to the dashboard or see all predictions again"
         }
       />
-      <AddPredictionProgressPopUp ref={progressDialog} isOpen={isProgressPopupOpen}/>
+      <AddPredictionProgressPopUp
+        ref={progressDialog}
+        isOpen={isProgressPopupOpen}
+      />
       {end ? (
         <div className="flex flex-col items-center gap-8 mb-8">
           <h3>Select Data for Prediction</h3>
           <span className="text-font-tertiary w-2/3 text-center">
             {descriptions[2]}
           </span>
-          {predictionSelector.map((selector) => (
+          {predictionSelector.map((selector, index) => (
             <AddPredictionModelSelector
               selector={selector.selector}
               key={selector.key}
@@ -182,7 +195,7 @@ export default function AddPredictionScreen() {
           Go back
         </PrimaryButton>
         <PrimaryButton
-          onClick={end ? () => onFormSubmit() : () => onNextClicked()}
+          onClick={end ? () => onFormSubmit(modelSelected) : () => onNextClicked()}
         >
           {end ? "Make prediction" : "Continue"}
         </PrimaryButton>
