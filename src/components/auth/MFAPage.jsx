@@ -29,9 +29,15 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
       setErrorMessage("");
       const res = await api.post("/auth/send_email", {'sessionId' : sessionId});
     } catch (error) {
-      setErrorMessage("Failed to send verification code.");
-      onError("Failed to send verification code.");
-      console.log(error);
+      if (error.response && error.response.status === 401){
+        console.log(error.response)
+        setErrorMessage("Your session has expired. Please reload and log in again.");
+        onError("Your session has expired. Please reload and log in again.");
+      }else{  
+        setErrorMessage("Failed to send verification code.");
+        onError("Failed to send verification code.");
+        console.log(error);
+      }
     }
   };
 
