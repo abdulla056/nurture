@@ -5,30 +5,27 @@ import { useEffect, useState } from "react";
 import api from "./services/api";
 import { UserDetailsContext } from "./store/user-details-context";
 
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
-const setCookie = () => {
-  Cookies.set('username', 'Abdulla', { expires: 7 }); // Expires in 7 days
-  console.log('Cookie set!');
+const setCookie = (token) => {
+  Cookies.set("token", token, { expires: 1 / 24 }); // Expires in 7 days
+  console.log("User token set!");
 };
 
 const getCookie = () => {
-  const username = Cookies.get('username');
-  console.log(username);
+  const token = Cookies.get("token");
+  console.log(token);
 };
 
 const deleteCookie = () => {
-  Cookies.remove('username');
-  console.log('Cookie removed!');
+  Cookies.remove("token");
+  console.log("Token cookie removed!");
 };
 
-
 function App() {
-  const [signIn, setSignIn] = useState(false);
-  // const [user_id, setUserId] = useState(null);
-  // const [sessionId, setSessionId] = useState(null);
+  // const [signIn, setSignIn] = useState(false);
   const [token, setToken] = useState(null);
-  console.log("token", token);
+  token ? setCookie(token) : null;
   // useEffect(() => {
   //   const fetchUserId = async () => {
   //     try {
@@ -43,12 +40,18 @@ function App() {
   // }, [signIn]);
 
   const ctxValue = {
-    setSignIn: () => {
-      setSignIn(true);
-    },
-    // user_id: user_id,
+    // setSignIn: () => {
+    //   setSignIn(true);
+    // },
+    token: token,
     setToken: (token) => {
       setToken(token);
+    },
+    deleteCookie: () => {
+      deleteCookie();
+    },
+    getCookie: () => {
+      getCookie();
     },
   };
 
@@ -58,6 +61,7 @@ function App() {
     </UserDetailsContext.Provider>
   );
 }
+
 function AppRoutes() {
   return useRoutes(routes);
 }

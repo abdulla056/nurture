@@ -1,8 +1,9 @@
 import { createContext } from "react";
 
 export const UserDetailsContext = createContext({
-    setSignIn: () => {},
-    user_id: null,
+    // setSignIn: () => {},
     token: null,
     setToken: (token) => {},
+    deleteCookie: () => {},
+    getCookie: () => {},
 })
