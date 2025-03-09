@@ -7,18 +7,18 @@ import { UserDetailsContext } from "./store/user-details-context";
 
 import Cookies from "js-cookie";
 
-const setCookie = (token) => {
-  Cookies.set("token", token, { expires: 1 / 24 }); // Expires in 7 days
+const setCookie = (authToken) => {
+  Cookies.set("authToken", authToken, { expires: 1 / 24, secure: true, sameSite: "Strict" });
   console.log("User token set!");
 };
 
 const getCookie = () => {
-  const token = Cookies.get("token");
-  console.log(token);
+  const authToken = Cookies.get("authToken");
+  console.log(authToken);
 };
 
 const deleteCookie = () => {
-  Cookies.remove("token");
+  Cookies.remove("authToken");
   console.log("Token cookie removed!");
 };
 

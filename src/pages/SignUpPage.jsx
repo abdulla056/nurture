@@ -90,7 +90,7 @@ export default function SignUpPage() {
           sessionId={sessionId}
           onSuccess={() => {
             setIsMfaPage(false); // Exit MFA page after success
-            navigate('/dashboard')
+            navigate('/selection-dashboard')
           }}
           onError={(error) => setLoginError(error)} // Handle MFA errors/>
           /> 
