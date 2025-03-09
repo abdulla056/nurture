@@ -21,6 +21,8 @@ db = firestore.client()
 
 unsupervised_bp = Blueprint('unsupervised_bp', __name__)
 
+unsupervised_bp = Blueprint('unsupervised_bp', __name__)
+
 # ✅ Load trained models and scaler
 KMEANS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "kmeans_model.pkl")
 kmeans_model = pickle.load(open(KMEANS_MODEL_PATH, "rb"))
