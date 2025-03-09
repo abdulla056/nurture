@@ -5,8 +5,9 @@ import firebase_admin # type: ignore
 from firebase_admin import credentials, firestore # type: ignore
 from datetime import datetime, timedelta
 from config import Config
-import secrets
 import redis
+import secrets
+from auth.session_data import CustomRedisSessionInterface
 
 ## Access the Firestore 
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -27,10 +28,21 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.config['SESSION_TYPE'] = "redis"
 app.config['SESSION_REDIS'] = redis.from_url("redis://localhost:6341")
+app.config['SESSION_KEY_PREFIX'] = "flask_session:"
 app.config['SESSION_SERIALIZATION_FORMAT'] = 'json'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes = 5)
 CORS(app, supports_credentials=True)
 app.secret_key = secrets.token_hex(256)
+
+# Create a Redis client
+redis_client = redis.from_url("redis://localhost:6341")
+
+# Initialize the custom session interface
+app.session_interface = CustomRedisSessionInterface(
+    redis_client=redis_client,
+    key_prefix=app.config['SESSION_KEY_PREFIX'],
+    ttl=300  # Default TTL of 300 seconds
+)
+
 Session(app)
 
 ## Register the routes

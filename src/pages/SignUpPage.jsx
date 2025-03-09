@@ -32,7 +32,7 @@ export default function SignUpPage() {
       console.log(data);  
       const res = await api.post("/auth/register", data);
       // Set the temporary token and user ID
-      setSessionId(res.data.sessionId);
+      setSessionId(res.data.session_id);
       setUid(res.data.uid);
       // Redirect to MFA page
       setIsMfaPage(true);
