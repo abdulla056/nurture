@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import Plot from "react-plotly.js";
+import api from "../services/api";
 
 export default function PCAClusterScreen() {
   const [plotData, setPlotData] = useState(null); // State to hold Plotly data
@@ -10,12 +10,13 @@ export default function PCAClusterScreen() {
     const fetchInitialData = async () => {
       try {
         // Fetch the initial visualization data
-        const response = await axios.get("http://127.0.0.1:5000/get_initial_data");
+        const response = await api.get("/unsupervised/get_initial_data");
         if (response.data.plot_data) {
           setPlotData(response.data.plot_data); // Set initial plot data
         }
       } catch (error) {
         console.error("Error fetching PCA clustered data:", error);
+        console.error("Error details:", error.response); // Log the full error response
       }
     };
 

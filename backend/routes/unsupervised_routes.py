@@ -3,11 +3,23 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Blueprint
 from flask_cors import CORS
+import firebase_admin  # type: ignore
+from firebase_admin import credentials, firestore  # type: ignore
+from config import Config
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend requests
+# Load Firebase credentials from environment variable
+firebase_config_json = Config.FIREBASE_CONFIG
+cred = credentials.Certificate(firebase_config_json)
+
+# Initialize Firebase app if not already initialized
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+unsupervised_bp = Blueprint('unsupervised_bp', __name__)
 
 # ✅ Load trained models and scaler
 KMEANS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "kmeans_model.pkl")
@@ -99,7 +111,7 @@ def create_plot_data(data):
         "layout": layout.to_plotly_json()  # Convert Layout to JSON
     }
 
-@app.route('/get_initial_data', methods=['GET'])
+@unsupervised_bp.route('/get_initial_data', methods=['GET'])
 def get_initial_data():
     try:
         # Create the initial plot data using historical data
@@ -111,7 +123,7 @@ def get_initial_data():
         print("❌ Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
-@app.route('/get_all_data', methods=['GET'])
+@unsupervised_bp.route('/get_all_data', methods=['GET'])
 def get_all_data():
     try:
         # Return the entire dataset as JSON
@@ -124,4 +136,4 @@ def get_all_data():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    unsupervised_bp.run(debug=True)
