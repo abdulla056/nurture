@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
-import api from "../services/api";
+import api from "../../services/api";
+import PrimaryContainer from "../layout/PrimaryContainer";
+import LoadingSpinner from "../common/LoadingSpinner";
+import { AnimatePresence, motion } from "framer-motion";
+import { fadeInUp } from "../../animations/variations";
 
-export default function PCAClusterScreen() {
+export default function PCACluster() {
   const [plotData, setPlotData] = useState(null); // State to hold Plotly data
 
   // Fetch PCA clustered data when the component mounts
@@ -24,19 +28,26 @@ export default function PCAClusterScreen() {
   }, []); // Empty dependency array ensures this runs only once on mount
 
   return (
-    <div>
+    <PrimaryContainer className="w-1/2 !p-7">
       <h2>PCA Clustering of Maternal Health Data</h2>
 
       {/* Display the PCA clustered visualization */}
-      {plotData && (
-        <div>
-          <Plot
-            data={plotData.data}
-            layout={plotData.layout}
-            style={{ width: "100%", height: "500px" }} // Ensure responsiveness
-          />
-        </div>
+      {plotData ? (
+        <AnimatePresence>
+          <motion.div
+            className="bg-background"
+            {...fadeInUp}
+          >
+            <Plot
+              data={plotData.data}
+              layout={plotData.layout}
+              style={{ width: "100%", height: "500px" }} // Ensure responsiveness
+            />
+          </motion.div>
+        </AnimatePresence>
+      ) : (
+        <LoadingSpinner />
       )}
-    </div>
+    </PrimaryContainer>
   );
 }

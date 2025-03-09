@@ -3,7 +3,7 @@ import routes from "./routes";
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
-import PCAClusterScreen from "./pages/PCAClusterScreen";
+import PCAClusterScreen from "./components/exploration/PCACluster";
 
 function App() {
   // useEffect(() => {
@@ -11,12 +11,12 @@ function App() {
   //   if (token) {
   //     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   //   } else{
-  //     navigate("/login");
+  //     navigate("/login"); 
   //   }
   // }, []); 
   return (
     <>
-      <PCAClusterScreen />
+      <AppRoutes />
     </>
   );
 }
