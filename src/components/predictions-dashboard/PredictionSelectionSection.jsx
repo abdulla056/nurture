@@ -1,8 +1,10 @@
+import { useState } from "react";
 import PrimaryContainer from "../layout/PrimaryContainer";
 import OverviewContainer from "./OverviewContainer";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowDown } from "lucide-react";
 
-// import { patientDataVariations } from "../../assets/data/add-prediction";
+const ITEMS = 6;
 
 export default function PredictionSelectionSection({
   isPrediction = true,
@@ -11,8 +13,21 @@ export default function PredictionSelectionSection({
   predictions = predictions,
   patients = patients,
 }) {
+  const [visibleCount, setVisibleCount] = useState(ITEMS);
+
+  const items = isPrediction ? predictions : patients;
+  const visibleItems = items.slice(0, visibleCount);
+
+  const handleShowMore = () => {
+    setVisibleCount((prev) => prev + ITEMS);
+  };
   return (
-    <PrimaryContainer className={` ${isActive ? "w-full" : "w-2/12 justify-center cursor-pointer"}`} onClick={!isActive ? changeOverViewStatus : undefined}>
+    <PrimaryContainer
+      className={` ${
+        isActive ? "w-full" : "w-2/12 justify-center cursor-pointer"
+      }`}
+      onClick={!isActive ? changeOverViewStatus : undefined}
+    >
       <AnimatePresence>
         {isActive ? (
           <motion.div
@@ -22,16 +37,25 @@ export default function PredictionSelectionSection({
             transition={{ duration: 0.5, delay: 0.3 }}
             className="w-full gap-4 flex flex-col p-4"
           >
-            {(isPrediction ? predictions : patients).map((item, index) => (
+            {visibleItems.map((item, index) => (
               <OverviewContainer
                 key={index}
                 {...(isPrediction
                   ? { predictionData: item }
                   : { patientData: item })}
                 isPrediction={isPrediction}
-                enableOverview={()=>changeOverViewStatus(item.detailId)}
+                enableOverview={() => changeOverViewStatus(item.detailId)}
               />
             ))}
+            {visibleCount < items.length && (
+              <button
+                className=" w-1/6 flex justify-between items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg transition"
+                onClick={handleShowMore}
+              >
+                Show more
+                <ArrowDown className="w-5 h-5" />
+              </button>
+            )}
           </motion.div>
         ) : (
           <motion.span
