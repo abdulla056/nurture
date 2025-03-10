@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import AddPredictionDropDown from "../components/predictions-dashboard/AddPredictionDropDown";
 import AddPredictionModelSelector from "../components/predictions-dashboard/AddPredictionSelector";
 import AddPredictionProgressPopUp from "../components/predictions-dashboard/AddPredictionProgressPopUp";
+import { predictAndExplain } from "../services/predictions";
 
 const descriptions = [
   "Click Next to start the prediction form. Enter required maternal and fetal health data, including Patient ID, demographics, maternal health indicators, and fetal monitoring data (e.g., CTG readings). Ensure all fields are complete and accurate before submitting for reliable results.",
@@ -93,8 +94,13 @@ export default function AddPredictionScreen() {
         console.log("Demographic data", demographicData);
         break;
     }
-    setIsProgressPopupOpen(true);
-    progressDialog.current.showModal();
+    predictAndExplain(modelSelected, formData[pageNumber]).then(() => {
+      // setIsProgressPopupOpen(true);
+      // progressDialog.current.showModal();
+      console.log("Prediction successful");
+    });
+    // setIsProgressPopupOpen(true);
+    // progressDialog.current.showModal();
   }
 
   function onModelSelectorPressed(selected) {
@@ -198,7 +204,11 @@ export default function AddPredictionScreen() {
           animate={end ? (modelSelected ? true : false) : true}
           isActive={end ? (modelSelected ? true : false) : true}
           onClick={
-            end ? modelSelected ? () => onFormSubmit(modelSelected) : null  : () => onNextClicked()
+            end
+              ? modelSelected
+                ? () => onFormSubmit(modelSelected)
+                : null
+              : () => onNextClicked()
           }
         >
           {end ? "Make prediction" : "Continue"}

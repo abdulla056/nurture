@@ -129,4 +129,8 @@ export const options = {
     { label: "November", value: 11 },
     { label: "December", value: 12 },
   ],
+  sexOfInfant: [
+    { label: "Male", value: 1 },
+    { label: "Female", value: 2 },
+  ],
 };
