@@ -19,9 +19,9 @@ const descriptions = [
 ];
 
 const predictionSelector = [
-  { key: "risk", selector: "Risk Factors" },
-  { key: "lifestyle", selector: "Life Style Factors" },
-  { key: "demographic", selector: "Demographic Factors" },
+  { key: "0", selector: "Risk Factors" },
+  { key: "1", selector: "Life Style Factors" },
+  { key: "2", selector: "Demographic Factors" },
 ];
 
 export default function AddPredictionScreen() {
@@ -33,28 +33,28 @@ export default function AddPredictionScreen() {
 
   const [lifeStyleData, setLifeStyleData] = useState({
     ...addPredictionFields[0].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
 
   const [riskData, setRiskData] = useState({
     ...addPredictionFields[1].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
 
   const [demographicData, setDemographicData] = useState({
     ...addPredictionFields[2].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
 
   const [flagsData, setFlagsData] = useState({
     ...addPredictionFields[3].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
@@ -70,7 +70,7 @@ export default function AddPredictionScreen() {
   function formDataChanged(newValue, id) {
     setFormData[pageNumber]((prevFormData) => ({
       ...prevFormData,
-      [id]: newValue,
+      [id]: newValue === "" ? "" : Number(newValue),
     }));
   }
 
@@ -82,25 +82,18 @@ export default function AddPredictionScreen() {
     updatePageNumber((currentPageNumber) => currentPageNumber - 1);
   }
 
-  function onFormSubmit(modelSelected) {
-    switch (modelSelected) {
-      case "risk":
-        console.log("Risk data", riskData);
-        break;
-      case "lifestyle":
-        console.log("Lifestyle data", lifeStyleData);
-        break;
-      case "demographic":
-        console.log("Demographic data", demographicData);
-        break;
+  async function onFormSubmit() {
+    try {
+      setIsProgressPopupOpen(true);
+      progressDialog.current.showModal();
+      const response = await predictAndExplain(modelSelected, Object.values(formData[modelSelected]));
+      console.log(response);
+      // setIsProgressPopupOpen(false);
+      // patientAddedDialog.current.showModal();
+    } catch (error) {
+      console.log(error);
+      setIsProgressPopupOpen(false);
     }
-    predictAndExplain(modelSelected, formData[pageNumber]).then(() => {
-      // setIsProgressPopupOpen(true);
-      // progressDialog.current.showModal();
-      console.log("Prediction successful");
-    });
-    // setIsProgressPopupOpen(true);
-    // progressDialog.current.showModal();
   }
 
   function onModelSelectorPressed(selected) {
@@ -133,6 +126,9 @@ export default function AddPredictionScreen() {
       <AddPredictionProgressPopUp
         ref={progressDialog}
         isOpen={isProgressPopupOpen}
+        onClose={() => {
+          setIsProgressPopupOpen(false); 
+        }}
       />
       {end ? (
         <div className="flex flex-col items-center gap-8 mb-8">
@@ -181,7 +177,7 @@ export default function AddPredictionScreen() {
                       label={field.label}
                       value={formData[pageNumber][field.id] || ""}
                       id={field.id}
-                      type={"text"}
+                      type={"number"}
                       key={index}
                     />
                   )}
