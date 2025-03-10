@@ -5,7 +5,7 @@
   "type": "module",
   "proxy": "http://127.0.0.1:5001",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --config vite.config.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

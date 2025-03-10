@@ -5,9 +5,10 @@ import firebase_admin # type: ignore
 from firebase_admin import credentials, firestore # type: ignore
 from datetime import datetime, timedelta
 from config import Config
-import redis
 import secrets
-from auth.session_data import CustomRedisSessionInterface
+from auth.session_data import CustomRedisSessionInterface, redis_client
+import ssl
+import os
 
 ## Access the Firestore 
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -26,24 +27,15 @@ from routes.authentication_routes import auth_bp
 ## Create the Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
-app.config['SESSION_TYPE'] = "redis"
-app.config['SESSION_REDIS'] = redis.from_url("redis://localhost:6341")
-app.config['SESSION_KEY_PREFIX'] = "flask_session:"
-app.config['SESSION_SERIALIZATION_FORMAT'] = 'json'
 CORS(app, supports_credentials=True)
 app.secret_key = secrets.token_hex(256)
-
-# Create a Redis client
-redis_client = redis.from_url("redis://localhost:6341")
 
 # Initialize the custom session interface
 app.session_interface = CustomRedisSessionInterface(
     redis_client=redis_client,
-    key_prefix=app.config['SESSION_KEY_PREFIX'],
-    ttl=300  # Default TTL of 300 seconds
+    key_prefix=Config.login_session_prefix,
+    ttl=Config.login_session_ttl  # Default TTL of 300 seconds
 )
-
-Session(app)
 
 ## Register the routes
 app.register_blueprint(doctor_bp, url_prefix='/doctor')
@@ -53,6 +45,13 @@ app.register_blueprint(feedback_bp, url_prefix='/feedback')
 app.register_blueprint(supervised_bp, url_prefix='/supervised')
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
+# Path to the .pem files
+cert_path = os.path.join(os.path.dirname(__file__), Config.ssl_cert_file)
+key_path = os.path.join(os.path.dirname(__file__), Config.ssl_key_file)
+
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain(cert_path, key_path)
+
 ## Default route
 if __name__ == '__main__':
-    app.run(debug=True, port=app.config['PORT'])
+    app.run(debug=True, ssl_context=context,port=app.config['PORT'])

@@ -15,7 +15,6 @@ import redis
 import os
 
 secret_key = Config.SECRET_KEY
-temp_key = Config.TEMP_KEY
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 db = firestore.client()
@@ -95,17 +94,17 @@ signupSchema = SignUpSchema()
 loginSchema = LoginSchema()
 
 # Initialize the custom session interface
-redis_client = redis.from_url("redis://localhost:6341")  # Replace with your Redis URL
+redis_client = redis.from_url(Config.redis_url)  # Replace with your Redis URL
 custom_session_interface_login = CustomRedisSessionInterface(
     redis_client=redis_client,
-    key_prefix="login_session:",  # Unique prefix for session keys
-    ttl=300  # Default TTL of 300 seconds
+    key_prefix=Config.login_session_prefix,  # Unique prefix for session keys
+    ttl=Config.login_session_ttl  # Default TTL of 300 seconds
 )
 
 custom_session_interface_csrf = CustomRedisSessionInterface(
     redis_client=redis_client,
-    key_prefix="csrf_token:",  # Unique prefix for CSRF tokens
-    ttl= 3600 # Default TTL of 1 hour
+    key_prefix=Config.csrf_token_prefix,  # Unique prefix for CSRF tokens
+    ttl= Config.csrf_token_ttl # Default TTL of 1 hour
 )
 
 def protected_route(request, state):
@@ -120,6 +119,7 @@ def protected_route(request, state):
             # Verify the token
             try:
                 payload = jwt.decode(authToken, secret_key, algorithms=['HS256']) # Use the same secret
+                print(payload)
                 user_id = payload['uid'] # Access the uid from the payload
                 return {'message': 'Protected resource accessed', 'user_id': user_id,'valid':True}
             except jwt.ExpiredSignatureError:

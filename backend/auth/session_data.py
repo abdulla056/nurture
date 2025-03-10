@@ -2,8 +2,9 @@ import redis
 import json
 from flask import jsonify, session
 from flask.sessions import SessionInterface
+from config import Config
 
-redis_client = redis.from_url('redis://localhost:6341')
+redis_client = redis.from_url(Config.redis_url)
 
 class CustomRedisSessionInterface(SessionInterface):
     def __init__(self, redis_client, key_prefix, use_signer=False, permanent=True, ttl=300):

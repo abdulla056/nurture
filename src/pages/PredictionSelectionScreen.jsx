@@ -38,7 +38,7 @@ export default function PredictionSelectionScreen() {
   useEffect(() => {
     const fetchPredictions = async () => {
       try {
-        const res = await api.get("/details/get_all_predictions");
+        const res = await api.get("/details/get_all_predictions", {withCredentials: true});
         console.log(res.data);
         setPredictions(res.data);
       } catch (error) {
