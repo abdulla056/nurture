@@ -8,4 +8,18 @@ const api = axios.create({
   },
 });
 
+// Add a request interceptor
+api.interceptors.request.use(
+  (config) => {
+    const csrfToken = sessionStorage.getItem('csrfToken');  // Retrieve the token
+    if (csrfToken && ['post', 'put', 'delete'].includes(config.method.toLowerCase())) {
+      config.headers['X-CSRF-Token'] = csrfToken;  // Add the token to headers
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export default api;

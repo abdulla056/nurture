@@ -48,7 +48,7 @@ export default function PredictionSelectionScreen() {
 
     const fetchPatients = async () => {
       try {
-        const res = await api.get("/patient/get_all/D001");
+        const res = await api.get("/patient/get_all", {withCredentials: true});
         console.log(res.data);
         setPatients(res.data);
       } catch (error) {

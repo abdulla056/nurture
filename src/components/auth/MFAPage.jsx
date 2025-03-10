@@ -11,6 +11,7 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
   const {setToken} = useContext(UserDetailsContext);
   const [otp, setOtp] = useState(new Array(length).fill("")); //
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
+  const [csrfToken, setCsrfToken] = useState(''); // State for CSRF token
   const inputRefs = Array(length)
     .fill(null)
     .map(() => useRef(null));
@@ -84,10 +85,13 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
     try {
       setErrorMessage("");
       const code = otp.join("");
-      const res = await api.post("/auth/verify_otp",{code, sessionId});
-      const token = res.data['token'];
-      setToken(token);
-      console.log(token)
+      const res = await api.post("/auth/verify_otp",{code, sessionId}, { withCredentials: true });
+      setCsrfToken(res.data.csrf_token);  // Store in state
+      sessionStorage.setItem('csrfToken', res.data.csrf_token);  // Store in session storage
+      // const token = res.data['token'];
+      // setToken(token);
+      // console.log(token)
+      console.log(res.data.message);
       onSuccess()
     } catch (error) {
       if (error.response && error.response.status === 401){
