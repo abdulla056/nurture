@@ -5,7 +5,7 @@ import PrimaryButton from "../common/PrimaryButton";
 import { useNavigate } from "react-router-dom";
 
 const AddPredictionProgressPopUp = forwardRef(
-  function AddPredictionProgressPopUp({ isOpen }, ref) {
+  function AddPredictionProgressPopUp({ isOpen, ...props }, ref) {
     const [activeStep, setActiveStep] = useState(0);
     const [isFinished, setIsFinished] = useState(false);
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ const AddPredictionProgressPopUp = forwardRef(
     }, [activeStep, isOpen]);
 
     return (
-      <PopUp ref={ref}>
+      <PopUp ref={ref} {...props} on>
         <div className="flex flex-col items-start">
           {steps.map((step, index) => (
             <AddPredictionProgressBar

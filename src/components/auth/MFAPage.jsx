@@ -7,15 +7,15 @@ import { UserDetailsContext } from "../../store/user-details-context";
 
 length = 6;
 
-export default function MFAPage({sessionId, onSuccess, onError}) {
-  const {setToken} = useContext(UserDetailsContext);
+export default function MFAPage({ sessionId, onSuccess, onError }) {
+  const { setToken } = useContext(UserDetailsContext);
   const [otp, setOtp] = useState(new Array(length).fill("")); //
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const [csrfToken, setCsrfToken] = useState(''); // State for CSRF token
   const inputRefs = Array(length)
     .fill(null)
     .map(() => useRef(null));
-  
+
   const isRequestSent = useRef(false);
 
   useEffect(() => {
@@ -30,15 +30,16 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
     try {
       console.log("Props:", { onSuccess, onError });
       setErrorMessage("");
-      
-      const res = await api.post("/auth/send_email", {'sessionId' : sessionId});
 
+      const res = await api.post("/auth/send_email", { sessionId: sessionId });
     } catch (error) {
-      if (error.response && error.response.status === 401){
-        console.log(error.response)
-        setErrorMessage("Your session has expired. Please reload and log in again.");
+      if (error.response && error.response.status === 401) {
+        console.log(error.response);
+        setErrorMessage(
+          "Your session has expired. Please reload and log in again."
+        );
         onError("Your session has expired. Please reload and log in again.");
-      }else{  
+      } else {
         setErrorMessage("Failed to send verification code.");
         onError("Failed to send verification code.");
         console.log(error);
@@ -88,15 +89,15 @@ export default function MFAPage({sessionId, onSuccess, onError}) {
       const res = await api.post("/auth/verify_otp",{code, sessionId}, { withCredentials: true });
       setCsrfToken(res.data.csrf_token);  // Store in state
       sessionStorage.setItem('csrfToken', res.data.csrf_token);  // Store in session storage
-      // const token = res.data['token'];
-      // setToken(token);
-      // console.log(token)
       console.log(res.data.message);
       onSuccess()
+
     } catch (error) {
-      if (error.response && error.response.status === 401){
-        console.log(error.response)
-        setErrorMessage("Your session has expired. Please reload and log in again.");
+      if (error.response && error.response.status === 401) {
+        console.log(error.response);
+        setErrorMessage(
+          "Your session has expired. Please reload and log in again."
+        );
 
         onError("Your session has expired. Please reload and log in again.");
       } else {
