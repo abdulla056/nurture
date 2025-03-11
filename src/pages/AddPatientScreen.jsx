@@ -11,7 +11,7 @@ const addPatient = async (patientId) => {
   try {
     const response = await api.post(
       "/patient/add",
-      { patientId: patientId, detailId: "" },
+      { patientId: patientId },
       { withCredentials: true }
     );
     return response.data; // Returns prediction result

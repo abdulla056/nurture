@@ -20,7 +20,6 @@ def add_patient():
             patient_ref.set({
                 'patientId': data['patientId'],
                 'doctorId': response['user_id'],
-                'detailId': data['detailId']
             })
             return jsonify({"message": "Patient added successfully"}), 201
         else:
