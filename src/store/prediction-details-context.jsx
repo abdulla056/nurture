@@ -12,5 +12,7 @@ export const PredictionDetailsContext = createContext({
   patientId: null,
   predictionResult: null,
   riskLevel: null,
+  shapExplanation: null,
+  getPredictionDetails: () => {},
   pastPredictions: [],
 });

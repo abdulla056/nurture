@@ -4,22 +4,6 @@ import SUPERVISEDSCREENTEST from "./pages/SUPERVISEDSCREENTEST";
 import { useEffect, useState } from "react";
 import api from "./services/api";
 import { UserDetailsContext } from "./store/user-details-context";
-import Cookies from "js-cookie";
-
-// const setCookie = (authToken) => {
-//   Cookies.set("authToken", authToken, { expires: 1 / 24, secure: true, sameSite: "Strict" });
-//   console.log("User token set!");
-// };
-
-// const getCookie = () => {
-//   const authToken = Cookies.get("authToken");
-//   console.log(authToken);
-// };
-
-// const deleteCookie = () => {
-//   Cookies.remove("authToken");
-//   console.log("Token cookie removed!");
-// };
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

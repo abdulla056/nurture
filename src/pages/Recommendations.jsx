@@ -5,6 +5,7 @@ import PrimaryButton from "../components/common/PrimaryButton";
 import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef } from "react";
+import { addRecommendation } from "../services/recommendations";
 // import {useForm} from "react-hook-form";
 
 export default function Recommendations() {
@@ -23,10 +24,12 @@ export default function Recommendations() {
     console.log(formData);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Form Data Submitted:", formData);
-    dialog.current.showModal();
+    const response = await addRecommendation(formData).then(() => {
+      dialog.current.showModal();
+    });
     // Here you can add the API call to submit the form data
   };
 
