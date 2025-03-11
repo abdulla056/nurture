@@ -227,7 +227,7 @@ def verify_otp():
                 'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
                 }
                 token = jwt.encode(payload, secret_key, algorithm='HS256')
-                custom_session_interface_login.delete_session_by_sid(session_id) 
+                custom_session_interface_login.delete_session_by_sid(session_id, 'login') 
                 csrf_token = os.urandom(16).hex()
                 custom_session_interface_csrf.create_session(csrf_token)
                 response = make_response(jsonify({"message": "Login successful", "csrf_token": csrf_token}), 200)
@@ -374,3 +374,15 @@ def send_password_reset_email():
     except Exception as e:
         print(f"Error sending password reset email: {e}") # Log the error
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message
+    
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    try:
+        response = protected_route(request, 'post')
+        if response['valid']:
+            custom_session_interface_csrf.delete_session_by_sid(request.headers.get('X-CSRF-Token'), 'csrf')
+            response = make_response(jsonify({"message": "Logout successful"}), 200)
+            response.delete_cookie("authToken")
+            return response
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

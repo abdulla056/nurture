@@ -30,6 +30,7 @@ def add_patient_details():
             details_ref.set({
                 'detailId': detailId,
                 'patientId': data['patientId'],
+                'doctorId': response['user_id'],
                 'timestamp': datetime.utcnow(),
 
                 # Store lifestyle factors as a map
@@ -177,4 +178,44 @@ def get_all_predictions():
             return jsonify({"message": "No predictions found"}), 404
     else:
         return jsonify({"message": "Unauthorized"}), 401
-    
+
+@details_bp.route('/delete_prediction', methods=['DELETE'])
+def delete_prediction():
+    try:
+        response = protected_route(request, 'delete')
+        if response['valid']:
+            data = request.json
+            prediction_ref = db.collection('predictions').document(data['predictionId'])
+            if not prediction_ref.get().exists:
+                return jsonify({"message": "Prediction not found"}), 404
+            if prediction_ref.get().to_dict()['doctorId'] == response['user_id']:
+                prediction_ref.delete()
+                return jsonify({"message": "Prediction deleted successfully"}), 200
+            else:
+                return jsonify({"message": "Unauthorized"}), 401
+        else:
+            return jsonify({"message": "Unauthorized"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@details_bp.route('/delete_details', methods=['DELETE'])
+def delete_details():
+    try:
+        response = protected_route(request, 'delete')
+        if response['valid']:
+            data = request.json
+            detail_ref = db.collection('details').document(data['detailId'])
+            if not detail_ref.get().exists:
+                return jsonify({"message": "Prediction not found"}), 404
+            if detail_ref.get().to_dict()['doctorId'] == response['user_id']:
+                prediction_ref = db.collection('predictions').where("detailId", "==", data['detailId']).stream()
+                for doc in prediction_ref:
+                    doc.reference.delete()
+                detail_ref.delete()
+                return jsonify({"message": "Detail deleted successfully"}), 200
+            else:
+                return jsonify({"message": "Unauthorized"}), 401
+        else:
+            return jsonify({"message": "Unauthorized"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

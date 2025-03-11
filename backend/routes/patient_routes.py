@@ -45,3 +45,23 @@ def get_patients():
             return jsonify({"message": "Unauthorized"}), 401
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+@patient_bp.route('/delete', methods=['DELETE'])
+def delete_patient():
+    try:
+        response = protected_route(request, 'delete')
+        if response['valid']:
+            data = request.json
+            patient_ref = db.collection('patients').document(data['patientId'])
+            if not patient_ref.get().exists:
+                return jsonify({"message": "Patient not found"}), 404
+            if patient_ref.get().to_dict()['doctorId'] != response['user_id']:
+                patient_ref.delete()
+                return jsonify({"message": "Patient deleted successfully"}), 200
+            else:    
+                return jsonify({"message": "Unauthorized"}), 401
+        else:
+            return jsonify({"message": "Unauthorized"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
