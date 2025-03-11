@@ -2,8 +2,9 @@ import redis
 import json
 from flask import jsonify, session
 from flask.sessions import SessionInterface
+from config import Config
 
-redis_client = redis.from_url('redis://localhost:6341')
+redis_client = redis.from_url(Config.redis_url)
 
 class CustomRedisSessionInterface(SessionInterface):
     def __init__(self, redis_client, key_prefix, use_signer=False, permanent=True, ttl=300):
@@ -34,12 +35,17 @@ class CustomRedisSessionInterface(SessionInterface):
         # Set TTL only if it doesn't already exist
         if self.redis.ttl(key) == -1:  # -1 means no TTL is set
             self.redis.expire(key, self.ttl)
-    def create_session(self, email, redirect):
+    def create_session(self, data, redirect=None):
         """
         Create a new session and store it in Redis.
         """
         sid = self._generate_session_id()  # Generate a unique session ID
-        session_data = {'email': email, 'redirect': redirect}
+        if redirect:
+            session_data = {'email': data, 'redirect': redirect}
+        else:
+            session_data = {'csrf_token': data}
+            # Store a mapping of CSRF token to session ID
+            self.redis.setex(name=f"csrf_token_to_sid:{data}", time = self.ttl, value=sid)
         self.redis.setex(name=f"{self.key_prefix}{sid}", time=self.ttl, value=json.dumps(session_data))
         return sid
     
@@ -53,6 +59,19 @@ class CustomRedisSessionInterface(SessionInterface):
             return json.loads(session_data.decode('utf-8'))
         return None
     
+    def get_session_by_csrf_token(self, csrf_token):
+        """
+        Retrieve session data by CSRF token.
+        """
+        sid = self.redis.get(f"csrf_token_to_sid:{csrf_token}")
+        if sid:
+            sid = sid.decode('utf-8')
+            # Retrieve the session data using the session ID
+            session_data = self.redis.get(f"{self.key_prefix}{sid}")
+            if session_data:
+                return json.loads(session_data.decode('utf-8')), f"{self.key_prefix}{sid}"
+        return None, None  # Return None if no matching session is found
+
     def update_session(self, sid, data):
         """
         Update session data in Redis.
