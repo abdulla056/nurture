@@ -4,6 +4,8 @@ import PrimaryButton from "../common/PrimaryButton";
 import trashIcon from "../../assets/images/trash-icon.png";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { PredictionSelectorContext } from "../../store/prediction-selector-context";
+import { useContext } from "react";
 
 const keyFactors = ["Maternal age", "Gestational diabetes"];
 
@@ -13,6 +15,11 @@ export default function OverviewContainer({
   isPrediction,
   enableOverview,
 }) {
+  const { setPrediction } = useContext(PredictionSelectorContext);
+  const handelGoToDashboard = () => {
+    setPrediction(predictionData.predictionId);
+    navigate("/dashboard");
+  }
   const data = isPrediction ? predictionData : patientData;
   const timestamp = data?.timestamp || null;
   const dateObj = timestamp ? new Date(timestamp) : null;
@@ -79,7 +86,7 @@ export default function OverviewContainer({
           </PrimaryButton>
           <PrimaryButton
             transparent={true}
-            onClick={() => navigate("/dashboard")}
+            onClick={() => handelGoToDashboard()}
           >
             Go to dashboard
           </PrimaryButton>

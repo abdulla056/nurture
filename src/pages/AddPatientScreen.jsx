@@ -4,24 +4,52 @@ import TextField from "../components/common/TextField";
 import PrimaryContainer from "../components/layout/PrimaryContainer";
 import SelectionDashboardDropDown from "../components/predictions-dashboard/SelectionDashboardDropDown";
 import ConfirmationPopup from "../components/layout/ConfirmationPopup";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import api from "../services/api";
+
+const addPatient = async (patientId) => {
+  try {
+    const response = await api.post(
+      "/patient/add",
+      { patientId: patientId },
+      { withCredentials: true }
+    );
+    return response.data; // Returns prediction result
+  } catch (error) {
+    console.error("Error calling add patient API:", error);
+    throw error;
+  }
+};
 
 export default function AddPatientScreen() {
   const patientAddedDialog = useRef();
+  const [patientId, setPatientId] = useState("");
   const navigate = useNavigate();
 
-  function onSubmit() {
-    patientAddedDialog.current.showModal();
+  function handlePatientIdChange(value) {
+    setPatientId(value);
   }
+
+  async function onSubmit() {
+    await addPatient(patientId).then(() => {
+      patientAddedDialog.current.showModal();
+    });
+  }
+
+  console.log(patientId);
   return (
     <div className="flex flex-col gap-6">
       <ConfirmationPopup
         firstButton={"Make prediction"}
         secondButton={"See all patients"}
-        actionFirstButton={() => navigate("/selection-dashboard/add-prediction")}
+        actionFirstButton={() =>
+          navigate("/selection-dashboard/add-prediction")
+        }
         actionSecondButton={() => navigate("/selection-dashboard")}
         ref={patientAddedDialog}
-        description={"You can either choose to make a prediction for this patient or see all patients again"}
+        description={
+          "You can either choose to make a prediction for this patient or see all patients again"
+        }
         title={"Patient has been added successfully!"}
       />
       <PrimaryContainer className="items-center mx-32">
@@ -29,7 +57,12 @@ export default function AddPatientScreen() {
           <h2 className="text-center">Add Patient</h2>
           <div className="flex flex-col items-center gap-3 w-full">
             <span className="-mb-6">Patient ID</span>
-            <TextField id={"patientId"} type={"text"} />
+            <TextField
+              type={"number"}
+              id={"patientId"}
+              formDataChanged={(value) => handlePatientIdChange(value)}
+              value={patientId}
+            />
             <PrimaryButton className={"bg-secondary scale-90"}>
               Generate ID
             </PrimaryButton>

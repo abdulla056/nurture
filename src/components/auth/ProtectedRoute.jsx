@@ -1,9 +1,10 @@
 import { Navigate } from "react-router-dom";
-import Cookies from "js-cookie";
 import api from "../../services/api";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { UserDetailsContext } from "../../store/user-details-context";
 const ProtectedRoute = ({ element }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const { isAuthenticated, setIsAuthenticated} = useContext(UserDetailsContext);
+  // const [isAuthenticated, setIsAuthenticated] = useState(null);
     const checkAuthCookie = async () => {
       try {
         const response = await api.get("/auth/check_cookie", { withCredentials: true });

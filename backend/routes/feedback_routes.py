@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify # type: ignore
 import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
@@ -27,11 +28,13 @@ def add_feedback():
             feedback_ref.set({
                 'feedbackId': feedbackId,
                 'doctorId': response['user_id'],
-                'systemAccuracy': data['systemAccuracy'],
-                'predictionTime': data['predictionTime'],
-                'interface': data['interface'],
-                'helpfulness': data['helpfulness'],
-                'additionalComments': data['additionalComments']
+                'systemAccuracy': data['accuracy'],
+                'additionalFeatures': data['additionalFeatures'],
+                'easeOfUse': data['easeOfUse'],
+                'intuitiveUI': data['intuitiveUI'],
+                'improvements': data['improvements'],
+                'userInterfaceImprovement': data['userInterfaceImprovement'],
+                'timestamp': datetime.now().isoformat()
             })
             return jsonify({"message": "Feedback added successfully"}), 201
         else:

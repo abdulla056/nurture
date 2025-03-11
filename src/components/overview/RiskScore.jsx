@@ -7,13 +7,23 @@ import GaugeChart from "./GaugeChart";
 const riskDescription =
   "This is a high risk case and immediate action should be taken";
 
-export default function RiskScore({ isConfidence }) {
-  const { riskScore, confidenceScore } = useContext(PredictionDetailsContext);
+export default function RiskScore({ isConfidence, riskScore }) {
+  const { riskScore: contextRiskScore, confidenceScore } = useContext(
+    PredictionDetailsContext
+  );
+
+  // Use the prop value if provided, otherwise fallback to context
+  const finalRiskScore = riskScore !== undefined ? riskScore : contextRiskScore;
   return (
     <PrimaryContainer className="items-center" disableHover={false}>
-      <h3 className="text-font-tertiary font-light">{isConfidence ? "Confidence Score" : "Risk Score"}</h3>
+      <h3 className="text-font-tertiary font-light">
+        {isConfidence ? "Confidence Score" : "Risk Score"}
+      </h3>
       {/* <img src={riskScoreImage} alt="Risk Score Image" className="w-40" /> */}
-      <GaugeChart value={isConfidence ? (confidenceScore*100) : riskScore} isConfidence={isConfidence}/>
+      <GaugeChart
+        value={isConfidence ? confidenceScore * 100 : finalRiskScore}
+        isConfidence={isConfidence}
+      />
       {/* <div className="flex flex-col items-center gap-2">{isConfidence ? confidenceScore : riskScore}</div> */}
       <span className="text-xsmall text-font-tertiary font-extralight">
         {riskDescription}

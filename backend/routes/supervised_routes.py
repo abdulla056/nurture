@@ -137,17 +137,17 @@ def predict_and_explain_route():
             "prediction": prediction_label,  # Store the decoded label (e.g., "Congenital Malformations")
             "confidence": confidence,
             "timestamp": firestore.SERVER_TIMESTAMP,
-            "explanation_text": text_explanation,
-            "explanation_image": image_base64
+            "explanationText": text_explanation,
+            "explanationImage": image_base64
         })
         
         # Return the response with the decoded label and explanation
         return jsonify({
-            "Expected outcome": prediction_label,  # Return the decoded label
-            "Confidence": confidence,
-            "document_id": document_id,
-            "explanation_image": image_base64,
-            "explanation_text": text_explanation
+            "expectedOutcome": prediction_label,  # Return the decoded label
+            "confidence": confidence,
+            "documentId": document_id,
+            "explanationImage": image_base64,
+            "explanationText": text_explanation
         })
     except Exception as e:
         traceback.print_exc()

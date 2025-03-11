@@ -7,7 +7,7 @@ export default function SelectionDashboardDropDown({ title }) {
   useEffect(() => {
     const fetchPatientId = async () => {
       try {
-        const res = await api.get(`/patient/get_all/${doctorId}`);
+        const res = await api.get(`/patient/get_all/${doctorId}`, {withCredentials: true});
         setPatientId(res.data);
       } catch (error) {
         console.error("Error fetching prediction details:", error);
