@@ -8,7 +8,7 @@ import jwt
 from datetime import datetime, timedelta
 from google.cloud.firestore_v1.base_query import FieldFilter
 from auth.email import sendMessage
-from auth.firebase import verify_firebase_token
+from auth.firebase import verify_firebase_token, get_next_id
 from random import randint
 from auth.session_data import CustomRedisSessionInterface
 import redis
@@ -260,14 +260,7 @@ def verify_otp():
                 except Exception as e:
                     print(e)
                     return jsonify({'error': str(e)}), 501
-                counter_ref = db.collection("counter").document("doctor_id")
-                count = counter_ref.get()
-                if not count.exists:
-                    raise Exception("Counter does not exist")
-                next_id = count.to_dict()["nextId"]
-                doctor_id = f"D{next_id:03}" # Format with leading zeros
-                counter_ref.update({"nextId":int(next_id+1)})                         
-                
+                doctor_id = get_next_id('doctor')
                 try:
                     print("Adding doctor")
                     data = request.json

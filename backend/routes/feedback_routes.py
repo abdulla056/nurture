@@ -4,6 +4,7 @@ import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 from routes.authentication_routes import protected_route
+from auth.firebase import get_next_id
 
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -17,13 +18,7 @@ def add_feedback():
         response = protected_route(request, 'post')
         if response['valid']:
             data = request.json
-            counter_ref = db.collection("counter").document("feedback_id")
-            count = counter_ref.get()
-            if not count.exists:
-                raise Exception("Counter does not exist")
-            next_id = count.to_dict()["nextId"]
-            feedbackId = f"F{next_id:03}" # Format with leading zeros
-            counter_ref.update({"nextId":int(next_id+1)})
+            feedbackId = get_next_id('feedback')
             feedback_ref = db.collection('feedback').document(feedbackId)
             feedback_ref.set({
                 'feedbackId': feedbackId,
