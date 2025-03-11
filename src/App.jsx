@@ -6,7 +6,7 @@ import api from "./services/api";
 import { UserDetailsContext } from "./store/user-details-context";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [token, setToken] = useState(null);
   const navigate = useNavigate();
   // const [signIn, setSignIn] = useState(false);

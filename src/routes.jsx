@@ -23,9 +23,9 @@ const routes = [
   // Public Routes
   { path: "/authentication", element: <SignUpPage /> },
   { path: "/authentication/mfa-page", element: <MFAPage /> },
+  { path: "/home", element: <Home /> },
 
   // Protected Routes (Require Login)
-  { path: "/home", element: <ProtectedRoute element={<Home />} /> },
   { path: "/profile", element: <ProtectedRoute element={<ProfileScreen />} /> },
 
   {
