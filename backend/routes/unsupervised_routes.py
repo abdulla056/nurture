@@ -21,8 +21,6 @@ db = firestore.client()
 
 unsupervised_bp = Blueprint('unsupervised_bp', __name__)
 
-unsupervised_bp = Blueprint('unsupervised_bp', __name__)
-
 # ✅ Load trained models and scaler
 KMEANS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "kmeans_model.pkl")
 kmeans_model = pickle.load(open(KMEANS_MODEL_PATH, "rb"))
@@ -57,9 +55,33 @@ cluster_labels = {
     2: "High Risk"
 }
 
+def calculate_cluster_characteristics(data):
+    """
+    Calculate the mean feature values for each cluster and generate a summary.
+    """
+    # Group the data by cluster and calculate the mean of each feature
+    cluster_stats = data.groupby("Cluster_Label")[feature_columns].mean().reset_index()
+
+    # Generate a summary for each cluster
+    cluster_summary = {}
+    for _, row in cluster_stats.iterrows():
+        cluster_label = row["Cluster_Label"]
+        summary = {
+            "Month_Prenatal_Care_Began": row["Month_Prenatal_Care_Began"],
+            "Cigarettes_Before_Pregnancy": row["Cigarettes_Before_Pregnancy"],
+            "BMI_prepregnancy": row["BMI_prepregnancy"],
+            "Prepregnancy_Diabetes": row["Prepregnancy_Diabetes"],
+            "Gestational_Diabetes": row["Gestational_Diabetes"],
+            "Prepregnancy_Hypertension": row["Prepregnancy_Hypertension"],
+        }
+        cluster_summary[cluster_label] = summary
+
+    return cluster_summary
+
 def create_plot_data(data):
     """
-    Helper function to create Plotly visualization data.
+    Helper function to create Plotly visualization data, calculate cluster distribution,
+    and generate cluster characteristics.
     """
     # Predict clusters for all data points
     features_scaled = scaler.transform(data[feature_columns])  # Use only feature columns
@@ -69,6 +91,19 @@ def create_plot_data(data):
     # Add cluster labels to the data
     data["Cluster"] = prediction
     data["Cluster_Label"] = data["Cluster"].map(cluster_labels)
+
+    # Calculate cluster distribution
+    cluster_distribution = data["Cluster_Label"].value_counts(normalize=True).mul(100).round(2).to_dict()
+
+    # Calculate cluster characteristics
+    cluster_characteristics = calculate_cluster_characteristics(data)
+
+    # Define colors for each cluster (matching the 3D scatter plot)
+    cluster_colors = {
+        "Low Risk": "#440154",  # Dark purple (Cluster 0)
+        "Medium Risk": "#21918c",  # Teal (Cluster 1)
+        "High Risk": "#fde725",  # Yellow (Cluster 2)
+    }
 
     # Create a 3D scatter plot using Plotly
     scatter = go.Scatter3d(
@@ -96,7 +131,8 @@ def create_plot_data(data):
         hoverinfo='text'  # Show only the hover text
     )
 
-    layout = go.Layout(
+    # Layout for the 3D scatter plot
+    scatter_layout = go.Layout(
         scene=dict(
             xaxis_title='PCA 1',
             yaxis_title='PCA 2',
@@ -107,10 +143,52 @@ def create_plot_data(data):
         coloraxis=dict(colorbar=dict(title="Risk Level"))  # Add color axis for consistency
     )
 
-    # Convert the Plotly graph to a JSON-serializable format
+    # Create hover text for the bar chart
+    hover_text = []
+    for label in cluster_distribution.keys():
+        stats = cluster_characteristics[label]
+        hover_text.append(
+            f"<b>{label}</b><br>"
+            f"Month Prenatal Care Began: {stats['Month_Prenatal_Care_Began']:.2f}<br>"
+            f"Cigarettes Before Pregnancy: {stats['Cigarettes_Before_Pregnancy']:.2f}<br>"
+            f"BMI (Pre-pregnancy): {stats['BMI_prepregnancy']:.2f}<br>"
+            f"Pre-pregnancy Diabetes: {stats['Prepregnancy_Diabetes']:.2f}<br>"
+            f"Gestational Diabetes: {stats['Gestational_Diabetes']:.2f}<br>"
+            f"Pre-pregnancy Hypertension: {stats['Prepregnancy_Hypertension']:.2f}"
+        )
+
+    # Create a bar chart for cluster distribution
+    bar_chart = go.Bar(
+        x=list(cluster_distribution.keys()),  # Cluster labels
+        y=list(cluster_distribution.values()),  # Percentages
+        text=list(cluster_distribution.values()),  # Display percentages on bars
+        textposition='auto',  # Automatically position text
+        marker=dict(
+            color=[cluster_colors[label] for label in cluster_distribution.keys()]  # Use cluster colors
+        ),
+        opacity=0.8,
+        name="Cluster Distribution",
+        hoverinfo="text",  # Show hover text
+        hovertext=hover_text  # Add hover text
+    )
+
+    # Layout for the bar chart
+    bar_layout = go.Layout(
+        title="Cluster Distribution (Risk Group Distribution)",
+        xaxis=dict(title="Risk Level"),
+        yaxis=dict(title="Percentage (%)"),
+        margin=dict(l=50, r=50, b=50, t=50),
+        showlegend=False
+    )
+
+    # Convert the Plotly graphs to JSON-serializable format
     return {
-        "data": [scatter.to_plotly_json()],  # Convert Scatter3d to JSON
-        "layout": layout.to_plotly_json()  # Convert Layout to JSON
+        "scatter_data": [scatter.to_plotly_json()],  # Convert Scatter3d to JSON
+        "scatter_layout": scatter_layout.to_plotly_json(),  # Convert Layout to JSON
+        "bar_data": [bar_chart.to_plotly_json()],  # Convert Bar chart to JSON
+        "bar_layout": bar_layout.to_plotly_json(),  # Convert Bar layout to JSON
+        "cluster_distribution": cluster_distribution,  # Add cluster distribution
+        "cluster_characteristics": cluster_characteristics  # Add cluster characteristics
     }
 
 @unsupervised_bp.route('/get_initial_data', methods=['GET'])
@@ -119,19 +197,12 @@ def get_initial_data():
         # Create the initial plot data using historical data
         plot_data = create_plot_data(original_historical_data)
         return jsonify({
-            "plot_data": plot_data
-        })
-    except Exception as e:
-        print("❌ Error:", str(e))
-        return jsonify({"error": str(e)}), 500
-
-@unsupervised_bp.route('/get_all_data', methods=['GET'])
-def get_all_data():
-    try:
-        # Return the entire dataset as JSON
-        all_data = original_historical_data.to_dict(orient='records')
-        return jsonify({
-            "all_data": all_data
+            "scatter_data": plot_data["scatter_data"],
+            "scatter_layout": plot_data["scatter_layout"],
+            "bar_data": plot_data["bar_data"],
+            "bar_layout": plot_data["bar_layout"],
+            "cluster_distribution": plot_data["cluster_distribution"],  # Include cluster distribution
+            "cluster_characteristics": plot_data["cluster_characteristics"]  # Include cluster characteristics
         })
     except Exception as e:
         print("❌ Error:", str(e))

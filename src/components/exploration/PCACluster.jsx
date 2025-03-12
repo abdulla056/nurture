@@ -7,7 +7,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { fadeInUp } from "../../animations/variations";
 
 export default function PCACluster() {
-  const [plotData, setPlotData] = useState(null); // State to hold Plotly data
+  const [scatterData, setScatterData] = useState(null); // State to hold 3D scatter plot data
+  const [scatterLayout, setScatterLayout] = useState(null); // State to hold 3D scatter plot layout
+  const [barData, setBarData] = useState(null); // State to hold bar chart data
+  const [barLayout, setBarLayout] = useState(null); // State to hold bar chart layout
 
   // Fetch PCA clustered data when the component mounts
   useEffect(() => {
@@ -15,8 +18,11 @@ export default function PCACluster() {
       try {
         // Fetch the initial visualization data
         const response = await api.get("/unsupervised/get_initial_data");
-        if (response.data.plot_data) {
-          setPlotData(response.data.plot_data); // Set initial plot data
+        if (response.data.scatter_data) {
+          setScatterData(response.data.scatter_data); // Set 3D scatter plot data
+          setScatterLayout(response.data.scatter_layout); // Set 3D scatter plot layout
+          setBarData(response.data.bar_data); // Set bar chart data
+          setBarLayout(response.data.bar_layout); // Set bar chart layout
         }
       } catch (error) {
         console.error("Error fetching PCA clustered data:", error);
@@ -32,21 +38,37 @@ export default function PCACluster() {
       <h2>PCA Clustering of Maternal Health Data</h2>
 
       {/* Display the PCA clustered visualization */}
-      {plotData ? (
+      {scatterData ? (
         <AnimatePresence>
           <motion.div
             className="bg-background"
             {...fadeInUp}
           >
             <Plot
-              data={plotData.data}
-              layout={plotData.layout}
+              data={scatterData}
+              layout={scatterLayout}
               style={{ width: "100%", height: "500px" }} // Ensure responsiveness
             />
           </motion.div>
         </AnimatePresence>
       ) : (
         <LoadingSpinner />
+      )}
+
+      {/* Display the bar chart for cluster distribution */}
+      {barData && (
+        <AnimatePresence>
+          <motion.div
+            className="bg-background mt-4"
+            {...fadeInUp}
+          >
+            <Plot
+              data={barData}
+              layout={barLayout}
+              style={{ width: "100%", height: "400px" }} // Ensure responsiveness
+            />
+          </motion.div>
+        </AnimatePresence>
       )}
     </PrimaryContainer>
   );
