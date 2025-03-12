@@ -4,8 +4,7 @@ import PrimaryButton from "../common/PrimaryButton";
 import trashIcon from "../../assets/images/trash-icon.png";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { PredictionSelectorContext } from "../../store/prediction-selector-context";
-import { useContext } from "react";
+import { deletePrediction } from "../../services/predictions";
 
 const keyFactors = ["Maternal age", "Gestational diabetes"];
 
@@ -14,11 +13,12 @@ export default function OverviewContainer({
   patientData,
   isPrediction,
   enableOverview,
+  viewAllPatientPredictions,
+  handelGoToDashboard,
 }) {
-  const { setPrediction } = useContext(PredictionSelectorContext);
-  const handelGoToDashboard = () => {
-    setPrediction(predictionData.predictionId);
-    navigate("/dashboard");
+  console.log("predictionData", predictionData);
+  async function handleDeletePrediction() {
+    await deletePrediction(predictionData.predictionId);
   }
   const data = isPrediction ? predictionData : patientData;
   const timestamp = data?.timestamp || null;
@@ -77,16 +77,16 @@ export default function OverviewContainer({
             </PrimaryButton>
           </PredictionInfo>
         )}
-        <PredictionInfo title={"Delete"}>
+        <PredictionInfo title={"Delete"} className={"cursor-pointer"}>
           <img src={trashIcon} alt="trash icon" className="w-1/5" />
         </PredictionInfo>
         <div className="flex flex-col scale-75 gap-2 -mr-3">
-          <PrimaryButton onClick={isPrediction ? enableOverview : undefined}>
+          <PrimaryButton onClick={isPrediction ? enableOverview : viewAllPatientPredictions}>
             {isPrediction ? "View more details" : "View all predictions"}
           </PrimaryButton>
           <PrimaryButton
             transparent={true}
-            onClick={() => handelGoToDashboard()}
+            onClick={handelGoToDashboard}
           >
             Go to dashboard
           </PrimaryButton>
