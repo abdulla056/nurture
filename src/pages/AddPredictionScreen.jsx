@@ -11,6 +11,7 @@ import AddPredictionDropDown from "../components/predictions-dashboard/AddPredic
 import AddPredictionModelSelector from "../components/predictions-dashboard/AddPredictionSelector";
 import AddPredictionProgressPopUp from "../components/predictions-dashboard/AddPredictionProgressPopUp";
 import { predictAndExplain } from "../services/predictions";
+import { storeDetails } from "../services/details";
 
 const descriptions = [
   "Click Next to start the prediction form. Enter required maternal and fetal health data, including Patient ID, demographics, maternal health indicators, and fetal monitoring data (e.g., CTG readings). Ensure all fields are complete and accurate before submitting for reliable results.",
@@ -26,6 +27,7 @@ const predictionSelector = [
 
 export default function AddPredictionScreen() {
   const [modelSelected, setModelSelected] = useState();
+  const [patientId, setPatientId] = useState();
   const [pageNumber, updatePageNumber] = useState(-1);
   const [isProgressPopupOpen, setIsProgressPopupOpen] = useState(false);
   const patientAddedDialog = useRef();
@@ -88,6 +90,11 @@ export default function AddPredictionScreen() {
       progressDialog.current.showModal();
       const response = await predictAndExplain(modelSelected, Object.values(formData[modelSelected]));
       console.log(response);
+      const details = Object.assign({}, ...formData);
+      details["patientId"] = Number(patientId);
+      const detailsResponse = await storeDetails(details);
+      console.log(detailsResponse);
+      // console.log(Object.assign({}, ...formData));
       // setIsProgressPopupOpen(false);
       // patientAddedDialog.current.showModal();
     } catch (error) {
@@ -159,7 +166,7 @@ export default function AddPredictionScreen() {
             </span>
           </div>
           {start ? (
-            <SelectionDashboardDropDown title={"Patient ID"} />
+            <SelectionDashboardDropDown title={"Patient ID"} setPatientId={setPatientId} />
           ) : (
             <div className="grid grid-cols-2 w-full gap-x-24">
               {addPredictionFields[pageNumber].fields.map((field, index) => (

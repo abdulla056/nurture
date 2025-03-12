@@ -1,10 +1,12 @@
 export default function PredictionInfo({
   title,
   children,
+  className,
   titleBottom = true,
+  ...props
 }) {
   return (
-    <div className="flex flex-col items-center">
+    <div className={`flex flex-col items-center ${className}`} {...props}>
       {!titleBottom && <span className="font-medium text-font-tertiary">{title}</span>}
       {children}
       {titleBottom && <span className="font-medium text-font-tertiary">{title}</span>}
