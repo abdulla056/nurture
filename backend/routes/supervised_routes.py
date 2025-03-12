@@ -149,7 +149,7 @@ def predict_and_explain_route():
             "documentId": predictionId,
             "explanationImage": image_base64,
             "explanationText": feature_weight_map
-        }), 300
+        }), 200
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500

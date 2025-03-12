@@ -58,12 +58,12 @@ export default function AddPatientScreen() {
           <div className="flex flex-col items-center gap-3 w-full">
             <span className="-mb-6">Patient ID</span>
             <TextField
-              type={"number"}
+              type={"text"}
               id={"patientId"}
               formDataChanged={(value) => handlePatientIdChange(value)}
               value={patientId}
             />
-            <PrimaryButton className={"bg-secondary scale-90"}>
+            <PrimaryButton className={"bg-secondary"}>
               Generate ID
             </PrimaryButton>
           </div>
