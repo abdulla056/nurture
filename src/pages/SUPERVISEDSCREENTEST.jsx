@@ -85,7 +85,7 @@ const App = () => {
       console.log("Features Being Sent:", features);
 
       // Send request to Flask backend
-      const response = await axios.post("http://127.0.0.1:5001/supervised/predict_and_explain", {
+      const response = await axios.post("https://127.0.0.1:5001/supervised/predict_and_explain", {
         category: categories.findIndex((cat) => cat.key === category).toString(), // "0", "1", or "2"
         features: features,
       });

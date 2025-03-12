@@ -14,9 +14,10 @@ import os
 import firebase_admin  # type: ignore
 from firebase_admin import credentials, firestore  # type: ignore
 import json
-from config import Config
 import uuid
+from config import Config
 import logging  # Added import
+from auth.firebase import get_next_id 
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -111,9 +112,8 @@ def predict_and_explain(category, features):
     
     explanation_list = explanation.as_list()
     total_weight = sum(abs(weight) for _, weight in explanation_list)
-    text_explanation = "\n".join([f"{feature} = {abs(weight) / total_weight * 100:.2f}%" for feature, weight in explanation_list])
-    
-    return prediction_label, confidence, image_base64, text_explanation
+    feature_weight_map = {feature: round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
+    return prediction_label, confidence, image_base64, feature_weight_map
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
 
@@ -127,17 +127,16 @@ def predict_and_explain_route():
             return jsonify({"error": "Invalid input data"}), 400
         
         # Get prediction and explanation
-        prediction_label, confidence, image_base64, text_explanation = predict_and_explain(category, features)
+        prediction_label, confidence, image_base64, feature_weight_map = predict_and_explain(category, features)
         
-        # Generate a unique document ID
-        document_id = str(uuid.uuid4())
-        
+        # predictionId = get_next_id("predictions")
+        predictionId = str(uuid.uuid4())
         # Store the decoded label, confidence, explanation, and other data in Firestore
-        db.collection("jojotest").document(document_id).set({
+        db.collection("jojotest").document(predictionId).set({
             "prediction": prediction_label,  # Store the decoded label (e.g., "Congenital Malformations")
             "confidence": confidence,
             "timestamp": firestore.SERVER_TIMESTAMP,
-            "explanationText": text_explanation,
+            "explanationText": feature_weight_map,
             "explanationImage": image_base64
         })
         
@@ -145,10 +144,10 @@ def predict_and_explain_route():
         return jsonify({
             "expectedOutcome": prediction_label,  # Return the decoded label
             "confidence": confidence,
-            "documentId": document_id,
+            "documentId": predictionId,
             "explanationImage": image_base64,
-            "explanationText": text_explanation
-        })
+            "explanationText": feature_weight_map
+        }), 300
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500

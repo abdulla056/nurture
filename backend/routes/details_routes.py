@@ -4,6 +4,7 @@ import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 from routes.authentication_routes import protected_route
+from auth.firebase import get_next_id
 
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -18,18 +19,13 @@ def add_patient_details():
         response = protected_route(request, 'post')
         if response['valid']:
             data = request.json
-            counter_ref = db.collection("counter").document("detail_id")
-            count = counter_ref.get()
-            if not count.exists:
-                raise Exception("Counter does not exist")
-            next_id = count.to_dict()["nextId"]
-            detailId = f"DD{next_id:03}" # Format with leading zeros
-            counter_ref.update({"nextId":int(next_id+1)})
+            detailId = get_next_id('detail')
 
             details_ref = db.collection('details').document(detailId)
             details_ref.set({
                 'detailId': detailId,
                 'patientId': data['patientId'],
+                'doctorId': response['user_id'],
                 'timestamp': datetime.utcnow(),
 
                 # Store lifestyle factors as a map
@@ -177,4 +173,44 @@ def get_all_predictions():
             return jsonify({"message": "No predictions found"}), 404
     else:
         return jsonify({"message": "Unauthorized"}), 401
-    
+
+@details_bp.route('/delete_prediction', methods=['DELETE'])
+def delete_prediction():
+    try:
+        response = protected_route(request, 'delete')
+        if response['valid']:
+            data = request.json
+            prediction_ref = db.collection('predictions').document(data['predictionId'])
+            if not prediction_ref.get().exists:
+                return jsonify({"message": "Prediction not found"}), 404
+            if prediction_ref.get().to_dict()['doctorId'] == response['user_id']:
+                prediction_ref.delete()
+                return jsonify({"message": "Prediction deleted successfully"}), 200
+            else:
+                return jsonify({"message": "Unauthorized"}), 401
+        else:
+            return jsonify({"message": "Unauthorized"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@details_bp.route('/delete_details', methods=['DELETE'])
+def delete_details():
+    try:
+        response = protected_route(request, 'delete')
+        if response['valid']:
+            data = request.json
+            detail_ref = db.collection('details').document(data['detailId'])
+            if not detail_ref.get().exists:
+                return jsonify({"message": "Prediction not found"}), 404
+            if detail_ref.get().to_dict()['doctorId'] == response['user_id']:
+                prediction_ref = db.collection('predictions').where("detailId", "==", data['detailId']).stream()
+                for doc in prediction_ref:
+                    doc.reference.delete()
+                detail_ref.delete()
+                return jsonify({"message": "Detail deleted successfully"}), 200
+            else:
+                return jsonify({"message": "Unauthorized"}), 401
+        else:
+            return jsonify({"message": "Unauthorized"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400

@@ -8,6 +8,11 @@ from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 import datetime
 import time
 from config import Config
+from firebase_admin import credentials, firestore
+
+firebase_config_json = Config.FIREBASE_CONFIG
+cred = credentials.Certificate(firebase_config_json)
+db = firestore.client()
 
 def fetch_firebase_public_keys():
     url = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
@@ -54,3 +59,13 @@ def verify_firebase_token(token):
         raise InvalidTokenError("Token has expired.")
     except Exception as e:
         raise InvalidTokenError(f"Token verification failed: {str(e)}")
+    
+def get_next_id(document):
+    counter_ref = db.collection("counter").document(f"{document}_id")
+    count = counter_ref.get()
+    if not count.exists:
+        raise Exception("Counter does not exist")
+    next_id = count.to_dict()["nextId"]
+    assigned_id = f"D{next_id:03}" # Format with leading zeros
+    counter_ref.update({"nextId":int(next_id+1)})    
+    return assigned_id  

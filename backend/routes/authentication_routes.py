@@ -8,7 +8,7 @@ import jwt
 from datetime import datetime, timedelta
 from google.cloud.firestore_v1.base_query import FieldFilter
 from auth.email import sendMessage
-from auth.firebase import verify_firebase_token
+from auth.firebase import verify_firebase_token, get_next_id
 from random import randint
 from auth.session_data import CustomRedisSessionInterface
 import redis
@@ -227,7 +227,7 @@ def verify_otp():
                 'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
                 }
                 token = jwt.encode(payload, secret_key, algorithm='HS256')
-                custom_session_interface_login.delete_session_by_sid(session_id) 
+                custom_session_interface_login.delete_session_by_sid(session_id, 'login') 
                 csrf_token = os.urandom(16).hex()
                 custom_session_interface_csrf.create_session(csrf_token)
                 response = make_response(jsonify({"message": "Login successful", "csrf_token": csrf_token}), 200)
@@ -260,14 +260,7 @@ def verify_otp():
                 except Exception as e:
                     print(e)
                     return jsonify({'error': str(e)}), 501
-                counter_ref = db.collection("counter").document("doctor_id")
-                count = counter_ref.get()
-                if not count.exists:
-                    raise Exception("Counter does not exist")
-                next_id = count.to_dict()["nextId"]
-                doctor_id = f"D{next_id:03}" # Format with leading zeros
-                counter_ref.update({"nextId":int(next_id+1)})                         
-                
+                doctor_id = get_next_id('doctor')
                 try:
                     print("Adding doctor")
                     data = request.json
@@ -374,3 +367,15 @@ def send_password_reset_email():
     except Exception as e:
         print(f"Error sending password reset email: {e}") # Log the error
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message
+    
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    try:
+        response = protected_route(request, 'post')
+        if response['valid']:
+            custom_session_interface_csrf.delete_session_by_sid(request.headers.get('X-CSRF-Token'), 'csrf')
+            response = make_response(jsonify({"message": "Logout successful"}), 200)
+            response.delete_cookie("authToken")
+            return response
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

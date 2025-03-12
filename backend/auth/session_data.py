@@ -13,7 +13,7 @@ class CustomRedisSessionInterface(SessionInterface):
         self.use_signer = use_signer
         self.permanent = permanent
         self.ttl = ttl  # Default TTL in seconds
-
+ 
     def open_session(self, app, request):
         # Implement session opening logic (if needed)
         pass
@@ -84,13 +84,20 @@ class CustomRedisSessionInterface(SessionInterface):
             return True
         return False
 
-    def delete_session_by_sid(self, sid):
+    def delete_session_by_sid(self, sid, nature):
         """
         Delete a session from Redis by session ID.
         """
-        key = f"{self.key_prefix}{sid}"
-        return self.redis.delete(key)
-    
+        if nature == 'csrf':
+            # Retrieve the CSRF token from the session data
+            session_data = self.get_session_by_sid(sid)
+            self.redis.delete(f"csrf_token_to_sid:{sid}")
+            return self.redis.delete(f"{self.key_prefix}{session_data['csrf_token']}")
+
+        elif nature == 'login':
+            key = f"{self.key_prefix}{sid}"
+            return self.redis.delete(key)
+        
     def _generate_session_id(self):
         """
         Generate a unique session ID.
