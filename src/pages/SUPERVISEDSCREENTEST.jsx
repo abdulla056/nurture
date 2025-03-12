@@ -158,7 +158,7 @@ const App = () => {
       <div className="flex flex-col items-center gap-4">
         <h3 className="text-2xl font-bold">Prediction Result</h3>
         <p>
-          <strong>Expected Outcome:</strong> {predictionResult.Prediction["Expected outcome"]}
+          <strong>Expected Outcome:</strong> {predictionResult["Expected outcome"]}
         </p>
         <p>
           <strong>Confidence:</strong> {(predictionResult.Confidence * 100).toFixed(2)}%
