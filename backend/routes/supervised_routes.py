@@ -111,47 +111,70 @@ def predict_and_explain(category, features):
     
     explanation_list = explanation.as_list()
     total_weight = sum(abs(weight) for _, weight in explanation_list)
-    text_explanation = "\n".join([f"{feature} = {abs(weight) / total_weight * 100:.2f}%" for feature, weight in explanation_list])
+    text_explanation = feature_weight_map = {(feature.split(">")[0].strip()): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
     
     return prediction_label, confidence, image_base64, text_explanation
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
-
-def predict_and_explain_route():
-    
+def predict_and_explain_route():  
     try:
-        data = request.get_json()
-        category = data.get("category")
-        features = [float(feature) for feature in data.get("features", [])]
-        if not category or not features:
-            return jsonify({"error": "Invalid input data"}), 400
-        
-        # Get prediction and explanation
-        prediction_label, confidence, image_base64, text_explanation = predict_and_explain(category, features)
-        
-        # Generate a unique document ID
-        document_id = str(uuid.uuid4())
-        
-        # Store the decoded label, confidence, explanation, and other data in Firestore
-        db.collection("jojotest").document(document_id).set({
-            "prediction": prediction_label,  # Store the decoded label (e.g., "Congenital Malformations")
-            "confidence": confidence,
+        response = protected_route(request, 'post')
+        if response['valid']:
+            data = request.get_json()
+            patientId = data.get("patientId")
+            category = data.get("category")
+            features = [float(feature) for feature in data.get("features", [])]
+            if not category or not features:
+                return jsonify({"error": "Invalid input data"}), 400
+            
+            # Get prediction and explanation
+            prediction_label, confidence, image_base64, feature_weight_map = predict_and_explain(category, features)
+            
+            predictionId = get_next_id("predictions")
+            
+            # Store the decoded label, confidence, explanation, and other data in Firestore
+            db.collection('predictions').document(predictionId).set({
+                'predictionId': predictionId,
+                'patientId': patientId,
+                'doctorId': response['user_id'],
+                'detailId' : data.get('detailId'),
+                "prediction": prediction_label,  # Store the decoded label (e.g., "Congenital Malformations")
+                "confidence": confidence,
+                "timestamp": datetime.utcnow(),
+                "explanationText": feature_weight_map,
+                "explanationImage": image_base64
+            })
+            
+            db.collection("predictionFeature").document(document_id).set({
+            "Category": category,
+            "Features": features,  # Store the decoded label (e.g., "Congenital Malformations")
             "timestamp": firestore.SERVER_TIMESTAMP,
-            "explanation_text": text_explanation,
-            "explanation_image": image_base64
-        })
-        
-        # Return the response with the decoded label and explanation
-        return jsonify({
-            "Expected outcome": prediction_label,  # Return the decoded label
-            "Confidence": confidence,
-            "document_id": document_id,
-            "explanation_image": image_base64,
-            "explanation_text": text_explanation
-        })
+            })
+            
+            # Return the response with the decoded label and explanation
+            return jsonify({
+                "expectedOutcome": prediction_label,  # Return the decoded label
+                "confidence": confidence,
+                "documentId": predictionId,
+                "explanationImage": image_base64,
+                "explanationText": feature_weight_map
+            }), 200
+        else:
+            return jsonify({"message": "Unauthorized"}), 401
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+    
+@supervised_bp.route('/get_model_performance', methods=['GET'])
+def get_model_performance():
+    doc_ref = db.collection('modelPerformance').document('modelPerformance')
+    doc = doc_ref.get()
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+    if doc.exists:
+        data = doc.to_dict()
+        print("Fetched Model Performance Data:", data)  # Debugging
+        return jsonify(data)
+    else:
+        print("Firestore document not found!")
+        return jsonify({"error": "Document not found"}), 404
+
