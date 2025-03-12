@@ -1,46 +1,49 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 import PrimaryContainer from "../layout/PrimaryContainer";
 import { Lock } from "@mui/icons-material";
 import PrimaryButton from "../common/PrimaryButton";
 import api from "../../services/api";
-import {
-  sendVerificationCode,
-  RecaptchaVerifier,
-  verifyCode,
-} from "./firebase";
 import { UserDetailsContext } from "../../store/user-details-context";
-import { useContext } from "react";
 
 length = 6;
 
-export default function MFAPage({ tempToken, onSuccess, onError }) {
-  const [otp, setOtp] = useState(new Array(length).fill(""));
+export default function MFAPage({ sessionId, onSuccess, onError }) {
+  const { setToken } = useContext(UserDetailsContext);
+  const [otp, setOtp] = useState(new Array(length).fill("")); //
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
-  const [confirmationResult, setConfirmationResult] = useState(null); // State for confirmation result
-
-  const { setSignIn, setCookie } = useContext(UserDetailsContext);
+  const [csrfToken, setCsrfToken] = useState(''); // State for CSRF token
   const inputRefs = Array(length)
     .fill(null)
     .map(() => useRef(null));
 
+  const isRequestSent = useRef(false);
+
   useEffect(() => {
-    getVerificationCode();
+    if (!isRequestSent.current) {
+      getVerificationCode();
+      isRequestSent.current = true;
+    }
   }, []);
 
+  // Gets Verification Code
   const getVerificationCode = async () => {
     try {
       console.log("Props:", { onSuccess, onError });
       setErrorMessage("");
-      const res = await api.post("/auth/get_number", tempToken);
-      const phoneNumber = res.data.phoneNumber;
-      console.log(phoneNumber);
-      const confirmationResult = await sendVerificationCode(phoneNumber);
-      console.log("Verification code sent");
-      setConfirmationResult(confirmationResult);
+
+      const res = await api.post("/auth/send_email", { sessionId: sessionId });
     } catch (error) {
-      setErrorMessage("Failed to send verification code.");
-      onError("Failed to send verification code.");
-      console.log(error);
+      if (error.response && error.response.status === 401) {
+        console.log(error.response);
+        setErrorMessage(
+          "Your session has expired. Please reload and log in again."
+        );
+        onError("Your session has expired. Please reload and log in again.");
+      } else {
+        setErrorMessage("Failed to send verification code.");
+        onError("Failed to send verification code.");
+        console.log(error);
+      }
     }
   };
 
@@ -59,6 +62,7 @@ export default function MFAPage({ tempToken, onSuccess, onError }) {
     setErrorMessage("");
   };
 
+  // Handles key pressing
   const handleKeyDown = (index, event) => {
     const key = event.key;
     if (key === "Backspace") {
@@ -76,42 +80,25 @@ export default function MFAPage({ tempToken, onSuccess, onError }) {
       setErrorMessage("");
     }
   };
+
   // Verify the OTP
   const verifyOtp = async () => {
-    setSignIn();
-    setCookie();
     try {
       setErrorMessage("");
-
-      if (!confirmationResult) {
-        setErrorMessage("Verification code not sent.");
-        return;
-      }
-
       const code = otp.join("");
-      const user = await verifyCode(confirmationResult, code);
-      console.log(confirmationResult);
-      if (user.MFA == "Successful") {
-        // Send the tempToken and user information to the backend for verification
-        const res = await api.post(
-          "/auth/verify_otp",
-          { tempToken, confirmationResult, otp } // Send the Firebase UID or other user information
-        );
-        if (res.data.success) {
-          onSuccess(); // Notify the parent component of success
-        } else {
-          setErrorMessage("Backend verification failed.");
-          onError("Backend verification failed.");
-        }
-      } else {
-        setErrorMessage("Verification code is incorrect. Please try again.");
-        onError("Verification code is incorrect. Please try again.");
-      }
+      const res = await api.post("/auth/verify_otp",{code, sessionId}, { withCredentials: true });
+      setCsrfToken(res.data.csrf_token);  // Store in state
+      sessionStorage.setItem('csrfToken', res.data.csrf_token);  // Store in session storage
+      console.log(res.data.message);
+      onSuccess()
+
     } catch (error) {
       if (error.response && error.response.status === 401) {
+        console.log(error.response);
         setErrorMessage(
           "Your session has expired. Please reload and log in again."
         );
+
         onError("Your session has expired. Please reload and log in again.");
       } else {
         console.log(error);
@@ -129,7 +116,7 @@ export default function MFAPage({ tempToken, onSuccess, onError }) {
       <div>
         <h3 className="font-light text-font">Authentication</h3>
         <span className="text-font-tertiary">
-          Enter your multi factor authentication code
+          Enter the multi factor authentication code sent to your email
         </span>
       </div>
       <div className="flex flex-row gap-6">

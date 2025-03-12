@@ -1,5 +1,4 @@
 import PrimaryContainer from "../layout/PrimaryContainer";
-import { pastPredictions } from "../../assets/data/data";
 import PastPredictionContainer from "./PastPredictionContainer";
 import SecondaryButton from "../auth/SecondaryButton";
 import { useNavigate } from "react-router-dom";

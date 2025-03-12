@@ -14,9 +14,12 @@ import os
 import firebase_admin  # type: ignore
 from firebase_admin import credentials, firestore  # type: ignore
 import json
-from config import Config
 import uuid
+from config import Config
 import logging  # Added import
+from auth.firebase import get_next_id 
+from routes.authentication_routes import protected_route
+from datetime import datetime
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -112,7 +115,7 @@ def predict_and_explain(category, features):
     explanation_list = explanation.as_list()
     total_weight = sum(abs(weight) for _, weight in explanation_list)
     feature_weight_map = {(feature.split(">")[0].strip()): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
-    
+
     return prediction_label, confidence, image_base64, feature_weight_map
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
@@ -150,7 +153,7 @@ def predict_and_explain_route():
             "Features": features,  # Store the decoded label (e.g., "Congenital Malformations")
             "timestamp": firestore.SERVER_TIMESTAMP,
             })
-            
+
             # Return the response with the decoded label and explanation
             return jsonify({
                 "expectedOutcome": prediction_label,  # Return the decoded label

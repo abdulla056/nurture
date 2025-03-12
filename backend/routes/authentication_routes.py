@@ -1,23 +1,26 @@
 from firebase_admin import credentials, auth, firestore # type: ignore
 import firebase_admin.exceptions as firebase_exceptions #type: ignore
-from flask import request, jsonify, Blueprint, make_response
+from flask import request, jsonify, Blueprint, make_response, session
 from config import Config
-from marshmallow import Schema, fields, validate, ValidationError
+from marshmallow import Schema, fields, validate
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from google.cloud.firestore_v1.base_query import FieldFilter
-
-
+from auth.email import sendMessage
+from auth.firebase import verify_firebase_token, get_next_id
+from random import randint
+from auth.session_data import CustomRedisSessionInterface
+import redis
+import os
 
 secret_key = Config.SECRET_KEY
-temp_key = Config.TEMP_KEY
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 db = firestore.client()
 auth_bp = Blueprint('auth_bp', __name__)
 
-# Marshmallow schema for validation
+# Marshmallow schema for signing up
 class SignUpSchema(Schema):
     firstName = fields.Str(
         required=True,
@@ -69,6 +72,7 @@ class SignUpSchema(Schema):
         ]
     )
 
+# Marshmallow schema for logging in
 class LoginSchema(Schema):
     emailAddress = fields.Email(
         required=True,
@@ -85,9 +89,57 @@ class LoginSchema(Schema):
         ]
     )
 
+# Loading the schemas
 signupSchema = SignUpSchema()
-
 loginSchema = LoginSchema()
+
+# Initialize the custom session interface
+redis_client = redis.from_url(Config.redis_url)  # Replace with your Redis URL
+custom_session_interface_login = CustomRedisSessionInterface(
+    redis_client=redis_client,
+    key_prefix=Config.login_session_prefix,  # Unique prefix for session keys
+    ttl=Config.login_session_ttl  # Default TTL of 300 seconds
+)
+
+custom_session_interface_csrf = CustomRedisSessionInterface(
+    redis_client=redis_client,
+    key_prefix=Config.csrf_token_prefix,  # Unique prefix for CSRF tokens
+    ttl= Config.csrf_token_ttl # Default TTL of 1 hour
+)
+
+def protected_route(request, state):
+    try:
+        print("Protected route")
+        print(request.cookies)
+        authToken = request.cookies.get('authToken')
+        csrf_token = request.headers.get('X-CSRF-Token')
+        print(csrf_token)
+        custom_session_interface_csrf.get_session_by_csrf_token(csrf_token)
+        if authToken and state == 'get':
+            # Verify the token
+            try:
+                payload = jwt.decode(authToken, secret_key, algorithms=['HS256']) # Use the same secret
+                print(payload)
+                user_id = payload['uid'] # Access the uid from the payload
+                return {'message': 'Protected resource accessed', 'user_id': user_id,'valid':True}
+            except jwt.ExpiredSignatureError:
+                return {'error': 'Token expired','valid':False}
+            except jwt.InvalidTokenError:
+                return {'error': 'Invalid token','valid':False}
+        elif authToken and csrf_token and (state == 'post' or state == 'put' or  state == 'delete'):
+            # Verify the token
+            try:
+                payload = jwt.decode(authToken, secret_key, algorithms=['HS256']) # Use the same secret
+                user_id = payload['uid'] # Access the uid from the payload
+                return {'message': 'Protected resource accessed', 'user_id': user_id,'valid':True}
+            except jwt.ExpiredSignatureError:
+                return {'error': 'Token expired','valid':False}
+            except jwt.InvalidTokenError:
+                return {'error': 'Invalid token','valid':False}
+        else:
+            return {'error': 'Unauthorized','valid':False}
+    except Exception as e:
+        return jsonify({'error': str(e)}), 303
 
 # Login Route to verify token sent in from Firebase, generates a temporary 5 minute token.
 @auth_bp.route('/verify_token', methods=['POST'])
@@ -99,130 +151,159 @@ def verify_token():
         if not id_token:
             return jsonify({'error': 'Token is required'}), 400
 
-
-        decoded_token = auth.verify_id_token(id_token)
+        decoded_token = verify_firebase_token(id_token) #auth.verify_id_token(id_token)
         print("decoded")
-        uid = decoded_token['uid']
-
-        payload = {
-            'uid': uid,
-            'email' : email,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(minutes=5),
-        }
-
-        temp_token = jwt.encode(payload, temp_key, algorithm='HS256')
-
-        return jsonify({
-            'message': 'MFA required',
-            'temp_token': temp_token,  # Include the temporary token
-        }), 200
-
-    except auth.InvalidIdTokenError:
-        return jsonify({'error': 'Invalid token'}), 401
-    except auth.ExpiredIdTokenError:
-        return jsonify({'error': 'Token has expired'}), 402
+        email = decoded_token['email']
+        redirect = 'login'
+        session_id = custom_session_interface_login.create_session(email, redirect)
+        if session_id:
+            print(session_id)
+            return jsonify({
+                'message' : 'MFA required',
+                'session_id' : session_id
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to create session'}), 402
     except Exception as e:
         print(f"Internal Server Error: {str(e)}")
         return jsonify({'error': 'An internal error occurred. Please try again later.'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Verifies the temporary token before sending the user to MFA page
-@auth_bp.route('/verify_mfa', methods=['POST'])
-def verify_mfa():
-    print("verify_mfa")
-    temp_token = request.args.get('temp_token')  # Get the temporary token from the query string
-
-    if not temp_token:
-        return jsonify({'error': 'Temporary token is required'}), 401
-
-    # Verify the temporary token
-    try:
-        uid = jwt.decode(temp_token, temp_key, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError or jwt.InvalidTokenError:
-        return jsonify({'error': 'Invalid or expired temporary token'}), 401  # Token has expired
-    except jwt.InvalidTokenError:
-        return jsonify({'error': 'Invalid or expired temporary token'}), 402  # Invalid token
-        
-
-    # Render the MFA page
-    return jsonify({'message': 'MFA page', 'uid': uid}), 200
-
 # Sends verification code to the user's phone number
-@auth_bp.route('/get_number', methods=['POST'])
-def get_number():
+@auth_bp.route('/send_email', methods=['POST'])
+def send_email():
     try:
-        print('get_number')
         data = request.get_json()
-        # Ensure the token is a string
-        decoded_token = jwt.decode(data, temp_key, algorithms=['HS256'])
-        email = decoded_token['email']
-        doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
-        doctor = doctor_ref.get()
-        
-        if doctor:
-            phone_number = doctor[0].to_dict()['phoneNumber']
-            if phone_number:
-                return jsonify({'message': 'Verification code sent', 'phoneNumber': phone_number}), 200
-            else:
-                return jsonify({'error': 'Phone number not found'}), 404
+        session_id = data['sessionId']
+        session_data = custom_session_interface_login.get_session_by_sid(session_id)
+        if session_data and session_data['redirect'] == 'login':
+            email = session_data['email']
+            mfa = randint(100000, 999999)
+            session_data['mfa'] = mfa
+            doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
+            doctor = doctor_ref.get()
+            name = doctor[0].to_dict()['firstName'] + " " + doctor[0].to_dict()['lastName'] 
+            sendMessage(email, name, mfa)
+            custom_session_interface_login.update_session(session_id, session_data)
+            return jsonify({'message' : "MFA code has been sent out", "session_id" : session_id}), 200
+        elif session_data and session_data['redirect'] == 'register':
+            session_data['mfa'] = randint(100000, 999999)
+            name = session_data['first_name'] + " " + session_data['last_name']
+            sendMessage(session_data['email'], name, session_data['mfa'])
+            custom_session_interface_login.update_session(session_id, session_data)
+            return jsonify({'message' : "MFA code has been sent out", "session_id" : session_id}), 200
         else:
-            return jsonify({'error': 'Doctor not found'}), 404
+            return jsonify({'error': "Session expired, please reload and try again."}), 401
     except Exception as e:
         print(f"Error getting number: {e}")  # Log the error
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message    
 
 ## Not tested
 @auth_bp.route('/verify_otp', methods=['POST'])
-def verify_phone():
+def verify_otp():
     print('verify_otp')
     try:
         data = request.get_json()
-        confirmation_result = data.get('confirmationResult')
-        print(data)
-        token = data['tempToken']
-        otp = data['otp']
-        decoded_token = jwt.decode(token, temp_key, algorithms=['HS256'])
-        email = decoded_token['email']
+        session_id = data['sessionId']
+        code = data['code']
+        session_data = custom_session_interface_login.get_session_by_sid(session_id)
+        if session_data and session_data['redirect'] == 'login':
+            email = session_data['email']
+            doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
+            doctor = doctor_ref.get()
+            uid = doctor[0].to_dict()['doctorId']
+            email = doctor[0].to_dict()['email']
+            print("Code is ",code)
+            print("MFA is ", session_data['mfa'])
+            if not uid:
+                return jsonify({'error': 'Doctor not found'}), 404
+
+            if int(code) == int(session_data['mfa']):
+                payload = {
+                'uid': uid,
+                'email': email,
+                'iat': datetime.utcnow(),
+                'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
+                }
+                token = jwt.encode(payload, secret_key, algorithm='HS256')
+                custom_session_interface_login.delete_session_by_sid(session_id, 'login') 
+                csrf_token = os.urandom(16).hex()
+                custom_session_interface_csrf.create_session(csrf_token)
+                response = make_response(jsonify({"message": "Login successful", "csrf_token": csrf_token}), 200)
+                # Set a cookie with a session ID or token
+                response.set_cookie(
+                    "authToken",  # Cookie name
+                    value=token,  # Cookie value
+                    httponly=True,  # Prevent client-side access
+                    secure=True,  # Only send over HTTPS
+                    samesite="None",  # Prevent CSRF
+                    max_age=3600,  # Expires in 1 hour
+                    path="/",  # Accessible across the entire site
+                )
+                return response
+            elif code != session_data['mfa'] :
+                return jsonify({'error': 'Verification code is incorrect'}), 303
+        elif session_data and session_data['redirect'] == 'register':
+            # Check if the verification code matches
+            if int(code) == int(session_data['mfa']):
+                try:
+                    email = session_data['email']
+                    user = auth.create_user(
+                        email=email,
+                        email_verified=False,
+                        password=session_data['password'],
+                        display_name=session_data["first_name"] + " " + session_data["last_name"] # Set user's name
+                    )
+                    print(data)
+                    print("Password received and processed.")
+                except Exception as e:
+                    print(e)
+                    return jsonify({'error': str(e)}), 501
+                doctor_id = get_next_id('doctor')
+                try:
+                    print("Adding doctor")
+                    data = request.json
+                    doctor_ref = db.collection('doctors').document(doctor_id)
+                    doctor_ref.set({
+                        'doctorId' : doctor_id,
+                        'firstName': session_data['first_name'],
+                        'lastName': session_data['last_name'],
+                        'email': session_data['email'],
+                        'phoneNumber': session_data['phone_number'],
+                        'licenseNumber': session_data['license'],
+                        'workplace': session_data['workplace']
+                    })
+                except Exception as e:
+                    return jsonify({"error": str(e)}), 500
+                
+                payload = {
+                    'uid': doctor_id,
+                    'email' : email,
+                    'iat': datetime.utcnow(),
+                    'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
+                }
+
+                csrf_token = os.urandom(16).hex()
+                custom_session_interface_csrf.create_session(csrf_token)
+                response = make_response(jsonify({"message": "Login successful", "csrf_token": csrf_token}), 200)
+                # Set a cookie with a session ID or token
+                response.set_cookie(
+                    "authToken",  # Cookie name
+                    value=token,  # Cookie value
+                    httponly=True,  # Prevent client-side access
+                    secure=True,  # Only send over HTTPS
+                    samesite="None",  # Prevent CSRF
+                    max_age=3600,  # Expires in 1 hour
+                    path="/",  # Accessible across the entire site
+                )
+                return response
+            else:
+                return jsonify({'error': 'Invalid verification code'}), 400
+        else:
+            return jsonify({'error': "Session expired, please reload and try again."}), 401
         
-        doctor_ref = db.collection('doctors').where(filter=FieldFilter("email", "==", email))
-        doctor = doctor_ref.get()
-        uid = doctor[0].to_dict()['doctorId']
-        email = doctor[0].to_dict()['email']
-
-        if not uid:
-            return jsonify({'error': 'Doctor not found'}), 404
-
-        if not confirmation_result or not otp:
-            return jsonify({'error': 'Information is missing'}), 400
         
-        payload = {
-            'uid': uid,
-            'email': email,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
-        }
-
-        token = jwt.encode(payload, secret_key, algorithm='HS256') 
-
-        # Create a response object
-        response = make_response(jsonify({"message": "Login successful", "success" : True}), 201)
-
-        # Set the JWT as a cookie with SameSite attribute
-        response.set_cookie(
-            "token",  # Cookie name
-            value=token,  # JWT as the cookie value
-            httponly=True,  # Prevent client-side JavaScript from accessing the cookie
-            secure=True,  # Only send the cookie over HTTPS
-            samesite="Lax",  # Prevent CSRF attacks
-            max_age=3600,  # Cookie expiration time in seconds (1 hour)
-        )
-
-        return response  # Send back cookie
-
-    except firebase_exceptions.OutOfRangeError as e:
-        return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
     except jwt.ExpiredSignatureError or jwt.InvalidTokenError:
         return jsonify({'error': 'Invalid or expired temporary token'}), 401  # Token has expired
     except Exception as e:
@@ -235,97 +316,40 @@ def register():
     try:
         data = request.get_json()
         validated_data = signupSchema.load(data)
-        firstName = validated_data['firstName']
-        lastName = validated_data['lastName']
         email = validated_data['emailAddress']
-        phoneNumber = validated_data['phoneNumber']
-        password = validated_data['password']
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        license = validated_data['doctorLicense']
-        workplace = validated_data['workplace']
-        try:
-            user = auth.create_user(
-                email=email,
-                email_verified=False,
-                password=hashed_password.decode('utf-8'),
-                display_name=data["firstName"] + " " + data["lastName"] # Set user's name
-            )
-            print(data)
-            print("Password received and processed.")
-        except firebase_exceptions.UnauthenticatedError as e:
-            return jsonify({'error': str(e)}), 400
-        
-        counter_ref = db.collection("counter").document("doctor_id")
-        count = counter_ref.get()
-        if not count.exists:
-            raise Exception("Counter does not exist")
-        next_id = count.to_dict()["nextId"]
-        doctor_id = f"D{next_id:03}" # Format with leading zeros
-        counter_ref.update({"nextId":int(next_id+1)})                         
-        
-        try:
-            print("Adding doctor")
-            data = request.json
-            doctor_ref = db.collection('doctors').document(doctor_id)
-            doctor_ref.set({
-                'doctorId' : doctor_id,
-                'firstName': firstName,
-                'lastName': lastName,
-                'email': email,
-                'phoneNumber': phoneNumber,
-                'licenseNumber': license,
-                'workplace': workplace
-            })
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-        
-        payload = {
-            'uid': doctor_id,
-            'email' : email,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
-        }
-
-        token = jwt.encode(payload, secret_key, algorithm='HS256') 
-
-        # Create a response object
-        response = make_response(jsonify({"message": "Login successful"}), 201)
-
-        # Set the JWT as a cookie with SameSite attribute
-        response.set_cookie(
-            "token",  # Cookie name
-            value=token,  # JWT as the cookie value
-            httponly=True,  # Prevent client-side JavaScript from accessing the cookie
-            secure=True,  # Only send the cookie over HTTPS
-            samesite="Lax",  # Prevent CSRF attacks
-            max_age=3600,  # Cookie expiration time in seconds (1 hour)
-        )
-
-        return response, 201  # Send back cookie
+        redirect = 'register'
+        session_id = custom_session_interface_login.create_session(email,redirect)
+        session_data = custom_session_interface_login.get_session_by_sid(session_id)
+        session_data['first_name'] = validated_data['firstName']
+        session_data['last_name'] = validated_data['lastName']
+        session_data['phone_number'] = validated_data['phoneNumber']
+        session_data['password'] = validated_data['password']
+        session_data['license'] = validated_data['doctorLicense']
+        session_data['workplace'] = validated_data['workplace']
+        print("Here")      
+        custom_session_interface_login.update_session(session_id, session_data)
+        return jsonify({'message': 'Registration MFA required', 'session_id' : session_id}), 200  # Send back cookie
 
     except firebase_exceptions.OutOfRangeError as e:
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
-
+    
 @auth_bp.route('/check_cookie', methods=['GET'])
 def check_cookie():
     try:
-        token = request.cookies.get("token")
-        if not token:
-            return jsonify({'error': 'Token missing'}), 403
-        
+        authToken = request.cookies.get('authToken')
+        if not authToken:
+            return jsonify({'message': 'Information missing'}), 404
         # Verify the token
         try:
-            payload = jwt.decode(token, secret_key, algorithms=['HS256']) # Use the same secret
+            payload = jwt.decode(authToken, secret_key, algorithms=['HS256']) # Use the same secret
             user_id = payload['uid'] # Access the uid from the payload
-            return jsonify({'message': 'Protected resource accessed', 'user_id': user_id}), 200
-
+            return jsonify({'message': 'Protected resource accessed', 'user_id': user_id}, {'valid':True}), 200
         except jwt.ExpiredSignatureError:
-            return jsonify({'error': 'Token expired'}), 401
+            return jsonify({'error': 'Token expired'}), 400
         except jwt.InvalidTokenError:
             return jsonify({'error': 'Invalid token'}), 401
-
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 303
     
 @auth_bp.route('/send_password_reset_email', methods=['POST'])
 def send_password_reset_email():
@@ -343,3 +367,15 @@ def send_password_reset_email():
     except Exception as e:
         print(f"Error sending password reset email: {e}") # Log the error
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message
+    
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    try:
+        response = protected_route(request, 'post')
+        if response['valid']:
+            custom_session_interface_csrf.delete_session_by_sid(request.headers.get('X-CSRF-Token'), 'csrf')
+            response = make_response(jsonify({"message": "Logout successful"}), 200)
+            response.delete_cookie("authToken")
+            return response
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
