@@ -111,9 +111,9 @@ def predict_and_explain(category, features):
     
     explanation_list = explanation.as_list()
     total_weight = sum(abs(weight) for _, weight in explanation_list)
-    text_explanation = feature_weight_map = {(feature.split(">")[0].strip()): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
+    feature_weight_map = {(feature.split(">")[0].strip()): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
     
-    return prediction_label, confidence, image_base64, text_explanation
+    return prediction_label, confidence, image_base64, feature_weight_map
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
 def predict_and_explain_route():  
