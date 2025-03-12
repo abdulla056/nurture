@@ -18,6 +18,7 @@ import uuid
 from config import Config
 import logging  # Added import
 from auth.firebase import get_next_id 
+from routes.authentication_routes import protected_route
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -116,11 +117,12 @@ def predict_and_explain(category, features):
     return prediction_label, confidence, image_base64, feature_weight_map
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
-
-def predict_and_explain_route():
-    
+def predict_and_explain_route():  
     try:
+        response = protected_route(request, 'post')
+        if response['valid']:
         data = request.get_json()
+        patientId = data.get("patientId")
         category = data.get("category")
         features = [float(feature) for feature in data.get("features", [])]
         if not category or not features:
@@ -129,10 +131,10 @@ def predict_and_explain_route():
         # Get prediction and explanation
         prediction_label, confidence, image_base64, feature_weight_map = predict_and_explain(category, features)
         
-        # predictionId = get_next_id("predictions")
-        predictionId = str(uuid.uuid4())
+        predictionId = get_next_id("predictions")
+        
         # Store the decoded label, confidence, explanation, and other data in Firestore
-        db.collection("jojotest").document(predictionId).set({
+        db.collection('predictions').document(predictionId).set({
             "prediction": prediction_label,  # Store the decoded label (e.g., "Congenital Malformations")
             "confidence": confidence,
             "timestamp": firestore.SERVER_TIMESTAMP,
