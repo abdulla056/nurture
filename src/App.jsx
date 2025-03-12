@@ -40,11 +40,30 @@ function App() {
   // }, [navigate]);
 
   // Context value to provide to the app
+  const checkAuthCookie = async () => {
+    try {
+      const response = await api.get("/auth/check_cookie", { withCredentials: true });
+      if (response.data[1].valid) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        setIsAuthenticated(false);
+      } else {
+        console.error("Error checking authentication:", error);
+        setIsAuthenticated(false);
+      }
+    }
+  };
+
   const ctxValue = {
     isAuthenticated,
     setIsAuthenticated,
     token,
     setToken,
+    checkAuthCookie,
     logout: () => {
       Cookies.remove("authToken");
       setIsAuthenticated(false);

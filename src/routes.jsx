@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PublicRoute from "./components/auth/PublicRoute";
 import Dashboard from "./components/layout/Dashboard";
 import PredictionSelectionDashboard from "./components/layout/PredictionSelectionDashboard";
 import SignUpPage from "./pages/SignUpPage";
@@ -21,8 +22,8 @@ const routes = [
   { path: "/", element: <Navigate to="/authentication" /> },
 
   // Public Routes
-  { path: "/authentication", element: <SignUpPage /> },
-  { path: "/authentication/mfa-page", element: <MFAPage /> },
+  { path: "/authentication", element: <PublicRoute element={<SignUpPage />}/>},
+  { path: "/authentication/mfa-page", element: <PublicRoute element={<MFAPage />}/>},
   { path: "/home", element: <Home /> },
 
   // Protected Routes (Require Login)
