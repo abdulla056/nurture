@@ -1,11 +1,15 @@
 import api from "./api";
 
-export const predictAndExplain = async (category, features) => {
+export const predictAndExplain = async (category, features, patientId, detailId) => {
   try {
     const response = await api.post("/supervised/predict_and_explain", {
       category,
       features,
-    });
+      patientId,
+      detailId,
+    },
+    {withCredentials: true}
+    );
 
     return response.data; // Returns prediction result
   } catch (error) {

@@ -19,6 +19,7 @@ export default function SelectionDashboardDropDown({
         });
         const patientIds = res.data.map((patient) => patient.patientId); // Extract patient IDs
         setPatientIds(patientIds);
+        setPatientId(patientIds[0]);
       } catch (error) {
         console.error("Error fetching patient IDs:", error);
       }
