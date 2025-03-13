@@ -9,6 +9,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { useNavigate } from "react-router-dom";
 import { UserDetailsContext } from "../store/user-details-context";
 import { useContext } from "react";
+import { logout } from "../services/authentication";
 
 const userDetails = {
   firstName: "Mohamed",
@@ -25,12 +26,18 @@ const fields = [
 ];
 
 export default function ProfileScreen() {
-  const { deleteCookie } = useContext(UserDetailsContext);
+  // const { deleteCookie } = useContext(UserDetailsContext);
   const navigate = useNavigate();
 
-  function onLogout() {
-    deleteCookie();
-    navigate("/");
+  async function onLogout() {
+    try {
+      await logout();
+      // deleteCookie();
+      // navigate("/login");
+    }
+    catch (error) {
+      console.error("Error logging out:", error);
+    }
   }
   return (
     <div className="flex flex-col items-center p-8 gap-6">

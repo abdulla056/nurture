@@ -17,9 +17,10 @@ export default function PredictedResultOverview({
   prediction,
 }) {
   const navigate = useNavigate();
+  console.log(prediction);
   const { setPrediction } = useContext(PredictionSelectorContext);
   const handelGoToDashboard = () => {
-    setPrediction(prediction.detailId);
+    setPrediction(prediction.predictionId);
     navigate("/dashboard");
   }
   const timestamp = prediction?.timestamp || null;

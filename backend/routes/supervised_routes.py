@@ -115,6 +115,7 @@ def predict_and_explain(category, features):
     explanation_list = explanation.as_list()
     total_weight = sum(abs(weight) for _, weight in explanation_list)
     feature_weight_map = {(feature.split(">")[0].strip()): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
+
     return prediction_label, confidence, image_base64, feature_weight_map
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
@@ -147,6 +148,12 @@ def predict_and_explain_route():
                 "explanationImage": image_base64
             })
             
+            db.collection("predictionFeature").document(document_id).set({
+            "Category": category,
+            "Features": features,  # Store the decoded label (e.g., "Congenital Malformations")
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            })
+
             # Return the response with the decoded label and explanation
             return jsonify({
                 "expectedOutcome": prediction_label,  # Return the decoded label
@@ -160,6 +167,17 @@ def predict_and_explain_route():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+    
+@supervised_bp.route('/get_model_performance', methods=['GET'])
+def get_model_performance():
+    doc_ref = db.collection('modelPerformance').document('modelPerformance')
+    doc = doc_ref.get()
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+    if doc.exists:
+        data = doc.to_dict()
+        print("Fetched Model Performance Data:", data)  # Debugging
+        return jsonify(data)
+    else:
+        print("Firestore document not found!")
+        return jsonify({"error": "Document not found"}), 404
+

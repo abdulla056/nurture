@@ -10,10 +10,10 @@ import PastPredictions from "../components/overview/PastPredictions";
 import HeadingSection from "../components/common/HeadingSection";
 import { predictionDetails } from "../assets/data/data";
 import { AnimatePresence, motion } from "framer-motion";
-import { PredictionDetailsContext } from "../store/prediction-details-context";
-import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Overview() {
+  const navigate = useNavigate();
   return (
     <AnimatePresence>
       <motion.div
@@ -60,7 +60,7 @@ export default function Overview() {
           </div>
         </div>
         <PastPredictions />
-        <HoveringButton>See detailed analysis</HoveringButton>
+        <HoveringButton onClick={() => navigate("/dashboard/analysis") }>See detailed analysis</HoveringButton>
       </motion.div>
     </AnimatePresence>
   );

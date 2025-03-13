@@ -166,7 +166,7 @@ export default function AddPredictionScreen() {
             </span>
           </div>
           {start ? (
-            <SelectionDashboardDropDown title={"Patient ID"} setPatientId={setPatientId} />
+            <SelectionDashboardDropDown title={"Patient ID"} setPatientId={setPatientId} addPatientButton={true} />
           ) : (
             <div className="grid grid-cols-2 w-full gap-x-24">
               {addPredictionFields[pageNumber].fields.map((field, index) => (
