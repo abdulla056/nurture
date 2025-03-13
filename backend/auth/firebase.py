@@ -61,11 +61,18 @@ def verify_firebase_token(token):
         raise InvalidTokenError(f"Token verification failed: {str(e)}")
     
 def get_next_id(document):
+    prefixes = {
+        "detail": "DD",
+        "doctor": "D",
+        "feedback": "F",
+        "prediction": "PR"
+    }
+    prefix = prefixes[document]
     counter_ref = db.collection("counter").document(f"{document}_id")
     count = counter_ref.get()
     if not count.exists:
         raise Exception("Counter does not exist")
     next_id = count.to_dict()["nextId"]
-    assigned_id = f"D{next_id:03}" # Format with leading zeros
+    assigned_id = f"{prefix}{next_id:03}" # Format with leading zeros
     counter_ref.update({"nextId":int(next_id+1)})    
     return assigned_id  
