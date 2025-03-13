@@ -63,7 +63,7 @@ export default function AddPatientScreen() {
               formDataChanged={(value) => handlePatientIdChange(value)}
               value={patientId}
             />
-            <PrimaryButton className={"bg-secondary"}>
+            <PrimaryButton className={"!w-52 h-12 bg-secondary text-regular"}>
               Generate ID
             </PrimaryButton>
           </div>

@@ -62,8 +62,6 @@ export default function Dashboard() {
     pastPredictions: pastPredictions,
   };
 
-  console.log(ctxValue);
-
   return (
     <PredictionDetailsContext.Provider value={ctxValue}>
       <div className="px-12 py-4 relative">
