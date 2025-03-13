@@ -33,7 +33,7 @@ export default function ProfileScreen() {
     try {
       await logout();
       // deleteCookie();
-      // navigate("/login");
+      navigate("/authentication");
     }
     catch (error) {
       console.error("Error logging out:", error);

@@ -113,7 +113,6 @@ def protected_route(request, state):
         print(request.cookies)
         authToken = request.cookies.get('authToken')
         csrf_token = request.headers.get('X-CSRF-Token')
-        print(csrf_token)
         custom_session_interface_csrf.get_session_by_csrf_token(csrf_token)
         if authToken and state == 'get':
             # Verify the token
@@ -227,6 +226,7 @@ def verify_otp():
                 'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
                 }
                 token = jwt.encode(payload, secret_key, algorithm='HS256')
+                print(session_id)
                 custom_session_interface_login.delete_session_by_sid(session_id, 'login') 
                 csrf_token = os.urandom(16).hex()
                 custom_session_interface_csrf.create_session(csrf_token)
@@ -375,7 +375,10 @@ def logout():
         if response['valid']:
             custom_session_interface_csrf.delete_session_by_sid(request.headers.get('X-CSRF-Token'), 'csrf')
             response = make_response(jsonify({"message": "Logout successful"}), 200)
-            response.delete_cookie("authToken")
+            response.set_cookie("authToken", '', expires= 0, httponly=True, secure=True, samesite='None')
             return response
+        else:
+            return jsonify({'error': 'Unauthorized'}), 401
     except Exception as e:
+        print(f"Error logging out: {e}")  # Log the error
         return jsonify({'error': str(e)}), 500
