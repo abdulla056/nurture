@@ -46,6 +46,7 @@ export default function Dashboard() {
     }
   }, [predictionDetails]);
 
+  console.log(predictionDetails)
   const ctxValue = {
     riskScore: predictionDetails?.riskScore,
     predictionId: predictionDetails?.predictionId,

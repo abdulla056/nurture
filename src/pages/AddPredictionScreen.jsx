@@ -1,11 +1,11 @@
 import PrimaryContainer from "../components/layout/PrimaryContainer";
 import TextField from "../components/common/TextField";
-
+import {PredictionSelectorContext} from "../store/prediction-selector-context"
 import { addPredictionFields } from "../assets/data/add-prediction";
 import PrimaryButton from "../components/common/PrimaryButton";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import SelectionDashboardDropDown from "../components/predictions-dashboard/SelectionDashboardDropDown";
-import ConfirmationPopup from "../components/layout/ConfirmationPopup";
+// import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { useNavigate } from "react-router-dom";
 import AddPredictionDropDown from "../components/predictions-dashboard/AddPredictionDropDown";
 import AddPredictionModelSelector from "../components/predictions-dashboard/AddPredictionSelector";
@@ -30,8 +30,10 @@ export default function AddPredictionScreen() {
   const [patientId, setPatientId] = useState();
   const [pageNumber, updatePageNumber] = useState(-1);
   const [isProgressPopupOpen, setIsProgressPopupOpen] = useState(false);
-  const patientAddedDialog = useRef();
+  const [predictionId, setPredictionId] = useState();
+  // const patientAddedDialog = useRef();
   const progressDialog = useRef();
+  const {setPrediction} = useContext(PredictionSelectorContext)
 
   const [lifeStyleData, setLifeStyleData] = useState({
     ...addPredictionFields[0].fields.reduce((acc, field) => {
@@ -88,15 +90,19 @@ export default function AddPredictionScreen() {
     try {
       setIsProgressPopupOpen(true);
       progressDialog.current.showModal();
-      const response = await predictAndExplain(modelSelected, Object.values(formData[modelSelected]));
-      console.log(response);
+      const response = await predictAndExplain(
+        modelSelected,
+        Object.values(formData[modelSelected]),
+        patientId,
+        1
+      );
+      // console.log(response);
+      setPredictionId(response.predictionId);
+      console.log(predictionId);
       const details = Object.assign({}, ...formData);
       details["patientId"] = Number(patientId);
       const detailsResponse = await storeDetails(details);
       console.log(detailsResponse);
-      // console.log(Object.assign({}, ...formData));
-      // setIsProgressPopupOpen(false);
-      // patientAddedDialog.current.showModal();
     } catch (error) {
       console.log(error);
       setIsProgressPopupOpen(false);
@@ -111,6 +117,11 @@ export default function AddPredictionScreen() {
     }
   }
 
+  function goToDashboard() {
+    setPrediction(predictionId);
+    navigate("/dashboard");
+  }
+
   const end = addPredictionFields.length === pageNumber;
   const start = pageNumber === -1;
 
@@ -120,7 +131,7 @@ export default function AddPredictionScreen() {
 
   return (
     <PrimaryContainer className="items-center !p-12 !px-16 !gap-6">
-      <ConfirmationPopup
+      {/* <ConfirmationPopup
         ref={patientAddedDialog}
         firstButton={"Go to dashboard"}
         actionFirstButton={() => navigate("/dashboard")}
@@ -129,12 +140,13 @@ export default function AddPredictionScreen() {
         description={
           "You can either choose to go to the dashboard or see all predictions again"
         }
-      />
+      /> */}
       <AddPredictionProgressPopUp
         ref={progressDialog}
+        goToDashboard={()=>goToDashboard()}
         isOpen={isProgressPopupOpen}
         onClose={() => {
-          setIsProgressPopupOpen(false); 
+          setIsProgressPopupOpen(false);
         }}
       />
       {end ? (
@@ -166,7 +178,11 @@ export default function AddPredictionScreen() {
             </span>
           </div>
           {start ? (
-            <SelectionDashboardDropDown title={"Patient ID"} setPatientId={setPatientId} addPatientButton={true} />
+            <SelectionDashboardDropDown
+              title={"Patient ID"}
+              setPatientId={setPatientId}
+              addPatientButton={true}
+            />
           ) : (
             <div className="grid grid-cols-2 w-full gap-x-24">
               {addPredictionFields[pageNumber].fields.map((field, index) => (
