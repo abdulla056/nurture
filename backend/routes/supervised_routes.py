@@ -119,7 +119,10 @@ def predict_and_explain(category, features):
 @rate_limit(max_requests=10, window_size=60) 
 def predict_and_explain_route():  
     try:
+        print("Cookies: ",request.cookies)
+        print("Headers: ",request.headers)
         response = protected_route(request, 'post')
+
         if response['valid']:
             data = request.get_json()
             patientId = data.get("patientId")
@@ -131,7 +134,7 @@ def predict_and_explain_route():
             # Get prediction and explanation
             prediction_label, confidence, image_base64, feature_weight_map = predict_and_explain(category, features)
             
-            predictionId = get_next_id("predictions")
+            predictionId = get_next_id("prediction")
             
             # Store the decoded label, confidence, explanation, and other data in Firestore
             db.collection('predictions').document(predictionId).set({
@@ -146,7 +149,7 @@ def predict_and_explain_route():
                 "explanationImage": image_base64
             })
             
-            db.collection("predictionFeature").document(document_id).set({
+            db.collection("predictionFeature").document(predictionId).set({
             "Category": category,
             "Features": features,  # Store the decoded label (e.g., "Congenital Malformations")
             "timestamp": firestore.SERVER_TIMESTAMP,
@@ -158,7 +161,10 @@ def predict_and_explain_route():
                 "confidence": confidence,
                 "documentId": predictionId,
                 "explanationImage": image_base64,
-                "explanationText": feature_weight_map
+                "explanationText": feature_weight_map,
+                "patientId": patientId,
+                "doctorId": response['user_id'], 
+                "predictionId": predictionId
             }), 200
         else:
             return jsonify({"message": "Unauthorized"}), 401
