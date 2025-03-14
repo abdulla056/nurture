@@ -2,6 +2,7 @@
 from flask import request, jsonify
 from datetime import datetime, timedelta
 import time
+from functools import wraps
 
 # In-memory storage for request counts
 request_counts = {}
@@ -13,6 +14,7 @@ def rate_limit(max_requests, window_size):
     :param window_size: Time window in seconds.
     """
     def decorator(func):
+        @wraps(func)  # Preserve the original function's metadata
         def wrapper(*args, **kwargs):
             # Get the client's IP address
             client_ip = request.remote_addr
