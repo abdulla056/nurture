@@ -3,6 +3,7 @@ import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 from routes.authentication_routes import protected_route
+from auth.rate_limiter import rate_limit
 
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -11,6 +12,7 @@ patient_bp = Blueprint('patient_bp', __name__)
 
 ## Functionality for adding a new patient
 @patient_bp.route('/add', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def add_patient():
     try:
         response = protected_route(request, 'post')
@@ -30,6 +32,7 @@ def add_patient():
 
 ## Get the patients that are being managed by the doctor
 @patient_bp.route('/get_all', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_patients():
     try:
         response = protected_route(request, 'get')
@@ -47,6 +50,7 @@ def get_patients():
         return jsonify({"error": str(e)}), 400
     
 @patient_bp.route('/delete', methods=['DELETE'])
+@rate_limit(max_requests=10, window_size=60) 
 def delete_patient():
     try:
         response = protected_route(request, 'delete')

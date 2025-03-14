@@ -20,14 +20,11 @@ import logging  # Added import
 from auth.firebase import get_next_id 
 from routes.authentication_routes import protected_route
 from datetime import datetime
+from auth.rate_limiter import rate_limit
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
-
-# Initialize Firebase app if not already initialized
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
@@ -119,6 +116,7 @@ def predict_and_explain(category, features):
     return prediction_label, confidence, image_base64, feature_weight_map
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
+@rate_limit(max_requests=10, window_size=60) 
 def predict_and_explain_route():  
     try:
         response = protected_route(request, 'post')
@@ -169,6 +167,7 @@ def predict_and_explain_route():
         return jsonify({"error": str(e)}), 500
     
 @supervised_bp.route('/get_model_performance', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_model_performance():
     doc_ref = db.collection('modelPerformance').document('modelPerformance')
     doc = doc_ref.get()

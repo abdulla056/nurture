@@ -13,7 +13,7 @@ from random import randint
 from auth.session_data import CustomRedisSessionInterface
 import redis
 import os
-
+from auth.rate_limiter import rate_limit
 secret_key = Config.SECRET_KEY
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -142,6 +142,7 @@ def protected_route(request, state):
 
 # Login Route to verify token sent in from Firebase, generates a temporary 5 minute token.
 @auth_bp.route('/verify_token', methods=['POST'])
+@rate_limit(max_requests=20, window_size=60) 
 def verify_token():
     try:
         data = request.get_json()
@@ -171,6 +172,7 @@ def verify_token():
 
 # Sends verification code to the user's phone number
 @auth_bp.route('/send_email', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def send_email():
     try:
         data = request.get_json()
@@ -200,6 +202,7 @@ def send_email():
 
 ## Not tested
 @auth_bp.route('/verify_otp', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def verify_otp():
     print('verify_otp')
     try:
@@ -312,6 +315,7 @@ def verify_otp():
 
 ## Registration 
 @auth_bp.route('/register', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def register():
     try:
         data = request.get_json()
@@ -334,6 +338,7 @@ def register():
         return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
     
 @auth_bp.route('/check_cookie', methods=['GET'])
+@rate_limit(max_requests=30, window_size=60) 
 def check_cookie():
     try:
         authToken = request.cookies.get('authToken')
@@ -352,6 +357,7 @@ def check_cookie():
         return jsonify({'error': str(e)}), 303
     
 @auth_bp.route('/send_password_reset_email', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def send_password_reset_email():
     try:
         data = request.get_json()  # Get the email from the request
@@ -369,6 +375,7 @@ def send_password_reset_email():
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message
     
 @auth_bp.route('/logout', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def logout():
     try:
         response = protected_route(request, 'post')

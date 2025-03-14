@@ -5,6 +5,7 @@ from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 from routes.authentication_routes import protected_route
 from auth.firebase import get_next_id
+from auth.rate_limiter import rate_limit
 
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -14,6 +15,7 @@ details_bp = Blueprint('details_bp', __name__)
 
 ## Adding patient details    
 @details_bp.route('/add_details', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def add_patient_details():
     try:
         response = protected_route(request, 'post')
@@ -83,6 +85,7 @@ def add_patient_details():
 
 ## Fetch patient details by detailID
 @details_bp.route('/get_details/<DetailID>', methods=['GET'])
+@rate_limit(max_requests=20, window_size=60) 
 def get_patient_details(DetailID):
     response = protected_route(request, 'get')
     if response['valid']:
@@ -98,6 +101,7 @@ def get_patient_details(DetailID):
     
 ## Add prediction for patient
 @details_bp.route('/add_prediction', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def add_prediction():
     try:
         response = protected_route(request, 'post')
@@ -131,6 +135,7 @@ def add_prediction():
 
 ## Fetch prediction by predictionID
 @details_bp.route('/get_prediction/<PredictionID>', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_prediction(PredictionID):
     response = protected_route(request, 'get')
     if response['valid']:
@@ -147,6 +152,7 @@ def get_prediction(PredictionID):
 
 ## Fetch all predictions for a certain patient
 @details_bp.route('/get_predictions/<PatientID>', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_predictions(PatientID):
     response = protected_route(request, 'get')
     if response['valid']:
@@ -161,6 +167,7 @@ def get_predictions(PatientID):
         return jsonify({"message": "Unauthorized"}), 401
 
 @details_bp.route('/get_all_predictions', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_all_predictions():
     response = protected_route(request, 'get')
     if response['valid']:
@@ -175,6 +182,7 @@ def get_all_predictions():
         return jsonify({"message": "Unauthorized"}), 401
 
 @details_bp.route('/delete_prediction', methods=['DELETE'])
+@rate_limit(max_requests=10, window_size=60) 
 def delete_prediction():
     try:
         response = protected_route(request, 'delete')
@@ -194,6 +202,7 @@ def delete_prediction():
         return jsonify({"error": str(e)}), 400
 
 @details_bp.route('/delete_details', methods=['DELETE'])
+@rate_limit(max_requests=10, window_size=60) 
 def delete_details():
     try:
         response = protected_route(request, 'delete')

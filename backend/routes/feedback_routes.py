@@ -5,6 +5,7 @@ from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 from routes.authentication_routes import protected_route
 from auth.firebase import get_next_id
+from auth.rate_limiter import rate_limit
 
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -13,6 +14,7 @@ db = firestore.client()
 feedback_bp = Blueprint('feedback_bp', __name__)
 ## Functionality for adding feedback
 @feedback_bp.route('/add', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def add_feedback():
     try:
         response = protected_route(request, 'post')
@@ -40,6 +42,7 @@ def add_feedback():
 
 ## Getting feedback by FeedbackID
 @feedback_bp.route('/get/<FeedbackID>', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_feedback(FeedbackID):
     try:
         response = protected_route(request, 'get')
