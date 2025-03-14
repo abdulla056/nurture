@@ -2,13 +2,11 @@ import { forwardRef, useContext, useEffect, useState } from "react";
 import { steps } from "../../assets/data/add-prediction";
 import PopUp from "../layout/PopUp";
 import PrimaryButton from "../common/PrimaryButton";
-import { useNavigate } from "react-router-dom";
 
 const AddPredictionProgressPopUp = forwardRef(
   function AddPredictionProgressPopUp({ isOpen, goToDashboard, ...props}, ref) {
     const [activeStep, setActiveStep] = useState(0);
     const [isFinished, setIsFinished] = useState(false);
-    const navigate = useNavigate();
 
     useEffect(() => {
       if (!isOpen) {

@@ -46,20 +46,19 @@ export default function Dashboard() {
     }
   }, [predictionDetails]);
 
-  console.log(predictionDetails)
   const ctxValue = {
     riskScore: predictionDetails?.riskScore,
     predictionId: predictionDetails?.predictionId,
     timeStamp: predictionDetails?.timeStamp,
-    confidenceScore: predictionDetails?.confidenceScore,
+    confidenceScore: predictionDetails?.confidence,
     contributingFactors: predictionDetails?.contributingFactors,
     detailId: predictionDetails?.detailId,
     doctorId: predictionDetails?.doctorId,
-    expectedOutcome: predictionDetails?.expectedOutcome,
+    expectedOutcome: predictionDetails?.prediction,
     patientId: predictionDetails?.patientId,
-    predictionResult: predictionDetails?.predictionResult,
+    predictionResult: predictionDetails?.prediction,
     riskLevel: predictionDetails?.riskLevel,
-    shapExplanation: predictionDetails?.shapExplanation,
+    shapExplanation: predictionDetails?.explanationImage,
     pastPredictions: pastPredictions,
   };
 

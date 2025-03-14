@@ -1,6 +1,6 @@
 import PrimaryContainer from "../components/layout/PrimaryContainer";
 import TextField from "../components/common/TextField";
-import {PredictionSelectorContext} from "../store/prediction-selector-context"
+import { PredictionSelectorContext } from "../store/prediction-selector-context";
 import { addPredictionFields } from "../assets/data/add-prediction";
 import PrimaryButton from "../components/common/PrimaryButton";
 import { useContext, useRef, useState } from "react";
@@ -33,7 +33,7 @@ export default function AddPredictionScreen() {
   const [predictionId, setPredictionId] = useState();
   // const patientAddedDialog = useRef();
   const progressDialog = useRef();
-  const {setPrediction} = useContext(PredictionSelectorContext)
+  const { setPrediction } = useContext(PredictionSelectorContext);
 
   const [lifeStyleData, setLifeStyleData] = useState({
     ...addPredictionFields[0].fields.reduce((acc, field) => {
@@ -90,19 +90,16 @@ export default function AddPredictionScreen() {
     try {
       setIsProgressPopupOpen(true);
       progressDialog.current.showModal();
+      const details = Object.assign({}, ...formData);
+      details["patientId"] = Number(patientId);
+      const detailsResponse = await storeDetails(details);
       const response = await predictAndExplain(
         modelSelected,
         Object.values(formData[modelSelected]),
         patientId,
-        1
+        detailsResponse.detailId
       );
-      // console.log(response);
       setPredictionId(response.predictionId);
-      console.log(predictionId);
-      const details = Object.assign({}, ...formData);
-      details["patientId"] = Number(patientId);
-      const detailsResponse = await storeDetails(details);
-      console.log(detailsResponse);
     } catch (error) {
       console.log(error);
       setIsProgressPopupOpen(false);
@@ -143,7 +140,7 @@ export default function AddPredictionScreen() {
       /> */}
       <AddPredictionProgressPopUp
         ref={progressDialog}
-        goToDashboard={()=>goToDashboard()}
+        goToDashboard={() => goToDashboard()}
         isOpen={isProgressPopupOpen}
         onClose={() => {
           setIsProgressPopupOpen(false);

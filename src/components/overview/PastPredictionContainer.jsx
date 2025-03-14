@@ -3,7 +3,7 @@ import BlueContainer from "../layout/BlueContainer";
 import PopUp from "../layout/PopUp"; 
 import PrimaryButton from "../common/PrimaryButton";
 
-export default function PastPredictionContainer({ timestamp, prediction }) {
+export default function PastPredictionContainer({ timestamp, predictionItem }) {
   const date = new Date(timestamp);
   const month = date.toLocaleString("en-US", { month: "long" }); // Full month name
   const day = date.getDate(); // Day of the month
@@ -15,14 +15,14 @@ export default function PastPredictionContainer({ timestamp, prediction }) {
   return (
     <>
       <PopUp ref={predictionDetailsPopup}>
-        {"PATIENT ID:" + prediction.patientId}
+        {"PATIENT ID:" + predictionItem.patientId}
         <Div>
           <span>Date & Time</span>
           <h3>{month + " " + day + " | " + time}</h3>
         </Div>
         <Div>
           <span>Risk Level</span>
-          <h3>{prediction.riskLevel}</h3>
+          <h3>{predictionItem.riskLevel}</h3>
         </Div>
         <Div>
           <PrimaryButton>Go to prediction</PrimaryButton>
