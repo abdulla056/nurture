@@ -29,6 +29,8 @@ export const addPredictionFields = [
       { id: "mothersHeight", label: "Mother's Height (inches)" },
       { id: "prepregnancyWeight", label: "Prepregnancy Weight" },
       { id: "fathersAge", label: "Father's Combined Age" },
+      { id: "sexOfInfant", label: "Sex of Infant", options: options.sexOfInfant },
+      { id: "birthWeight", label: "Birth Weight in Grams" },
     ],
   },
   {
@@ -57,6 +59,7 @@ export const addPredictionFields = [
         label: "Month Prenatal Care Began",
         options: options.prenatalCare,
       },
+      { id: "bmiPrePregnancy", label: "BMI Pre Pregnancy" },
     ],
   },
   {

@@ -14,9 +14,12 @@ import os
 import firebase_admin  # type: ignore
 from firebase_admin import credentials, firestore  # type: ignore
 import json
-from config import Config
 import uuid
+from config import Config
 import logging  # Added import
+from auth.firebase import get_next_id 
+from routes.authentication_routes import protected_route
+from datetime import datetime
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -27,6 +30,7 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+
 
 supervised_bp = Blueprint('supervised_bp', __name__)
 
@@ -67,228 +71,119 @@ demoexplainer = LimeTabularExplainer(training_data=DEMOscaler.transform(full_tra
 lfexplainer = LimeTabularExplainer(training_data=LFscaler.transform(full_training_data[lifestyle_factors]), feature_names=lifestyle_factors, class_names=['No Risk', 'At Risk'], mode='classification')
 riskexplainer = LimeTabularExplainer(training_data=RISKscaler.transform(full_training_data[risk_factors]), feature_names=risk_factors, class_names=['No Risk', 'At Risk'], mode='classification')
 
-def predict(model, scaler, features, feature_names):
+# Define the prediction labels mapping globally
+prediction_labels = {
+    0: "Congenital Malformations",
+    1: "Maternal Conditions Unrelated to Pregnancy",
+    2: "Placental Cord and Membrane Complications",
+    3: "Maternal Complication"
+}
+
+def predict_and_explain(category, features):
+    if category == "0":
+        model, scaler, explainer, feature_names = DEMOmodel, DEMOscaler, demoexplainer, demographics
+    elif category == "1":
+        model, scaler, explainer, feature_names = LFmodel, LFscaler, lfexplainer, lifestyle_factors
+    elif category == "2":
+        model, scaler, explainer, feature_names = RISKmodel, RISKscaler, riskexplainer, risk_factors
+    else:
+        raise ValueError("Invalid category provided")
+    
     features_array = np.array(features).reshape(1, -1)
     features_df = pd.DataFrame(features_array, columns=feature_names, dtype=float)
     scaled_features = scaler.transform(features_df)
-    prediction = model.predict(scaled_features).tolist()
+    prediction_numeric = model.predict(scaled_features).tolist()[0]
     confidence = model.predict_proba(scaled_features).max().item() if hasattr(model, "predict_proba") else 1.0
-    return prediction[0], confidence
+    
+    # Map the numerical prediction to the corresponding label
+    prediction_label = prediction_labels.get(prediction_numeric, "Unknown")
 
-def explain(explainer, model, scaler, features, feature_names):
+    explanation = explainer.explain_instance(
+        data_row=features_df.iloc[0].values,  # Use original, unscaled data
+        predict_fn=model.predict_proba
+    )
+    fig = explanation.as_pyplot_figure()
+    plt.title("LIME Explanation")
+    plt.tight_layout()
+    buf = BytesIO()
+    plt.savefig(buf, format="png")
+    plt.close(fig)
+    buf.seek(0)
+    image_base64 = base64.b64encode(buf.read()).decode("utf-8")
+    buf.close()
+    
+    explanation_list = explanation.as_list()
+    total_weight = sum(abs(weight) for _, weight in explanation_list)
+    feature_weight_map = {(feature.split(">")[0].strip()): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
+
+    return prediction_label, confidence, image_base64, feature_weight_map
+
+@supervised_bp.route("/predict_and_explain", methods=["POST"])
+def predict_and_explain_route():  
     try:
-        features_array = np.array(features).reshape(1, -1)
-        features_df = pd.DataFrame(features_array, columns=feature_names)
-        scaled_features = scaler.transform(features_df)
-        explanation = explainer.explain_instance(data_row=scaled_features[0], predict_fn=model.predict_proba)
-        fig = explanation.as_pyplot_figure()
-        plt.title("LIME Explanation")
-        plt.tight_layout()
-        buf = BytesIO()
-        plt.savefig(buf, format="png")
-        plt.close(fig)
-        buf.seek(0)
-        image_base64 = base64.b64encode(buf.read()).decode("utf-8")
-        buf.close()
-        print("Base64 image generated successfully.")  # Debugging log
-        return image_base64
-    except Exception as e:
-        print("Error in explain function:", str(e))  # Debugging log
-        traceback.print_exc()
-        raise e
+        print("Cookies: ",request.cookies)
+        print("Headers: ",request.headers)
+        response = protected_route(request, 'post')
 
-@supervised_bp.route("/demopredict", methods=["POST"])
-def demopredict():
-    try:
-        data = request.get_json()
-        features = data["features"]
-
-        feature_names = demographics
-        features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
-
-        prediction, confidence = predict(DEMOmodel, DEMOscaler, features, demographics)
-        document_id = str(uuid.uuid4())  # Generate a unique document ID.
-
-        prediction_data = {
-            "features": features_dict,  # Store features as a dictionary with feature names
-            "prediction": prediction,
-            "confidence": confidence,
-            "timestamp": firestore.SERVER_TIMESTAMP
-        }
-        db.collection('predictionsDemographic').document(document_id).set(prediction_data)  # Save prediction data with the unique document ID.
-        return jsonify({"Expected outcome": prediction, "Confidence": confidence, "document_id": document_id})
-
-    except Exception as e:
-        print("Error in /demopredict:", str(e))
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-@supervised_bp.route("/demoexplain", methods=["POST"])
-def demoexplain():
-    try:
-        data = request.get_json()
-        document_id = data.get("document_id")
-        if document_id is None:
-            return jsonify({"error": "document_id is required"}), 400
-
-        features = data["features"]
-
-        # Map feature indices to feature names
-        feature_names = demographics
-        features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
-
-        image_base64 = explain(demoexplainer, DEMOmodel, DEMOscaler, data["features"], demographics)
-        base64_size = len(image_base64)
-        logging.info(f"Base64 string size: {base64_size} bytes")
-
-        db = firestore.client()
-        doc_ref = db.collection('predictionsDemographic').document(document_id)
-        doc = doc_ref.get()  # Get the document.
-
-        if doc.exists:  # Check if the document exists.
-            doc_ref.update({
-                "explanation_image": image_base64
+        if response['valid']:
+            data = request.get_json()
+            patientId = data.get("patientId")
+            category = data.get("category")
+            features = [float(feature) for feature in data.get("features", [])]
+            if not category or not features:
+                return jsonify({"error": "Invalid input data"}), 400
+            
+            # Get prediction and explanation
+            prediction_label, confidence, image_base64, feature_weight_map = predict_and_explain(category, features)
+            
+            predictionId = get_next_id("prediction")
+            
+            # Store the decoded label, confidence, explanation, and other data in Firestore
+            db.collection('predictions').document(predictionId).set({
+                'predictionId': predictionId,
+                'patientId': patientId,
+                'doctorId': response['user_id'],
+                'detailId' : data.get('detailId'),
+                "prediction": prediction_label,  # Store the decoded label (e.g., "Congenital Malformations")
+                "confidence": confidence,
+                "timestamp": datetime.utcnow(),
+                "explanationText": feature_weight_map,
+                "explanationImage": image_base64
             })
+            
+            db.collection("predictionFeature").document(predictionId).set({
+            "Category": category,
+            "Features": features,  # Store the decoded label (e.g., "Congenital Malformations")
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            })
+
+            # Return the response with the decoded label and explanation
             return jsonify({
-                "document_id": document_id,
-                "explanation_image": image_base64
-            })
+                "expectedOutcome": prediction_label,  # Return the decoded label
+                "confidence": confidence,
+                "documentId": predictionId,
+                "explanationImage": image_base64,
+                "explanationText": feature_weight_map,
+                "patientId": patientId,
+                "doctorId": response['user_id'], 
+                "predictionId": predictionId
+            }), 200
         else:
-            return jsonify({"error": "document not found"}), 404
-
+            return jsonify({"message": "Unauthorized"}), 401
     except Exception as e:
-        print("Error in /demoexplain:", str(e))
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+    
+@supervised_bp.route('/get_model_performance', methods=['GET'])
+def get_model_performance():
+    doc_ref = db.collection('modelPerformance').document('modelPerformance')
+    doc = doc_ref.get()
 
-# Lifestyle
-@supervised_bp.route("/LFpredict", methods=["POST"])
-def LFpredict():
-    try:
-        data = request.get_json()
-        features = data["features"]
+    if doc.exists:
+        data = doc.to_dict()
+        print("Fetched Model Performance Data:", data)  # Debugging
+        return jsonify(data)
+    else:
+        print("Firestore document not found!")
+        return jsonify({"error": "Document not found"}), 404
 
-        feature_names = lifestyle_factors
-        features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
-
-        prediction, confidence = predict(LFmodel, LFscaler, features, lifestyle_factors)
-        document_id = str(uuid.uuid4())  # Generate a unique document ID.
-
-        prediction_data = {
-            "features": features_dict,  # Store features as a dictionary with feature names
-            "prediction": prediction,
-            "confidence": confidence,
-            "timestamp": firestore.SERVER_TIMESTAMP
-        }
-
-        db.collection('predictionsLifestyle').document(document_id).set(prediction_data)  # Save prediction data with the unique document ID.
-
-        return jsonify({"Expected outcome": prediction, "Confidence": confidence, "document_id": document_id})
-    except Exception as e:
-        print("Error in /LFpredict:", str(e))
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-@supervised_bp.route("/LFexplain", methods=["POST"])
-def LFexplain():
-    try:
-        data = request.get_json()
-        document_id = data.get("document_id")
-        if document_id is None:
-            return jsonify({"error": "document_id is required"}), 400
-
-        features = data["features"]
-
-        feature_name = lifestyle_factors
-        features_dict = {feature_name[i]: features[i] for i in range(len(feature_name))}
-
-        image_base64 = explain(lfexplainer, LFmodel, LFscaler, features, lifestyle_factors)
-        base64_size = len(image_base64)
-        logging.info(f"Base64 string size: {base64_size} bytes")
-
-        db = firestore.client()
-        doc_ref = db.collection("predictionsLifestyle").document(document_id)
-        doc = doc_ref.get()
-
-        if doc.exists:
-            doc_ref.update({
-                "explanation_image": image_base64
-            })
-            return jsonify({
-                "document_id": document_id,
-                "explanation_image": image_base64
-            })
-        else:
-            return jsonify({"error": "document not found"}), 404
-
-    except Exception as e:
-        print("Error in /LFexplain:", str(e))
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-# Risk
-@supervised_bp.route("/riskpredict", methods=["POST"])
-def riskpredict():
-    try:
-        data = request.get_json()
-        features = data["features"]
-
-        # Map feature indices to feature names
-        feature_names = risk_factors
-        features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
-
-        prediction, confidence = predict(RISKmodel, RISKscaler, features, risk_factors)
-        document_id = str(uuid.uuid4())  # Generate a unique document ID.
-
-        prediction_data = {
-            "features": features_dict,  # Store features as a dictionary with feature names
-            "prediction": prediction,
-            "confidence": confidence,
-            "timestamp": firestore.SERVER_TIMESTAMP
-        }
-
-        db.collection('predictionsRiskFactors').document(document_id).set(prediction_data)  # Save prediction data with the unique document ID.
-
-        return jsonify({"Expected outcome": prediction, "Confidence": confidence, "document_id": document_id})
-    except Exception as e:
-        logging.error(f"Error in /riskpredict: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-@supervised_bp.route("/riskexplain", methods=["POST"])
-def riskexplain():
-    try:
-        data = request.get_json()
-        document_id = data.get("document_id")
-        if document_id is None:
-            return jsonify({"error": "document_id is required"}), 400
-
-        features = data["features"]
-
-        # Map feature indices to feature names
-        feature_names = risk_factors
-        features_dict = {feature_names[i]: features[i] for i in range(len(feature_names))}
-
-        image_base64 = explain(riskexplainer, RISKmodel, RISKscaler, features, risk_factors)
-        base64_size = len(image_base64)
-        logging.info(f"Base64 string size: {base64_size} bytes")
-
-        db = firestore.client()
-        doc_ref = db.collection("predictionsRiskFactors").document(document_id)
-        doc = doc_ref.get()  # Get the document.
-
-        if doc.exists:  # Check if the document exists.
-            doc_ref.update({
-                "explanation_image": image_base64
-            })
-            return jsonify({
-                "document_id": document_id,
-                "explanation_image": image_base64
-            })
-        else:
-            return jsonify({"error": "document not found"}), 404
-
-    except Exception as e:
-        logging.error(f"Error in /riskexplain: {str(e)}")
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500

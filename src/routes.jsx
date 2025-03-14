@@ -1,5 +1,6 @@
-// src/routes.js
 import { Navigate } from "react-router-dom";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PublicRoute from "./components/auth/PublicRoute";
 import Dashboard from "./components/layout/Dashboard";
 import PredictionSelectionDashboard from "./components/layout/PredictionSelectionDashboard";
 import SignUpPage from "./pages/SignUpPage";
@@ -19,52 +20,68 @@ import MFAPage from "./components/auth/MFAPage";
 
 const routes = [
   { path: "/", element: <Navigate to="/authentication" /> },
-  {
-    path: "/authentication",
-    element: <SignUpPage />,
-    children: [
-      {
-        index: true,
-        element: <Navigate to="/authentication/sign-up" />,
-      },
-      { path: "sign-up", element: <SignUpPage /> },
-      { path: "mfa-page", element: <MFAPage /> },
-    ],
-  },
+
+  // Public Routes
+  { path: "/authentication", element: <PublicRoute element={<SignUpPage />}/>},
+  { path: "/authentication/mfa-page", element: <PublicRoute element={<MFAPage />}/>},
   { path: "/home", element: <Home /> },
-  { path: "/profile", element: <ProfileScreen /> },
+
+  // Protected Routes (Require Login)
+  { path: "/profile", element: <ProtectedRoute element={<ProfileScreen />} /> },
+
   {
     path: "/selection-dashboard",
-    element: <PredictionSelectionDashboard />,
+    element: <ProtectedRoute element={<PredictionSelectionDashboard />} />,
     children: [
       {
         index: true,
         element: <Navigate to="/selection-dashboard/result-selection" />,
       },
-      { path: "result-selection", element: <PredictionSelectionScreen /> },
-      { path: "add-prediction", element: <AddPredictionScreen /> },
-      { path: "add-patient", element: <AddPatientScreen /> },
+      {
+        path: "result-selection",
+        element: <ProtectedRoute element={<PredictionSelectionScreen />} />,
+      },
+      {
+        path: "add-prediction",
+        element: <ProtectedRoute element={<AddPredictionScreen />} />,
+      },
+      {
+        path: "add-patient",
+        element: <ProtectedRoute element={<AddPatientScreen />} />,
+      },
     ],
   },
 
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: <ProtectedRoute element={<Dashboard />} />,
     children: [
       { index: true, element: <Navigate to="/dashboard/overview" /> },
-      { path: "overview", element: <Overview /> },
-      { path: "analysis", element: <Analysis /> },
+      { path: "overview", element: <ProtectedRoute element={<Overview />} /> },
+      { path: "analysis", element: <ProtectedRoute element={<Analysis />} /> },
       {
         path: "exploration",
-        element: <DataExploration />,
+        element: <ProtectedRoute element={<DataExploration />} />,
         children: [
           { index: true, element: <Navigate to="contributing-factors" /> },
-          { path: "contributing-factors", element: <ContributingFactors /> },
-          { path: "comparative-analysis", element: <ComparativeAnalysis /> },
-          { path: "prediction-history", element: <PredictionHistory /> },
+          {
+            path: "contributing-factors",
+            element: <ProtectedRoute element={<ContributingFactors />} />,
+          },
+          {
+            path: "comparative-analysis",
+            element: <ProtectedRoute element={<ComparativeAnalysis />} />,
+          },
+          {
+            path: "prediction-history",
+            element: <ProtectedRoute element={<PredictionHistory />} />,
+          },
         ],
       },
-      { path: "recommendation", element: <Recommendations /> },
+      {
+        path: "recommendation",
+        element: <ProtectedRoute element={<Recommendations />} />,
+      },
     ],
   },
 ];

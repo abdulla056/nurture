@@ -8,8 +8,7 @@ import { PredictionDetailsContext } from "../../store/prediction-details-context
 
 export default function ListOfFactors() {
   const {contributingFactors}  = useContext(PredictionDetailsContext);
-  // const contributingFactors  = predictionDetails?.contributingFactors;
-  console.log(contributingFactors)
+  console.log("contributing factors", contributingFactors)
   return (
     <PrimaryContainer className="!gap-0 w-2/5 hover:scale-100">
       <span className="text-2xl pb-4">List of factors</span>
