@@ -23,6 +23,7 @@ from routes.details_routes import details_bp
 from routes.feedback_routes import feedback_bp
 from routes.supervised_routes import supervised_bp
 from routes.authentication_routes import auth_bp
+from routes.unsupervised_routes import unsupervised_bp
 
 ## Create the Flask app
 app = Flask(__name__)
@@ -44,6 +45,7 @@ app.register_blueprint(details_bp, url_prefix='/details')
 app.register_blueprint(feedback_bp, url_prefix='/feedback')
 app.register_blueprint(supervised_bp, url_prefix='/supervised')
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(unsupervised_bp, url_prefix='/unsupervised')
 
 # Path to the .pem files
 cert_path = os.path.join(os.path.dirname(__file__), Config.ssl_cert_file)
