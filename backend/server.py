@@ -31,6 +31,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 CORS(
     app, 
+    origins=Config.allowed_origins,
     methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
     supports_credentials=True,
