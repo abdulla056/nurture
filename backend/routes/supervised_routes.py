@@ -119,8 +119,6 @@ def predict_and_explain(category, features):
 @rate_limit(max_requests=10, window_size=60) 
 def predict_and_explain_route():  
     try:
-        print("Cookies: ",request.cookies)
-        print("Headers: ",request.headers)
         response = protected_route(request, 'post')
 
         if response['valid']:

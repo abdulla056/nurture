@@ -17,7 +17,6 @@ def add_doctor():
     try:
         response = protected_route(request, 'post')
         if response['valid']:
-            print("Adding doctor")
             data = request.json
             doctor_ref = db.collection('doctors').document(data['doctorId'])
             doctor_ref.set({

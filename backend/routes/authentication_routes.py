@@ -109,8 +109,6 @@ custom_session_interface_csrf = CustomRedisSessionInterface(
 
 def protected_route(request, state):
     try:
-        print("Protected route")
-        print(request.cookies)
         authToken = request.cookies.get('authToken')
         csrf_token = request.headers.get('X-CSRF-Token')
         custom_session_interface_csrf.get_session_by_csrf_token(csrf_token)
@@ -118,7 +116,6 @@ def protected_route(request, state):
             # Verify the token
             try:
                 payload = jwt.decode(authToken, secret_key, algorithms=['HS256']) # Use the same secret
-                print(payload)
                 user_id = payload['uid'] # Access the uid from the payload
                 return {'message': 'Protected resource accessed', 'user_id': user_id,'valid':True}
             except jwt.ExpiredSignatureError:
@@ -152,12 +149,10 @@ def verify_token():
             return jsonify({'error': 'Token is required'}), 400
 
         decoded_token = verify_firebase_token(id_token) #auth.verify_id_token(id_token)
-        print("decoded")
         email = decoded_token['email']
         redirect = 'login'
         session_id = custom_session_interface_login.create_session(email, redirect)
         if session_id:
-            print(session_id)
             return jsonify({
                 'message' : 'MFA required',
                 'session_id' : session_id
@@ -204,7 +199,6 @@ def send_email():
 @auth_bp.route('/verify_otp', methods=['POST'])
 @rate_limit(max_requests=10, window_size=60) 
 def verify_otp():
-    print('verify_otp')
     try:
         data = request.get_json()
         session_id = data['sessionId']
@@ -216,8 +210,6 @@ def verify_otp():
             doctor = doctor_ref.get()
             uid = doctor[0].to_dict()['doctorId']
             email = doctor[0].to_dict()['email']
-            print("Code is ",code)
-            print("MFA is ", session_data['mfa'])
             if not uid:
                 return jsonify({'error': 'Doctor not found'}), 404
 
@@ -229,7 +221,6 @@ def verify_otp():
                 'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
                 }
                 token = jwt.encode(payload, secret_key, algorithm='HS256')
-                print(session_id)
                 custom_session_interface_login.delete_session_by_sid(session_id, 'login') 
                 csrf_token = os.urandom(16).hex()
                 custom_session_interface_csrf.create_session(csrf_token)
@@ -258,7 +249,6 @@ def verify_otp():
                         password=session_data['password'],
                         display_name=session_data["first_name"] + " " + session_data["last_name"] # Set user's name
                     )
-                    print(data)
                     print("Password received and processed.")
                 except Exception as e:
                     print(e)
@@ -330,7 +320,6 @@ def register():
         session_data['password'] = validated_data['password']
         session_data['license'] = validated_data['doctorLicense']
         session_data['workplace'] = validated_data['workplace']
-        print("Here")      
         custom_session_interface_login.update_session(session_id, session_data)
         return jsonify({'message': 'Registration MFA required', 'session_id' : session_id}), 200  # Send back cookie
 
