@@ -3,6 +3,8 @@ import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 from routes.authentication_routes import protected_route
+from auth.rate_limiter import rate_limit
+
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 db = firestore.client()
@@ -10,6 +12,7 @@ doctor_bp = Blueprint('doctor_bp', __name__)
 
 ## Functionality to add a new doctor
 @doctor_bp.route('/add', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def add_doctor():
     try:
         response = protected_route(request, 'post')
@@ -33,6 +36,7 @@ def add_doctor():
     
 ## Get Doctor by ID
 @doctor_bp.route('/get', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60)
 def get_doctor():
     try:
         response = protected_route(request, 'get')
