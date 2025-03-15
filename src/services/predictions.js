@@ -20,8 +20,8 @@ export const predictAndExplain = async (category, features, patientId, detailId)
 
 export const deletePrediction = async (predictionId) => {
   try {
-    const response = await api.post(
-      "/supervised/delete_prediction",
+    const response = await api.delete(
+      "/details/delete_prediction",
       { predictionId: predictionId },
       { withCredentials: true }
     );
