@@ -7,6 +7,7 @@ import { useContext } from "react";
 
 export default function PastPredictions() {
   const { pastPredictions } = useContext(PredictionDetailsContext);
+  console.log(pastPredictions);
   const navigate = useNavigate();
   return (
     <PrimaryContainer className="hover:scale-100 gap-4 hover:cursor-default">
@@ -21,11 +22,11 @@ export default function PastPredictions() {
       </div>
       <div className="flex flex-row justify-between items-center">
         <div className="flex flex-row gap-4">
-          {pastPredictions.map((predcitionItem) => (
+          {pastPredictions.slice(0,6).map((predictionItem) => (
             <PastPredictionContainer
-              key={predcitionItem.timestamp}
-              prediction={predcitionItem}
-              {...predcitionItem}
+              key={predictionItem.timestamp}
+              predictionItem={predictionItem}
+              {...predictionItem}
             />
           ))}
         </div>

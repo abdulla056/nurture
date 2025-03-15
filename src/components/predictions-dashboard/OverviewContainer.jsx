@@ -27,7 +27,6 @@ export default function OverviewContainer({
   const time = dateObj
     ? dateObj.toTimeString().split(" ")[0].slice(0, 5)
     : "N/A";
-  const navigate = useNavigate();
   return (
     <AnimatePresence>
       <motion.div

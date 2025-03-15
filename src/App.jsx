@@ -4,6 +4,7 @@ import SUPERVISEDSCREENTEST from "./pages/SUPERVISEDSCREENTEST";
 import { useEffect, useState } from "react";
 import api from "./services/api";
 import { UserDetailsContext } from "./store/user-details-context";
+import PCAClusterScreen from "./components/exploration/PCACluster";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);

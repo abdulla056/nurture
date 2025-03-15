@@ -6,6 +6,8 @@ import SelectionDashboardDropDown from "../components/predictions-dashboard/Sele
 import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { useRef, useState } from "react";
 import api from "../services/api";
+import { AnimatePresence } from "framer-motion";
+import ErrorMessage from "../components/common/ErrorMessage";
 
 const addPatient = async (patientId) => {
   try {
@@ -22,6 +24,7 @@ const addPatient = async (patientId) => {
 };
 
 export default function AddPatientScreen() {
+  const [error, setError] = useState("");
   const patientAddedDialog = useRef();
   const [patientId, setPatientId] = useState("");
   const navigate = useNavigate();
@@ -31,14 +34,22 @@ export default function AddPatientScreen() {
   }
 
   async function onSubmit() {
-    await addPatient(patientId).then(() => {
-      patientAddedDialog.current.showModal();
-    });
+    if (patientId === "") {
+      setError("Please enter a patient ID");
+      return;
+    }
+    else {
+      await addPatient(patientId).then(() => {
+        patientAddedDialog.current.showModal();
+      });
+    }
   }
 
-  console.log(patientId);
   return (
     <div className="flex flex-col gap-6">
+      <AnimatePresence>
+        {(error!=="") && <ErrorMessage message={error} onClose={() => setError("")} />}
+      </AnimatePresence>
       <ConfirmationPopup
         firstButton={"Make prediction"}
         secondButton={"See all patients"}
