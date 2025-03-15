@@ -9,6 +9,7 @@ import secrets
 from auth.session_data import CustomRedisSessionInterface, redis_client
 import ssl
 import os
+import logging
 
 ## Access the Firestore 
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -36,6 +37,13 @@ app.session_interface = CustomRedisSessionInterface(
     redis_client=redis_client,
     key_prefix=Config.login_session_prefix,
     ttl=Config.login_session_ttl  # Default TTL of 300 seconds
+)
+
+# Configure logging
+logging.basicConfig(
+    filename="app.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 ## Register the routes

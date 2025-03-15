@@ -21,6 +21,7 @@ from auth.firebase import get_next_id
 from routes.authentication_routes import protected_route
 from datetime import datetime
 from auth.rate_limiter import rate_limit
+import logging
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -28,8 +29,9 @@ cred = credentials.Certificate(firebase_config_json)
 
 db = firestore.client()
 
-
 supervised_bp = Blueprint('supervised_bp', __name__)
+
+super_logger = logging.getLogger('supervised_logger')
 
 # Load trained models and scalers
 DEMO_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "best_DEMOoverall_model.pkl")
@@ -127,6 +129,7 @@ def predict_and_explain_route():
             category = data.get("category")
             features = [float(feature) for feature in data.get("features", [])]
             if not category or not features:
+                super_logger.error(f"Invalid input data provided by DoctorID: {response['user_id']}, IP: {request.remote_addr}")
                 return jsonify({"error": "Invalid input data"}), 400
             
             # Get prediction and explanation
@@ -153,6 +156,8 @@ def predict_and_explain_route():
             "timestamp": firestore.SERVER_TIMESTAMP,
             })
 
+            super_logger.info(f"Prediction made by DoctorID: {response['user_id']} with PredictionID: {predictionId}, IP: {request.remote_addr}")
+
             # Return the response with the decoded label and explanation
             return jsonify({
                 "expectedOutcome": prediction_label,  # Return the decoded label
@@ -165,22 +170,33 @@ def predict_and_explain_route():
                 "predictionId": predictionId
             }), 200
         else:
-            return jsonify({"message": "Unauthorized"}), 401
+            super_logger.warning(f"Unauthorized attempt to make prediction by IP: {request.remote_addr}")
+            return jsonify({"error": "Unauthorized"}), 401
     except Exception as e:
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        super_logger.error(f"Error making prediction: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500
     
 @supervised_bp.route('/get_model_performance', methods=['GET'])
 @rate_limit(max_requests=10, window_size=60) 
 def get_model_performance():
-    doc_ref = db.collection('modelPerformance').document('modelPerformance')
-    doc = doc_ref.get()
-
-    if doc.exists:
-        data = doc.to_dict()
-        print("Fetched Model Performance Data:", data)  # Debugging
-        return jsonify(data)
-    else:
-        print("Firestore document not found!")
-        return jsonify({"error": "Document not found"}), 404
-
+    try:
+        response = protected_route(request, 'get')
+        if response['valid']:
+            doc_ref = db.collection('modelPerformance').document('modelPerformance')
+            doc = doc_ref.get()
+            if doc.exists:
+                data = doc.to_dict()
+                print("Fetched Model Performance Data:", data)  # Debugging
+                super_logger.info(f"Model performance data retrieved by Doctor {response['user_id']}, IP: {request.remote_addr}")
+                return jsonify(data)
+            else:
+                super_logger.warning(f"Model performance data not found requested by Doctor {response['user_id']}, IP: {request.remote_addr}")
+                print("Firestore document not found!")
+                return jsonify({"error": "Document not found"}), 404
+        else:
+            super_logger.warning(f"Unauthorized attempt to make prediction by IP: {request.remote_addr}")
+            return jsonify({"error": "Unauthorized"}), 401
+    except Exception as e:
+        super_logger.error(f"Error getting model performance data: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500
