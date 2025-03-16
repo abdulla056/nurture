@@ -4,6 +4,9 @@ import pandas as pd
 from tensorflow import keras 
 import joblib
 import os
+import logging
+
+dl_logger = logging.getLogger('dl_logger')
 
 # Load the trained model and preprocessing objects
 model_path = os.path.join(os.path.dirname(__file__), "..", "models", "dlmodel.keras")
@@ -113,28 +116,36 @@ def preprocess_input(data):
 
     print(df.to_string())
     print(df.shape)
-
     return df
     
 @dl_bp.route('/predict', methods=['POST'])
 def predict():
-    # Get data from the frontend
-    request_data = request.json
-    if not request_data:
-        return jsonify({'error': 'No data provided'}), 400
-
-    # Preprocess the data
     try:
-        processed_data = preprocess_input(request_data)
+         response = protected_route(request, 'post')
+        if response['valid']:
+            # Get data from the frontend
+            request_data = request.json
+            if not request_data:
+                dl.logger.warning(f"No data was provided by Doctor {response['user_id']}, IP: {request.remote_addr}")
+                return jsonify({'error': 'No data provided'}), 400
+            # Preprocess the data
+            try:
+                processed_data = preprocess_input(request_data)
+            except Exception as e:
+                dl_logger.error(f'Preprocessing failed: {str(e)}, IP: {request.remote_addr}')
+                return jsonify({'error': 'Preprocessing failed'}), 400
         
-
+            # Make a prediction
+            try:
+                prediction = model.predict(processed_data)
+                return jsonify({'prediction': prediction.tolist()})
+            except Exception as e:
+                dl_logger.error(f'Prediction failed: {str(e)}, IP: {request.remote_addr}')
+                return jsonify({'error': 'Prediction failed'}), 500
+        else:
+            dl_logger.warning(f"Unauthorized attempt to make prediction by IP: {request.remote_addr}")
+            return jsonify({"error": "Unauthorized"}), 401
     except Exception as e:
-        return jsonify({'error': f'Preprocessing failed: {str(e)}'}), 400
-
-    # Make a prediction
-    try:
-        prediction = model.predict(processed_data)
-        return jsonify({'prediction': prediction.tolist()})
-    except Exception as e:
-        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
-    
+        dl_logger.error(f"Error predicting: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500
+            
