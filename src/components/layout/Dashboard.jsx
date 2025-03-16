@@ -1,17 +1,27 @@
 import NavBar from "./NavBar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { PredictionDetailsContext } from "../../store/prediction-details-context";
 import api from "../../services/api";
 import { useEffect, useState } from "react";
 
-const predictionId = "PR001";
+import Cookies from "js-cookie";
+
+const getPrediction = () => {
+  const predictionId = Cookies.get("predictionId");
+  return predictionId;
+};
 
 export default function Dashboard() {
   const [predictionDetails, setPredictionDetails] = useState();
+  const [pastPredictions, setPastPredictions] = useState([]);
+  const predictionId = getPrediction();
+
   useEffect(() => {
     const fetchPredictionDetails = async () => {
       try {
-        const res = await api.get(`/prediction/get_prediction/${predictionId}`);
+        const res = await api.get(`/details/get_prediction/${predictionId}`, {
+          withCredentials: true,
+        });
         setPredictionDetails(res.data);
       } catch (error) {
         console.error("Error fetching prediction details:", error);
@@ -19,9 +29,41 @@ export default function Dashboard() {
     };
     fetchPredictionDetails();
   }, []);
+  useEffect(() => {
+    if (predictionDetails?.patientId) {
+      const fetchPastPredictions = async () => {
+        try {
+          const res = await api.get(
+            `/details/get_predictions/${predictionDetails.patientId}`,
+            { withCredentials: true }
+          );
+          setPastPredictions(res.data);
+        } catch (error) {
+          console.error("Error fetching past predictions:", error);
+        }
+      };
+      fetchPastPredictions();
+    }
+  }, [predictionDetails]);
+
+  const ctxValue = {
+    riskScore: predictionDetails?.riskScore,
+    predictionId: predictionDetails?.predictionId,
+    timeStamp: predictionDetails?.timeStamp,
+    confidenceScore: predictionDetails?.confidence,
+    contributingFactors: predictionDetails?.contributingFactors,
+    detailId: predictionDetails?.detailId,
+    doctorId: predictionDetails?.doctorId,
+    expectedOutcome: predictionDetails?.prediction,
+    patientId: predictionDetails?.patientId,
+    predictionResult: predictionDetails?.prediction,
+    riskLevel: predictionDetails?.riskLevel,
+    shapExplanation: predictionDetails?.explanationImage,
+    pastPredictions: pastPredictions,
+  };
 
   return (
-    <PredictionDetailsContext.Provider value={predictionDetails}>
+    <PredictionDetailsContext.Provider value={ctxValue}>
       <div className="px-12 py-4 relative">
         <NavBar />
         <Outlet />

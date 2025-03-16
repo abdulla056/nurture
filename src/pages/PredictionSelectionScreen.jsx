@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import PredictionSelectionSection from "../components/predictions-dashboard/PredictionSelectionSection";
 import PredictionToggle from "../components/predictions-dashboard/PredictionToggle";
 import PredictedResultOverview from "../components/predictions-dashboard/PredictedResultOverview";
@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../services/api";
 import HoveringButton from "../components/overview/HoveringButton";
 import { useNavigate } from "react-router-dom";
+import PrimaryButton from "../components/common/PrimaryButton";
 
 export default function PredictionSelectionScreen() {
   const [activeButton, changeActiveButton] = useState("results");
@@ -13,6 +14,7 @@ export default function PredictionSelectionScreen() {
   const [predictions, setPredictions] = useState([]);
   const [patients, setPatients] = useState([]);
   const [overViewData, setOverViewData] = useState();
+  const [patientPredictions, setPatientPredictions] = useState([]);
 
   const navigate = useNavigate();
 
@@ -21,7 +23,9 @@ export default function PredictionSelectionScreen() {
   }
 
   function onOverviewChanged(predictionId) {
-    setOverViewData(predictions.find((prediction) => prediction.detailId === predictionId));
+    setOverViewData(
+      predictions.find((prediction) => prediction.detailId === predictionId)
+    );
     changeOverView((currentStatus) => !currentStatus);
   }
 
@@ -34,11 +38,16 @@ export default function PredictionSelectionScreen() {
   }
 
   const isResultsScreen = activeButton === "results";
+  const hasFetched = useRef(false);
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     const fetchPredictions = async () => {
       try {
-        const res = await api.get("/details/get_all_predictions");
+        const res = await api.get("/details/get_all_predictions", {
+          withCredentials: true,
+        });
         console.log(res.data);
         setPredictions(res.data);
       } catch (error) {
@@ -48,7 +57,9 @@ export default function PredictionSelectionScreen() {
 
     const fetchPatients = async () => {
       try {
-        const res = await api.get("/patient/get_all/D001");
+        const res = await api.get("/patient/get_all", {
+          withCredentials: true,
+        });
         console.log(res.data);
         setPatients(res.data);
       } catch (error) {
@@ -64,7 +75,7 @@ export default function PredictionSelectionScreen() {
       <AnimatePresence mode="popLayout">
         {!overViewActivated && (
           <motion.div
-            className="flex w-full justify-center"
+            className="flex w-full justify-center flex-col items-center gap-4"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -74,6 +85,14 @@ export default function PredictionSelectionScreen() {
               activeButton={activeButton}
               onClick={onToggleClicked}
             />
+            {(patientPredictions.length > 0 && activeButton === "results") && (
+              <PrimaryButton
+              className={"size-12 !text-xs px-16 opacity-75"}
+                onClick={() => setPatientPredictions([])}
+              >
+                View all predictions
+              </PrimaryButton>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -81,11 +100,17 @@ export default function PredictionSelectionScreen() {
         <PredictionSelectionSection
           predictions={predictions}
           patients={patients}
+          patientPredictions={patientPredictions}
+          setPatientPredictions={setPatientPredictions}
           isPrediction={isResultsScreen}
+          changeActiveButton={changeActiveButton}
           isActive={!overViewActivated}
           changeOverViewStatus={onOverviewChanged}
         />
-        <PredictedResultOverview isActive={overViewActivated} prediction = {overViewData} />
+        <PredictedResultOverview
+          isActive={overViewActivated}
+          prediction={overViewData}
+        />
       </motion.div>
       <HoveringButton onClick={navigateToAddScreen}>
         {isResultsScreen || overViewActivated

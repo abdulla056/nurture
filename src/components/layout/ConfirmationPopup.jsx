@@ -25,9 +25,6 @@ const ConfirmationPopup = forwardRef(function ConfirmationPopup(
           {secondButton && (
             <PrimaryButton onClick={actionSecondButton} transparent={true}>{secondButton}</PrimaryButton>
           )}
-          {/* <form method="dialog">
-          <PrimaryButton className={"text-xl"}>fnajksfnjk</PrimaryButton>
-        </form> */}
         </div>
       </div>
     </dialog>

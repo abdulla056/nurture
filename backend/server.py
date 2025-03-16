@@ -1,9 +1,15 @@
 from flask import Flask, request, jsonify # type: ignore
 from flask_cors import CORS # type: ignore
+from flask_session import Session # type: ignore
 import firebase_admin # type: ignore
 from firebase_admin import credentials, firestore # type: ignore
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import Config
+import secrets
+from auth.session_data import CustomRedisSessionInterface, redis_client
+import ssl
+import os
+import logging
 
 ## Access the Firestore 
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -16,24 +22,55 @@ from routes.doctor_routes import doctor_bp
 from routes.patient_routes import patient_bp
 from routes.details_routes import details_bp
 from routes.feedback_routes import feedback_bp
-# from routes.supervised_routes import supervised_bp
+from routes.supervised_routes import supervised_bp
 from routes.authentication_routes import auth_bp
+from routes.unsupervised_routes import unsupervised_bp
 from routes.dl_routes import dl_bp
 
 ## Create the Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app)
+CORS(
+    app, 
+    origins=Config.allowed_origins,
+    methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
+    supports_credentials=True,
+    max_age=600
+    )
+app.secret_key = secrets.token_hex(256)
+
+# Initialize the custom session interface
+app.session_interface = CustomRedisSessionInterface(
+    redis_client=redis_client,
+    key_prefix=Config.login_session_prefix,
+    ttl=Config.login_session_ttl  # Default TTL of 300 seconds
+)
+
+# Configure logging
+logging.basicConfig(
+    filename="app.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 ## Register the routes
 app.register_blueprint(doctor_bp, url_prefix='/doctor')
 app.register_blueprint(patient_bp, url_prefix='/patient')
 app.register_blueprint(details_bp, url_prefix='/details')
 app.register_blueprint(feedback_bp, url_prefix='/feedback')
-# app.register_blueprint(supervised_bp, url_prefix='/supervised')
+app.register_blueprint(supervised_bp, url_prefix='/supervised')
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(unsupervised_bp, url_prefix='/unsupervised')
 app.register_blueprint(dl_bp, url_prefix='/dl')
+
+# Path to the .pem files
+cert_path = os.path.join(os.path.dirname(__file__), Config.ssl_cert_file)
+key_path = os.path.join(os.path.dirname(__file__), Config.ssl_key_file)
+
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain(cert_path, key_path)
 
 ## Default route
 if __name__ == '__main__':
-    app.run(debug=True, port=app.config['PORT'])
+    app.run(debug=True, ssl_context=context,port=app.config['PORT'])

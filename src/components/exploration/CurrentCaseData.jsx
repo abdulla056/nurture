@@ -20,8 +20,8 @@ export default function CurrentCaseData() {
   }
 
   return (
-    <PrimaryContainer className="w-7/12 !p-7">
-      <h2>Current Case Data</h2>
+    <PrimaryContainer className="w-1/2 !p-7">
+      <h2>Risk Score Over Time</h2>
       <div className="grid grid-cols-3 gap-4">
         {features.map((item, index) => (
           <CurrentCaseDataSelector

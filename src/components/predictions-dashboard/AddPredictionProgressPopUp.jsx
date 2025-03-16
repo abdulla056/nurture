@@ -1,18 +1,17 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useContext, useEffect, useState } from "react";
 import { steps } from "../../assets/data/add-prediction";
 import PopUp from "../layout/PopUp";
 import PrimaryButton from "../common/PrimaryButton";
-import { useNavigate } from "react-router-dom";
 
 const AddPredictionProgressPopUp = forwardRef(
-  function AddPredictionProgressPopUp({ isOpen }, ref) {
+  function AddPredictionProgressPopUp({ isOpen, goToDashboard, ...props}, ref) {
     const [activeStep, setActiveStep] = useState(0);
     const [isFinished, setIsFinished] = useState(false);
-    const navigate = useNavigate();
 
     useEffect(() => {
       if (!isOpen) {
         setActiveStep(0); // Reset progress when popup closes
+        setIsFinished(false);
         return;
       }
       if (activeStep >= steps.length) return; // Stop at the last step
@@ -31,7 +30,7 @@ const AddPredictionProgressPopUp = forwardRef(
     }, [activeStep, isOpen]);
 
     return (
-      <PopUp ref={ref}>
+      <PopUp ref={ref} {...props} on>
         <div className="flex flex-col items-start">
           {steps.map((step, index) => (
             <AddPredictionProgressBar
@@ -44,9 +43,9 @@ const AddPredictionProgressPopUp = forwardRef(
           ))}
           <div className="w-full flex justify-center pt-8">
             <PrimaryButton
-              className={!isFinished && "!bg-gray-100 !text-gray-400 disabled"}
+              isActive={isFinished}
               animate={isFinished ? true : false}
-              onClick={isFinished? ()=>navigate("/dashboard") : null}
+              onClick={isFinished ? goToDashboard : null}
             >
               Go to dashboard
             </PrimaryButton>
@@ -61,7 +60,7 @@ export default AddPredictionProgressPopUp;
 
 function AddPredictionProgressBar({ step, active, finished, index }) {
   return (
-    <div className="flex flex-row items-start gap-7">
+    <div className="flex flex-row w-full px-4 items-start gap-4">
       <div className="flex flex-col items-center">
         <div
           className={`rounded-full p-1 transition-all duration-200 ease-in-out ${
@@ -97,7 +96,7 @@ function AddPredictionProgressBar({ step, active, finished, index }) {
         )}
       </div>
       <div
-        className={`flex flex-col gap-1 pt-1 transition-all duration-200 group`}
+        className={`flex flex-col gap-1 pt-2 transition-all duration-200 border border-transparent group rounded-xl hover:bg-gray-50 hover:border-gray-200 hover:cursor-default w-full py-6 px-6`}
       >
         <h3
           className={`text-font text-2xl ${

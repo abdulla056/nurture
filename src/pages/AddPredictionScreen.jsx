@@ -1,15 +1,17 @@
 import PrimaryContainer from "../components/layout/PrimaryContainer";
 import TextField from "../components/common/TextField";
-
+import { PredictionSelectorContext } from "../store/prediction-selector-context";
 import { addPredictionFields } from "../assets/data/add-prediction";
 import PrimaryButton from "../components/common/PrimaryButton";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import SelectionDashboardDropDown from "../components/predictions-dashboard/SelectionDashboardDropDown";
-import ConfirmationPopup from "../components/layout/ConfirmationPopup";
+// import ConfirmationPopup from "../components/layout/ConfirmationPopup";
 import { useNavigate } from "react-router-dom";
 import AddPredictionDropDown from "../components/predictions-dashboard/AddPredictionDropDown";
 import AddPredictionModelSelector from "../components/predictions-dashboard/AddPredictionSelector";
 import AddPredictionProgressPopUp from "../components/predictions-dashboard/AddPredictionProgressPopUp";
+import { predictAndExplain } from "../services/predictions";
+import { storeDetails } from "../services/details";
 
 const descriptions = [
   "Click Next to start the prediction form. Enter required maternal and fetal health data, including Patient ID, demographics, maternal health indicators, and fetal monitoring data (e.g., CTG readings). Ensure all fields are complete and accurate before submitting for reliable results.",
@@ -18,42 +20,45 @@ const descriptions = [
 ];
 
 const predictionSelector = [
-  { key: "risk", selector: "Risk Factors" },
-  { key: "lifestyle", selector: "Life Style Factors" },
-  { key: "demographic", selector: "Demographic Factors" },
+  { key: "0", selector: "Risk Factors" },
+  { key: "1", selector: "Life Style Factors" },
+  { key: "2", selector: "Demographic Factors" },
 ];
 
 export default function AddPredictionScreen() {
   const [modelSelected, setModelSelected] = useState();
+  const [patientId, setPatientId] = useState();
   const [pageNumber, updatePageNumber] = useState(-1);
   const [isProgressPopupOpen, setIsProgressPopupOpen] = useState(false);
-  const patientAddedDialog = useRef();
+  const [predictionId, setPredictionId] = useState();
+  // const patientAddedDialog = useRef();
   const progressDialog = useRef();
+  const { setPrediction } = useContext(PredictionSelectorContext);
 
   const [lifeStyleData, setLifeStyleData] = useState({
     ...addPredictionFields[0].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
 
   const [riskData, setRiskData] = useState({
     ...addPredictionFields[1].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
 
   const [demographicData, setDemographicData] = useState({
     ...addPredictionFields[2].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
 
   const [flagsData, setFlagsData] = useState({
     ...addPredictionFields[3].fields.reduce((acc, field) => {
-      acc[field.id] = "";
+      acc[field.id] = 0;
       return acc;
     }, {}),
   });
@@ -69,7 +74,7 @@ export default function AddPredictionScreen() {
   function formDataChanged(newValue, id) {
     setFormData[pageNumber]((prevFormData) => ({
       ...prevFormData,
-      [id]: newValue,
+      [id]: newValue === "" ? "" : Number(newValue),
     }));
   }
 
@@ -81,10 +86,24 @@ export default function AddPredictionScreen() {
     updatePageNumber((currentPageNumber) => currentPageNumber - 1);
   }
 
-  function onFormSubmit() {
-    console.log(formData);
-    setIsProgressPopupOpen(true);
-    progressDialog.current.showModal();
+  async function onFormSubmit() {
+    try {
+      setIsProgressPopupOpen(true);
+      progressDialog.current.showModal();
+      const details = Object.assign({}, ...formData);
+      details["patientId"] = Number(patientId);
+      const detailsResponse = await storeDetails(details);
+      const response = await predictAndExplain(
+        modelSelected,
+        Object.values(formData[modelSelected]),
+        patientId,
+        detailsResponse.detailId
+      );
+      setPredictionId(response.predictionId);
+    } catch (error) {
+      console.log(error);
+      setIsProgressPopupOpen(false);
+    }
   }
 
   function onModelSelectorPressed(selected) {
@@ -93,6 +112,11 @@ export default function AddPredictionScreen() {
     } else {
       setModelSelected(selected);
     }
+  }
+
+  function goToDashboard() {
+    setPrediction(predictionId);
+    navigate("/dashboard");
   }
 
   const end = addPredictionFields.length === pageNumber;
@@ -104,7 +128,7 @@ export default function AddPredictionScreen() {
 
   return (
     <PrimaryContainer className="items-center !p-12 !px-16 !gap-6">
-      <ConfirmationPopup
+      {/* <ConfirmationPopup
         ref={patientAddedDialog}
         firstButton={"Go to dashboard"}
         actionFirstButton={() => navigate("/dashboard")}
@@ -113,8 +137,15 @@ export default function AddPredictionScreen() {
         description={
           "You can either choose to go to the dashboard or see all predictions again"
         }
+      /> */}
+      <AddPredictionProgressPopUp
+        ref={progressDialog}
+        goToDashboard={() => goToDashboard()}
+        isOpen={isProgressPopupOpen}
+        onClose={() => {
+          setIsProgressPopupOpen(false);
+        }}
       />
-      <AddPredictionProgressPopUp ref={progressDialog} isOpen={isProgressPopupOpen}/>
       {end ? (
         <div className="flex flex-col items-center gap-8 mb-8">
           <h3>Select Data for Prediction</h3>
@@ -144,7 +175,11 @@ export default function AddPredictionScreen() {
             </span>
           </div>
           {start ? (
-            <SelectionDashboardDropDown title={"Patient ID"} />
+            <SelectionDashboardDropDown
+              title={"Patient ID"}
+              setPatientId={setPatientId}
+              addPatientButton={true}
+            />
           ) : (
             <div className="grid grid-cols-2 w-full gap-x-24">
               {addPredictionFields[pageNumber].fields.map((field, index) => (
@@ -162,7 +197,7 @@ export default function AddPredictionScreen() {
                       label={field.label}
                       value={formData[pageNumber][field.id] || ""}
                       id={field.id}
-                      type={"text"}
+                      type={"number"}
                       key={index}
                     />
                   )}
@@ -182,7 +217,15 @@ export default function AddPredictionScreen() {
           Go back
         </PrimaryButton>
         <PrimaryButton
-          onClick={end ? () => onFormSubmit() : () => onNextClicked()}
+          animate={end ? (modelSelected ? true : false) : true}
+          isActive={end ? (modelSelected ? true : false) : true}
+          onClick={
+            end
+              ? modelSelected
+                ? () => onFormSubmit(modelSelected)
+                : null
+              : () => onNextClicked()
+          }
         >
           {end ? "Make prediction" : "Continue"}
         </PrimaryButton>
