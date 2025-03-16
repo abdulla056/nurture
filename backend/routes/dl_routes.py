@@ -2,6 +2,7 @@ from flask import request, Blueprint, jsonify
 import numpy as np
 import pandas as pd
 from tensorflow import keras 
+from routes.authentication_routes import protected_route
 import joblib
 import os
 import logging
@@ -121,7 +122,7 @@ def preprocess_input(data):
 @dl_bp.route('/predict', methods=['POST'])
 def predict():
     try:
-         response = protected_route(request, 'post')
+        response = protected_route(request, 'post')
         if response['valid']:
             # Get data from the frontend
             request_data = request.json
