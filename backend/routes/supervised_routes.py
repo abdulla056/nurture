@@ -14,6 +14,7 @@ import firebase_admin # type: ignore
 from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 
+
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 
@@ -48,6 +49,8 @@ risk_factors = ['Prepregnancy_Diabetes', 'Gestational_Diabetes', 'Prepregnancy_H
                 'Asst_Reproductive_Technology', 'Previous_Cesareans', 'Ruptured_Uterus', 
                 'Admit_to_Intensive_Care', 'Was_Autopsy_Performed', 'Was_Histological_Placental_Exam_Performed']
 
+all_features = demographics + lifestyle_factors + risk_factors
+
 # Load full training data
 FULL_TRAINING_DATA_PATH = os.path.join(os.path.dirname(__file__), "..","models","preprocessed_data.csv")
 full_training_data = pd.read_csv(FULL_TRAINING_DATA_PATH)
@@ -60,7 +63,10 @@ riskexplainer = LimeTabularExplainer(training_data=RISKscaler.transform(full_tra
 def predict(model, scaler, features, feature_names):
     features_array = np.array(features).reshape(1, -1)
     features_df = pd.DataFrame(features_array, columns=feature_names, dtype=float)
-    scaled_features = scaler.transform(features_df)
+    if scaler:
+        scaled_features = scaler.transform(features_df)
+    else:
+        scaled_features = features_df  
     prediction = model.predict(scaled_features).tolist()
     confidence = model.predict_proba(scaled_features).max().item() if hasattr(model, "predict_proba") else 1.0
     return prediction[0], confidence
