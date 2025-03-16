@@ -11,7 +11,9 @@ export default function ModelPerformance() {
   useEffect(() => {
     const fetchPerformanceData = async () => {
       try {
-        const res = await api.get("/supervised/get_model_performance")
+        const res = await api.get("/supervised/get_model_performance", {
+          withCredentials: true,
+        }); 
         setPerformanceData(res.data);
         console.log("prediction details", res.data)
       } catch (error) {
