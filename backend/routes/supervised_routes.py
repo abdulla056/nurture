@@ -61,6 +61,8 @@ risk_factors = ['Prepregnancy_Diabetes', 'Gestational_Diabetes', 'Prepregnancy_H
                 'Asst_Reproductive_Technology', 'Previous_Cesareans', 'Ruptured_Uterus',
                 'Admit_to_Intensive_Care', 'Was_Autopsy_Performed', 'Was_Histological_Placental_Exam_Performed']
 
+all_features = demographics + lifestyle_factors + risk_factors
+
 # Load full training data
 FULL_TRAINING_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "preprocessed_data.csv")
 full_training_data = pd.read_csv(FULL_TRAINING_DATA_PATH)
@@ -92,6 +94,7 @@ def predict_and_explain(category, features):
     features_df = pd.DataFrame(features_array, columns=feature_names, dtype=float)
     scaled_features = scaler.transform(features_df)
     prediction_numeric = model.predict(scaled_features).tolist()[0]
+
     confidence = model.predict_proba(scaled_features).max().item() if hasattr(model, "predict_proba") else 1.0
     
     # Map the numerical prediction to the corresponding label
