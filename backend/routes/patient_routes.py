@@ -22,12 +22,16 @@ def add_patient():
         if response['valid']:
             data = request.json
             patient_ref = db.collection('patients').document(data['patientId'])
-            patient_ref.set({
-                'patientId': data['patientId'],
-                'doctorId': response['user_id'],
-            })
-            patient_logger.info(f"Patient added by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
-            return jsonify({"message": "Patient added successfully"}), 201
+            if patient_ref.get().exists:
+                patient_logger.warning(f"Patient already exists by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
+                return jsonify({"message": "Patient already exists"}), 409
+            else:
+                patient_ref.set({
+                    'patientId': data['patientId'],
+                    'doctorId': response['user_id'],
+                })
+                patient_logger.info(f"Patient added by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
+                return jsonify({"message": "Patient added successfully"}), 201
         else:
             patient_logger.warning(f"Unauthorized attempt to add patient by IP: {request.remote_addr}")
             return jsonify({"message": "Unauthorized"}), 401
