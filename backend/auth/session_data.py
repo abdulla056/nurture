@@ -91,9 +91,7 @@ class CustomRedisSessionInterface(SessionInterface):
         if nature == 'csrf':
             # Retrieve the CSRF token from the session data
             session_data = self.get_session_by_csrf_token(sid)
-            print("session_data ",session_data)
             self.redis.delete(f"csrf_token_to_sid:{sid}")
-            print(self.key_prefix)
             return self.redis.delete(f"{session_data[1]}")
 
         elif nature == 'login':
