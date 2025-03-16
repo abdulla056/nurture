@@ -127,7 +127,7 @@ def predict():
             # Get data from the frontend
             request_data = request.json
             if not request_data:
-                dl.logger.warning(f"No data was provided by Doctor {response['user_id']}, IP: {request.remote_addr}")
+                dl_logger.warning(f"No data was provided by Doctor {response['user_id']}, IP: {request.remote_addr}")
                 return jsonify({'error': 'No data provided'}), 400
             # Preprocess the data
             try:
