@@ -22,8 +22,10 @@ export const deletePrediction = async (predictionId) => {
   try {
     const response = await api.delete(
       "/details/delete_prediction",
-      { predictionId: predictionId },
-      { withCredentials: true }
+      {
+        data: { predictionId: predictionId }, // Payload goes here
+        withCredentials: true, // Credentials option
+      }
     );
     return response.data; // Returns prediction result
   }
