@@ -11,6 +11,16 @@ const getPrediction = () => {
   return predictionId;
 };
 
+const setPrediction = (predictionId) => {
+  Cookies.set("predictionId", predictionId, {
+    expires: 1 / 24,
+    secure: true,
+    sameSite: "Strict",
+  });
+  console.log("Prediction set!");
+};
+
+
 export default function Dashboard() {
   const [predictionDetails, setPredictionDetails] = useState();
   const [pastPredictions, setPastPredictions] = useState([]);
@@ -51,7 +61,7 @@ export default function Dashboard() {
     predictionId: predictionDetails?.predictionId,
     timeStamp: predictionDetails?.timeStamp,
     confidenceScore: predictionDetails?.confidence,
-    contributingFactors: predictionDetails?.contributingFactors,
+    contributingFactors: predictionDetails?.explanationText,
     detailId: predictionDetails?.detailId,
     doctorId: predictionDetails?.doctorId,
     expectedOutcome: predictionDetails?.prediction,
@@ -59,6 +69,7 @@ export default function Dashboard() {
     predictionResult: predictionDetails?.prediction,
     riskLevel: predictionDetails?.riskLevel,
     shapExplanation: predictionDetails?.explanationImage,
+    setPrediction: setPrediction,
     pastPredictions: pastPredictions,
   };
 

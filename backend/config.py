@@ -31,3 +31,4 @@ class Config:
     csrf_token_ttl = int(os.getenv('CSRF_TOKEN_TTL')) 
     ssl_cert_file = os.getenv('SSL_CERT_FILE')
     ssl_key_file = os.getenv('SSL_KEY_FILE')
+    allowed_origins = os.getenv('ALLOWED_ORIGINS').split(',')

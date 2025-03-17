@@ -5,6 +5,8 @@ from firebase_admin import credentials,firestore # type: ignore
 from config import Config
 from routes.authentication_routes import protected_route
 from auth.firebase import get_next_id
+from auth.rate_limiter import rate_limit
+import logging
 
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -12,8 +14,12 @@ cred = credentials.Certificate(firebase_config_json)
 db = firestore.client()
 details_bp = Blueprint('details_bp', __name__)
 
+detail_logger = logging.getLogger('details_logger')
+detail_logger.setLevel(logging.INFO)
+
 ## Adding patient details    
 @details_bp.route('/add_details', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def add_patient_details():
     try:
         response = protected_route(request, 'post')
@@ -71,18 +77,21 @@ def add_patient_details():
                     'fathersCombinedAge': data.get('fathersCombinedAge')
                 }
             })
-
+            detail_logger.info(f"Details added for patient {data['patientId']} by doctor {response['user_id']}, IP: {request.remote_addr}")
             return jsonify({"message": "Patient details added successfully", "detailId": detailId}), 200
         else:
+            detail_logger.warning(f"Unauthorized access to add_details, IP: {request.remote_addr}")
             return jsonify({"message": "Unauthorized"}), 401
         
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        detail_logger.error(f"Error adding details: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500
 
 
 ## Fetch patient details by detailID
 @details_bp.route('/get_details/<DetailID>', methods=['GET'])
+@rate_limit(max_requests=20, window_size=60) 
 def get_patient_details(DetailID):
     response = protected_route(request, 'get')
     if response['valid']:
@@ -90,24 +99,26 @@ def get_patient_details(DetailID):
         details = details_ref.get()
 
         if details.exists:
+            detail_logger.info(f"Details fetched for detailID {DetailID} by doctor {response['user_id']}, IP: {request.remote_addr}")
             return jsonify(details.to_dict()), 200
         else:
+            detail_logger.error(f"Details not found for detailID {DetailID}, IP: {request.remote_addr}")
             return jsonify({"error": "Details not found"}), 404    
     else:
+        detail_logger.warning(f"Unauthorized access to get_details, IP: {request.remote_addr}")
         return jsonify({"message": "Unauthorized"}), 401
     
 ## Add prediction for patient
 @details_bp.route('/add_prediction', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def add_prediction():
     try:
         response = protected_route(request, 'post')
         if response['valid']:
             data = request.json
-            
             contributing_factors_map = {
                 factor: details['percentage'] for factor, details in data['contributingFactors'].items()
             }
-
             prediction_ref = db.collection('predictions').document(data['predictionId'])
             prediction_ref.set({
                 'predictionId': data['predictionId'],
@@ -122,59 +133,71 @@ def add_prediction():
                 'expectedOutcome': data['expectedOutcome'],
                 'contributingFactors': contributing_factors_map            
             })
+            detail_logger.info(f"Prediction added for patient {data['patientId']} by doctor {response['user_id']}, IP: {request.remote_addr}")
             return jsonify({"message": "Prediction added successfully"}), 200
         else:
+            detail_logger.warning(f"Unauthorized access to add_prediction, IP: {request.remote_addr}")
             return jsonify({"message": "Unauthorized"}), 401
-        
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        detail_logger.error(f"Error adding prediction: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 400
 
 ## Fetch prediction by predictionID
 @details_bp.route('/get_prediction/<PredictionID>', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_prediction(PredictionID):
     response = protected_route(request, 'get')
     if response['valid']:
         prediction_ref = db.collection('predictions').document(PredictionID)
         prediction = prediction_ref.get()
-
         if prediction.exists:
+            detail_logger.info(f"Prediction fetched for predictionID {PredictionID} by doctor {response['user_id']}, IP: {request.remote_addr}")
             return jsonify(prediction.to_dict()), 200
         else:
+            detail_logger.error(f"Prediction not found for predictionID {PredictionID}, IP: {request.remote_addr}")
             return jsonify({"error": "Prediction not found"}), 404
     else:
+        detail_logger.warning(f"Unauthorized access to get_prediction, IP: {request.remote_addr}")
         return jsonify({"message": "Unauthorized"}), 401
 
 
 ## Fetch all predictions for a certain patient
 @details_bp.route('/get_predictions/<PatientID>', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_predictions(PatientID):
     response = protected_route(request, 'get')
     if response['valid']:
         predictions_ref = db.collection('predictions').where("patientId", "==", PatientID).stream()
         predictions = [doc.to_dict() for doc in predictions_ref]
-
         if predictions:
+            detail_logger.info(f"Predictions fetched for patient {PatientID} by doctor {response['user_id']}, IP: {request.remote_addr}")
             return jsonify(predictions), 200
         else:
+            detail_logger.error(f"No predictions found for patient {PatientID}, IP: {request.remote_addr}")
             return jsonify({"message": "No predictions found for this patient"}), 404
     else:
+        detail_logger.warning(f"Unauthorized access to get_predictions, IP: {request.remote_addr}")
         return jsonify({"message": "Unauthorized"}), 401
 
 @details_bp.route('/get_all_predictions', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_all_predictions():
     response = protected_route(request, 'get')
     if response['valid']:
         predictions_ref = db.collection('predictions').stream()
         predictions = [doc.to_dict() for doc in predictions_ref]
-
         if predictions:
+            detail_logger.info(f"Predictions fetched by doctor {response['user_id']}, IP: {request.remote_addr}")
             return jsonify(predictions), 200
         else:
+            detail_logger.error(f"No predictions found, attempt was made by doctor {response['user_id']}, IP: {request.remote_addr}")
             return jsonify({"message": "No predictions found"}), 404
     else:
+        detail_logger.warning(f"Unauthorized access to get_predictions, IP: {request.remote_addr}")
         return jsonify({"message": "Unauthorized"}), 401
 
 @details_bp.route('/delete_prediction', methods=['DELETE'])
+@rate_limit(max_requests=10, window_size=60) 
 def delete_prediction():
     try:
         response = protected_route(request, 'delete')
@@ -182,35 +205,19 @@ def delete_prediction():
             data = request.json
             prediction_ref = db.collection('predictions').document(data['predictionId'])
             if not prediction_ref.get().exists:
+                detail_logger.error(f"No predictions found, attempt was made by doctor {response['user_id']}, IP: {request.remote_addr}")
                 return jsonify({"message": "Prediction not found"}), 404
             if prediction_ref.get().to_dict()['doctorId'] == response['user_id']:
                 prediction_ref.delete()
+                detail_logger.info(f"Prediction deleted for predictionID {data['predictionId']} by doctor {response['user_id']}, IP: {request.remote_addr}")
                 return jsonify({"message": "Prediction deleted successfully"}), 200
             else:
+                detail_logger.warning(f"Unauthorized access to delete_prediction made by doctor {response['user_id']}, IP: {request.remote_addr}")
                 return jsonify({"message": "Unauthorized"}), 401
         else:
+            detail_logger.warning(f"Unauthorized access to delete_prediction, IP: {request.remote_addr}")
             return jsonify({"message": "Unauthorized"}), 401
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        detail_logger.error(f"Error deleting prediction: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": 'An error occurred'}), 400
 
-@details_bp.route('/delete_details', methods=['DELETE'])
-def delete_details():
-    try:
-        response = protected_route(request, 'delete')
-        if response['valid']:
-            data = request.json
-            detail_ref = db.collection('details').document(data['detailId'])
-            if not detail_ref.get().exists:
-                return jsonify({"message": "Prediction not found"}), 404
-            if detail_ref.get().to_dict()['doctorId'] == response['user_id']:
-                prediction_ref = db.collection('predictions').where("detailId", "==", data['detailId']).stream()
-                for doc in prediction_ref:
-                    doc.reference.delete()
-                detail_ref.delete()
-                return jsonify({"message": "Detail deleted successfully"}), 200
-            else:
-                return jsonify({"message": "Unauthorized"}), 401
-        else:
-            return jsonify({"message": "Unauthorized"}), 401
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
