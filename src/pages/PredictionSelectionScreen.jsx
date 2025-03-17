@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import PredictionSelectionSection from "../components/predictions-dashboard/PredictionSelectionSection";
 import PredictionToggle from "../components/predictions-dashboard/PredictionToggle";
 import PredictedResultOverview from "../components/predictions-dashboard/PredictedResultOverview";
@@ -38,8 +38,11 @@ export default function PredictionSelectionScreen() {
   }
 
   const isResultsScreen = activeButton === "results";
+  const hasFetched = useRef(false);
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
     const fetchPredictions = async () => {
       try {
         const res = await api.get("/details/get_all_predictions", {

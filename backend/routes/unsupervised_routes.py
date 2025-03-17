@@ -2,24 +2,24 @@ import pickle
 import pandas as pd
 import plotly.graph_objs as go
 import os
-from flask import Flask, jsonify, Blueprint
-import firebase_admin
-from firebase_admin import credentials, firestore
+from flask import Flask, request, jsonify, Blueprint
+from flask_cors import CORS
+import firebase_admin  # type: ignore
+from firebase_admin import credentials, firestore  # type: ignore
+from routes.authentication_routes import protected_route
 from config import Config
-
+import logging
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
-
-# Initialize Firebase app if not already initialized
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
 unsupervised_bp = Blueprint('unsupervised_bp', __name__)
 
-# Load trained models and scaler
+unsuper_logger = logging.getLogger('unsupervised_logger')
+
+# ✅ Load trained models and scaler
 KMEANS_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "kmeans_model.pkl")
 kmeans_model = pickle.load(open(KMEANS_MODEL_PATH, "rb"))
 
@@ -250,9 +250,23 @@ def update_and_visualize():
             "cluster_distribution": latest_plot_data["cluster_distribution"],
             "cluster_characteristics": latest_plot_data["cluster_characteristics"]
         })
-    except Exception as e:
-        print("❌ Error:", str(e))
-        return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    unsupervised_bp.run(debug=True)
+#         response = protected_route(request, 'get')
+#         if response['valid']:
+#             # Create the initial plot data using historical data
+#             plot_data = create_plot_data(original_historical_data)
+#             unsuper_logger.info(f"Initial data retrieved by DoctorID: {response['user_id']}, IP: {request.remote_addr}")
+#             return jsonify({
+#                 "scatter_data": plot_data["scatter_data"],
+#                 "scatter_layout": plot_data["scatter_layout"],
+#                 "bar_data": plot_data["bar_data"],
+#                 "bar_layout": plot_data["bar_layout"],
+#                 "cluster_distribution": plot_data["cluster_distribution"],  # Include cluster distribution
+#                 "cluster_characteristics": plot_data["cluster_characteristics"]  # Include cluster characteristics
+#             }), 200
+#         else:
+#             unsuper_logger.warning(f"Unauthorized attempt to get initial data by IP: {request.remote_addr}")
+#             return jsonify({"message": "Unauthorized"}), 401
+    except Exception as e:
+        unsuper_logger.error(f"Error getting initial data: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500

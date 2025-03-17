@@ -17,9 +17,12 @@ function App() {
       await checkAuthCookie();
       setIsLoading(false); // Set loading to false after authentication check
     };
-    checkAuth();
+    if (!isAuthenticated) {
+      checkAuth();
+    }
+    
   }
-  , []);
+  , [location.pathname, isAuthenticated]); 
 
   // Context value to provide to the app
   const checkAuthCookie = async () => {
