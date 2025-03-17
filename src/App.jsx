@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import api from "./services/api";
 import { UserDetailsContext } from "./store/user-details-context";
 import PCAClusterScreen from "./components/exploration/PCACluster";
+import LoadingSpinner from "./components/common/LoadingSpinner";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -58,7 +59,11 @@ function App() {
   };
 
   if (isLoading) {
-    return <p>Loading...</p>; // Show a loading spinner or message
+    return ( 
+    <div style={{ paddingTop: '50px' }}> {/* Adjust the value as needed */}
+      <LoadingSpinner />
+    </div> // Show a loading spinner or message
+    )
   }
   
   return (
