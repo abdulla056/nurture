@@ -76,7 +76,7 @@ export default function PredictedResultOverview({
               </PredictionOverviewSection>
               <VerticalLine />
               <PredictionOverviewSection
-                title={"SHAP Chart"}
+                title={"Lime Explanation"}
                 description={"See what features impact the prediction the most"}
               >
                 <img

@@ -7,7 +7,7 @@ export default function ShapExplanation() {
   return (
     <div>
       <span className="text-regular text-font-tertiary font-semibold mb-2">
-        SHAP Chart
+        Lime Explanation
       </span>
       <img src={`data:image/png;base64,${shapExplanation}`} alt="SHAP image" />
     </div>

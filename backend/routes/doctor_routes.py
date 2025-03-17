@@ -46,7 +46,7 @@ def get_doctor():
             doctor_ref = db.collection('doctors').document(response['user_id'])
             doctor = doctor_ref.get()
             if doctor.exists:
-                doctor_logger.info(f"Doctor {response['doctorId']} found, IP: {request.remote_addr}")
+                doctor_logger.info(f"Doctor {response['user_id']} found, IP: {request.remote_addr}")
                 return jsonify(doctor.to_dict()), 200
             else:
                 doctor_logger.info(f"Doctor {response['user_id']} not found, IP: {request.remote_addr}")
