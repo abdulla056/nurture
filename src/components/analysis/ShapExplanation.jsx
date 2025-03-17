@@ -4,7 +4,6 @@ import { useContext } from "react";
 
 export default function ShapExplanation() {
   const { shapExplanation } = useContext(PredictionDetailsContext);
-  console.log(shapExplanation);
   return (
     <div>
       <span className="text-regular text-font-tertiary font-semibold mb-2">

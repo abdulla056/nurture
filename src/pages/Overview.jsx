@@ -11,8 +11,11 @@ import HeadingSection from "../components/common/HeadingSection";
 import { predictionDetails } from "../assets/data/data";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { PredictionDetailsContext } from "../store/prediction-details-context";
+import { useContext } from "react";
 
 export default function Overview() {
+  const { timeStamp } = useContext(PredictionDetailsContext);
   const navigate = useNavigate();
   return (
     <AnimatePresence>

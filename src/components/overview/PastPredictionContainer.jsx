@@ -1,7 +1,9 @@
-import { useRef } from "react";
+import { useContext, useRef } from "react";
 import BlueContainer from "../layout/BlueContainer";
 import PopUp from "../layout/PopUp"; 
 import PrimaryButton from "../common/PrimaryButton";
+import { PredictionDetailsContext } from "../../store/prediction-details-context";
+import { useNavigate } from "react-router-dom";
 
 export default function PastPredictionContainer({ timestamp, predictionItem }) {
   const date = new Date(timestamp);
@@ -9,8 +11,15 @@ export default function PastPredictionContainer({ timestamp, predictionItem }) {
   const day = date.getDate(); // Day of the month
   const time = date.toTimeString().split(" ")[0]; // Extract time in HH:MM:SS format
   const predictionDetailsPopup = useRef();
+  const navigate = useNavigate();
+  const { setPrediction } = useContext(PredictionDetailsContext);
   function onSelect() {
     predictionDetailsPopup.current.showModal();
+  }
+
+  function onGoToPrediction() {
+    setPrediction(predictionItem.predictionId)
+    navigate("/dashboard/");
   }
   return (
     <>
@@ -25,7 +34,7 @@ export default function PastPredictionContainer({ timestamp, predictionItem }) {
           <h3>{predictionItem.riskLevel}</h3>
         </Div>
         <Div>
-          <PrimaryButton>Go to prediction</PrimaryButton>
+          <PrimaryButton onClick={()=>onGoToPrediction()}>Go to prediction</PrimaryButton>
           <a className="text-secondary">Close</a>
         </Div>
       </PopUp>

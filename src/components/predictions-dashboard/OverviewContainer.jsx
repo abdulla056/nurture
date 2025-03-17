@@ -18,8 +18,15 @@ export default function OverviewContainer({
 }) {
   console.log("predictionData", predictionData);
   async function handleDeletePrediction() {
-    await deletePrediction(predictionData.predictionId);
-  }
+    let userConfirmed = confirm("Are you sure you want to proceed?");
+    
+    if (userConfirmed) {
+        await deletePrediction(predictionData.predictionId);
+        alert("Prediction deleted successfully!");
+    } else {
+        alert("Action canceled!");
+    }
+}
   const data = isPrediction ? predictionData : patientData;
   const timestamp = data?.timestamp || null;
   const dateObj = timestamp ? new Date(timestamp) : null;
@@ -76,7 +83,7 @@ export default function OverviewContainer({
             </PrimaryButton>
           </PredictionInfo>
         )}
-        <PredictionInfo title={"Delete"} className={"cursor-pointer"}>
+        <PredictionInfo title={"Delete"} className={"cursor-pointer"} onClick={()=>handleDeletePrediction()}>
           <img src={trashIcon} alt="trash icon" className="w-1/5" />
         </PredictionInfo>
         <div className="flex flex-col scale-75 gap-2 -mr-3">
