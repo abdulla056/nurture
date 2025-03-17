@@ -8,8 +8,9 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { useNavigate } from "react-router-dom";
 import { UserDetailsContext } from "../store/user-details-context";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { logout } from "../services/authentication";
+import api from "../services/api";
 
 const userDetails = {
   firstName: "Mohamed",
@@ -27,6 +28,20 @@ const fields = [
 
 export default function ProfileScreen() {
   // const { deleteCookie } = useContext(UserDetailsContext);
+  useEffect(() => {
+    async function getDoctorDetails() {
+      try {
+        const response = await api.get("/doctor/get", {
+          withCredentials: true,
+        });
+        console.log(response);
+      }
+      catch (error) {
+        console.error(error);
+      }
+    };
+    getDoctorDetails();
+  }, []);
   const navigate = useNavigate();
 
   async function onLogout() {

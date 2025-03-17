@@ -15,14 +15,14 @@ export default function ModelPerformance() {
           withCredentials: true,
         }); 
         setPerformanceData(res.data);
-        console.log("prediction details", res.data)
+        // console.log("prediction details", res.data)
       } catch (error) {
         console.error("Error fetching prediction details:", error);
       }
     };
     fetchPerformanceData();
   }, []);
-  console.log("performance data", performanceDataa)
+  // console.log("performance data", performanceDataa)
 
   return (
     <div className="flex flex-col items-end gap-4">
