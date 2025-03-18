@@ -17,7 +17,6 @@ const setPrediction = (predictionId) => {
     secure: true,
     sameSite: "Strict",
   });
-  console.log("Prediction set!");
 };
 
 

@@ -48,7 +48,6 @@ export default function PredictionSelectionScreen() {
         const res = await api.get("/details/get_all_predictions", {
           withCredentials: true,
         });
-        console.log(res.data);
         setPredictions(res.data);
       } catch (error) {
         console.error("Error fetching predictions:", error);
@@ -60,7 +59,6 @@ export default function PredictionSelectionScreen() {
         const res = await api.get("/patient/get_all", {
           withCredentials: true,
         });
-        console.log(res.data);
         setPatients(res.data);
       } catch (error) {
         console.error("Error fetching patients:", error);

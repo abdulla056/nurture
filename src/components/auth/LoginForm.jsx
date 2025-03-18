@@ -48,11 +48,8 @@ export default function LoginForm({ togglePage,  onLogin, error, success }) {
 
   const handleSubmit = async (event) => { // Handles form submission
     event.preventDefault(); // Prevent page refresh!'
-    console.log("starting")
     try {
-      console.log(formData);
       const validatedData = await schema.validate(formData, { abortEarly: false });// Validate with yup
-      console.log("Validated Data:", validatedData);
       setFormErrors({}); // Clear all errors if validation passes
       onLogin(formData); // Call API if validation is successful
 
@@ -69,7 +66,6 @@ export default function LoginForm({ togglePage,  onLogin, error, success }) {
           }
         });
         setFormErrors(errors);
-        console.log("Form Errors:", errors);
       } else {
         console.error("Unexpected Validation Error Format:", validationError);
         setFormErrors({ general: "An unexpected error occurred." }); // Generic error

@@ -6,7 +6,6 @@ import { useContext } from "react";
 
 export default function PredictionHistory() {
     const { pastPredictions, patientId } = useContext(PredictionDetailsContext);
-    console.log("past predictions", riskAssessments);
     return (
        <PrimaryContainer className="w-full !hover:none">
         <div className="flex flex-row justify-between mt-4 mx-4">

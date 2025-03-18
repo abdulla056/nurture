@@ -34,7 +34,6 @@ export default function ProfileScreen() {
         const response = await api.get("/doctor/get", {
           withCredentials: true,
         });
-        console.log(response);
       }
       catch (error) {
         console.error(error);

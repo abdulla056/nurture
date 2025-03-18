@@ -9,17 +9,14 @@ const setPrediction = (predictionId) => {
     secure: true,
     sameSite: "Strict",
   });
-  console.log("Prediction set!");
 };
 
 const getPrediction = () => {
   const predictionId = Cookies.get("predictionId");
-  console.log(predictionId);
 };
 
 const resetPrediction = () => {
   Cookies.remove("predictionId");
-  console.log("Prediction reset");
 };
 
 export default function PredictionSelectionDashboard() {

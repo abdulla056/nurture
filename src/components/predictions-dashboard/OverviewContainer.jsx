@@ -16,7 +16,6 @@ export default function OverviewContainer({
   viewAllPatientPredictions,
   handelGoToDashboard,
 }) {
-  console.log("predictionData", predictionData);
   async function handleDeletePrediction() {
     let userConfirmed = confirm("Are you sure you want to proceed?");
     

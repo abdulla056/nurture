@@ -29,7 +29,6 @@ export default function SignUpPage() {
   const handleSignup = async (data) => { // Callback from SignUpForm
     setSignupError(null); // Clear previous errors
     try {
-      console.log(data);  
       const res = await api.post("/auth/register", data);
       // Set the temporary token and user ID
       setSessionId(res.data.session_id);
@@ -62,13 +61,11 @@ export default function SignUpPage() {
 
       // Get the user's ID token
       const idToken = await userCredential.user.getIdToken(true)
-      console.log('Firebase ID:',idToken);
 
       const res = await api.post("/auth/verify_token", { token: idToken});    
 
       // Set the temporary token and user ID
       setSessionId(res.data.session_id);
-      console.log(res.data.session_id)
       // Redirect to MFA page
       setIsMfaPage(true);
     } catch (error) {
