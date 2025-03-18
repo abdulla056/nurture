@@ -1,18 +1,17 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useContext, useEffect, useState } from "react";
 import { steps } from "../../assets/data/add-prediction";
 import PopUp from "../layout/PopUp";
 import PrimaryButton from "../common/PrimaryButton";
-import { useNavigate } from "react-router-dom";
 
 const AddPredictionProgressPopUp = forwardRef(
-  function AddPredictionProgressPopUp({ isOpen, ...props }, ref) {
+  function AddPredictionProgressPopUp({ isOpen, goToDashboard, ...props}, ref) {
     const [activeStep, setActiveStep] = useState(0);
     const [isFinished, setIsFinished] = useState(false);
-    const navigate = useNavigate();
 
     useEffect(() => {
       if (!isOpen) {
         setActiveStep(0); // Reset progress when popup closes
+        setIsFinished(false);
         return;
       }
       if (activeStep >= steps.length) return; // Stop at the last step
@@ -46,7 +45,7 @@ const AddPredictionProgressPopUp = forwardRef(
             <PrimaryButton
               isActive={isFinished}
               animate={isFinished ? true : false}
-              onClick={isFinished ? () => navigate("/dashboard") : null}
+              onClick={isFinished ? goToDashboard : null}
             >
               Go to dashboard
             </PrimaryButton>

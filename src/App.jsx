@@ -4,40 +4,26 @@ import SUPERVISEDSCREENTEST from "./pages/SUPERVISEDSCREENTEST";
 import { useEffect, useState } from "react";
 import api from "./services/api";
 import { UserDetailsContext } from "./store/user-details-context";
+import PCAClusterScreen from "./components/exploration/PCACluster";
+import LoadingSpinner from "./components/common/LoadingSpinner";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  // const [signIn, setSignIn] = useState(false);
-  // const [token, setToken] = useState(null);
-  // token ? setCookie(token) : null;
-  // Check for the cookie when the app loads
-  // useEffect(() => {
-  //   const checkAuthCookie = async () => {
-  //     try {
-  //       const response = await api.get("/auth/check_cookie", {withCredentials: true});
-  //       console.log(response.data[1].valid);
-  //       if (response.data[1].valid) {
-  //         // If the token is valid, set the authentication state
-  //         console.log
-  //         setIsAuthenticated(true);
-  //       } else {
-  //         // If the token is invalid, clear the cookie and redirect to authentication
-  //         setIsAuthenticated(false);
-  //         setToken(null);
-  //         navigate("/authentication");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error validating token:", error);
-  //       setIsAuthenticated(false);
-  //       setToken(null);
-  //       navigate("/authentication");
-  //     }
-  //   };
 
-  //   checkAuthCookie();
-  // }, [navigate]);
+  useEffect(() => {
+    const checkAuth = async () => {
+      await checkAuthCookie();
+      setIsLoading(false); // Set loading to false after authentication check
+    };
+    if (!isAuthenticated) {
+      checkAuth();
+    }
+    
+  }
+  , [location.pathname, isAuthenticated]); 
 
   // Context value to provide to the app
   const checkAuthCookie = async () => {
@@ -72,6 +58,14 @@ function App() {
     },
   };
 
+  if (isLoading) {
+    return ( 
+    <div style={{ paddingTop: '50px' }}> {/* Adjust the value as needed */}
+      <LoadingSpinner />
+    </div> // Show a loading spinner or message
+    )
+  }
+  
   return (
     <UserDetailsContext.Provider value={ctxValue}>
       <AppRoutes />

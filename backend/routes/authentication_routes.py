@@ -13,12 +13,17 @@ from random import randint
 from auth.session_data import CustomRedisSessionInterface
 import redis
 import os
+from auth.rate_limiter import rate_limit
+import logging
 
 secret_key = Config.SECRET_KEY
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 db = firestore.client()
 auth_bp = Blueprint('auth_bp', __name__)
+
+auth_logger = logging.getLogger("auth")
+auth_logger.setLevel(logging.INFO)
 
 # Marshmallow schema for signing up
 class SignUpSchema(Schema):
@@ -109,22 +114,21 @@ custom_session_interface_csrf = CustomRedisSessionInterface(
 
 def protected_route(request, state):
     try:
-        print("Protected route")
-        print(request.cookies)
+        ip = request.remote_addr    
         authToken = request.cookies.get('authToken')
         csrf_token = request.headers.get('X-CSRF-Token')
-        print(csrf_token)
         custom_session_interface_csrf.get_session_by_csrf_token(csrf_token)
         if authToken and state == 'get':
             # Verify the token
             try:
                 payload = jwt.decode(authToken, secret_key, algorithms=['HS256']) # Use the same secret
-                print(payload)
                 user_id = payload['uid'] # Access the uid from the payload
                 return {'message': 'Protected resource accessed', 'user_id': user_id,'valid':True}
             except jwt.ExpiredSignatureError:
+                auth_logger.warning(f"Unauthorized access with expired JWT token, IP: {ip}")
                 return {'error': 'Token expired','valid':False}
             except jwt.InvalidTokenError:
+                auth_logger.warning(f"Unauthorized access with invalid JWT token, IP: {ip}")
                 return {'error': 'Invalid token','valid':False}
         elif authToken and csrf_token and (state == 'post' or state == 'put' or  state == 'delete'):
             # Verify the token
@@ -133,45 +137,49 @@ def protected_route(request, state):
                 user_id = payload['uid'] # Access the uid from the payload
                 return {'message': 'Protected resource accessed', 'user_id': user_id,'valid':True}
             except jwt.ExpiredSignatureError:
+                auth_logger.warning(f"Unauthorized access with expired JWT token, IP: {ip}")
                 return {'error': 'Token expired','valid':False}
             except jwt.InvalidTokenError:
+                auth_logger.warning(f"Unauthorized access with invalid JWT token, IP: {ip}")
                 return {'error': 'Invalid token','valid':False}
         else:
+            auth_logger.warning(f"Unauthorized access without JWT token or CSRF token, IP: {ip}")
             return {'error': 'Unauthorized','valid':False}
     except Exception as e:
         return jsonify({'error': str(e)}), 303
 
 # Login Route to verify token sent in from Firebase, generates a temporary 5 minute token.
 @auth_bp.route('/verify_token', methods=['POST'])
+@rate_limit(max_requests=20, window_size=60) 
 def verify_token():
     try:
         data = request.get_json()
         id_token = data.get('token')
         email = data.get('email')
         if not id_token:
+            auth_logger.warning(f"Unauthorized access without JWT token, IP: {request.remote_addr}")
             return jsonify({'error': 'Token is required'}), 400
 
         decoded_token = verify_firebase_token(id_token) #auth.verify_id_token(id_token)
-        print("decoded")
         email = decoded_token['email']
         redirect = 'login'
         session_id = custom_session_interface_login.create_session(email, redirect)
         if session_id:
-            print(session_id)
+            auth_logger.info(f"Temporary session created for {email}, IP: {request.remote_addr}")
             return jsonify({
                 'message' : 'MFA required',
                 'session_id' : session_id
             }), 200
         else:
+            auth_logger.warning(f"Failed to create session, IP: {request.remote_addr}")
             return jsonify({'error': 'Failed to create session'}), 402
     except Exception as e:
-        print(f"Internal Server Error: {str(e)}")
+        auth_logger.warning(f"Error verifying token: {str(e)}, IP: {request.remote_addr}")
         return jsonify({'error': 'An internal error occurred. Please try again later.'}), 500
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 # Sends verification code to the user's phone number
 @auth_bp.route('/send_email', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def send_email():
     try:
         data = request.get_json()
@@ -186,23 +194,26 @@ def send_email():
             name = doctor[0].to_dict()['firstName'] + " " + doctor[0].to_dict()['lastName'] 
             sendMessage(email, name, mfa)
             custom_session_interface_login.update_session(session_id, session_data)
+            auth_logger.info(f"MFA code sent to {email}, IP: {request.remote_addr}")
             return jsonify({'message' : "MFA code has been sent out", "session_id" : session_id}), 200
         elif session_data and session_data['redirect'] == 'register':
             session_data['mfa'] = randint(100000, 999999)
             name = session_data['first_name'] + " " + session_data['last_name']
             sendMessage(session_data['email'], name, session_data['mfa'])
             custom_session_interface_login.update_session(session_id, session_data)
+            auth_logger.info(f"MFA code sent to {session_data['email']}, IP: {request.remote_addr}")
             return jsonify({'message' : "MFA code has been sent out", "session_id" : session_id}), 200
         else:
+            auth_logger.warning(f"Session expired, IP: {request.remote_addr}")
             return jsonify({'error': "Session expired, please reload and try again."}), 401
     except Exception as e:
-        print(f"Error getting number: {e}")  # Log the error
+        auth_logger.error(f"Error sending email: {str(e)}, IP: {request.remote_addr}")
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message    
 
 ## Not tested
 @auth_bp.route('/verify_otp', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def verify_otp():
-    print('verify_otp')
     try:
         data = request.get_json()
         session_id = data['sessionId']
@@ -214,9 +225,8 @@ def verify_otp():
             doctor = doctor_ref.get()
             uid = doctor[0].to_dict()['doctorId']
             email = doctor[0].to_dict()['email']
-            print("Code is ",code)
-            print("MFA is ", session_data['mfa'])
             if not uid:
+                auth_logger.error(f"Doctor not found, IP: {request.remote_addr}")
                 return jsonify({'error': 'Doctor not found'}), 404
 
             if int(code) == int(session_data['mfa']):
@@ -243,6 +253,7 @@ def verify_otp():
                 )
                 return response
             elif code != session_data['mfa'] :
+                auth_logger.warning(f"Invalid verification code, IP: {request.remote_addr}")
                 return jsonify({'error': 'Verification code is incorrect'}), 303
         elif session_data and session_data['redirect'] == 'register':
             # Check if the verification code matches
@@ -255,11 +266,9 @@ def verify_otp():
                         password=session_data['password'],
                         display_name=session_data["first_name"] + " " + session_data["last_name"] # Set user's name
                     )
-                    print(data)
-                    print("Password received and processed.")
                 except Exception as e:
-                    print(e)
-                    return jsonify({'error': str(e)}), 501
+                    auth_logger.error(f"Error creating user: {str(e)}, IP: {request.remote_addr}")
+                    return jsonify({'error': "There was an error adding doctor"}), 501
                 doctor_id = get_next_id('doctor')
                 try:
                     print("Adding doctor")
@@ -275,7 +284,8 @@ def verify_otp():
                         'workplace': session_data['workplace']
                     })
                 except Exception as e:
-                    return jsonify({"error": str(e)}), 500
+                    auth_logger.error(f"Error adding doctor: {str(e)}, IP: {request.remote_addr}")
+                    return jsonify({"error": "There was an error adding doctor."}), 500
                 
                 payload = {
                     'uid': doctor_id,
@@ -297,21 +307,24 @@ def verify_otp():
                     max_age=3600,  # Expires in 1 hour
                     path="/",  # Accessible across the entire site
                 )
+                auth_logger.info(f"Doctor {doctor_id} added, IP: {request.remote_addr}")
                 return response
             else:
+                auth_logger.warning(f"Invalid verification code, IP: {request.remote_addr}")
                 return jsonify({'error': 'Invalid verification code'}), 400
         else:
+            auth_logger.warning(f"Session expired, IP: {request.remote_addr}")
             return jsonify({'error': "Session expired, please reload and try again."}), 401
-        
-        
     except jwt.ExpiredSignatureError or jwt.InvalidTokenError:
+        auth_logger.warning(f"Invalid or expired temporary token, IP: {request.remote_addr}")
         return jsonify({'error': 'Invalid or expired temporary token'}), 401  # Token has expired
     except Exception as e:
-        print(f"Error verifying OTP: {e}")
-        return jsonify({'error': str(e)}), 500  # Handle other errors
+        auth_logger.error(f"Error verifying OTP: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({'error': "An error occurred"}), 500  # Handle other errors
 
 ## Registration 
 @auth_bp.route('/register', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def register():
     try:
         data = request.get_json()
@@ -326,14 +339,15 @@ def register():
         session_data['password'] = validated_data['password']
         session_data['license'] = validated_data['doctorLicense']
         session_data['workplace'] = validated_data['workplace']
-        print("Here")      
         custom_session_interface_login.update_session(session_id, session_data)
+        auth_logger.info(f"Registration session created for {email}, IP: {request.remote_addr}")
         return jsonify({'message': 'Registration MFA required', 'session_id' : session_id}), 200  # Send back cookie
-
-    except firebase_exceptions.OutOfRangeError as e:
-        return jsonify({'error': str(e)}), 400  # Handle Firebase Auth errors
+    except Exception as e:
+        auth_logger.error(f"Error registering: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({'error': "An error occurred"}), 400  # Handle Firebase Auth errors
     
 @auth_bp.route('/check_cookie', methods=['GET'])
+@rate_limit(max_requests=30, window_size=60) 
 def check_cookie():
     try:
         authToken = request.cookies.get('authToken')
@@ -343,39 +357,48 @@ def check_cookie():
         try:
             payload = jwt.decode(authToken, secret_key, algorithms=['HS256']) # Use the same secret
             user_id = payload['uid'] # Access the uid from the payload
+            auth_logger.info(f"Protected resource accessed, IP: {request.remote_addr}")
             return jsonify({'message': 'Protected resource accessed', 'user_id': user_id}, {'valid':True}), 200
         except jwt.ExpiredSignatureError:
+            auth_logger.warning(f"Unauthorized access with expired JWT token, IP: {request.remote_addr}")
             return jsonify({'error': 'Token expired'}), 400
         except jwt.InvalidTokenError:
+            auth_logger.warning(f"Unauthorized access with invalid JWT token, IP: {request.remote_addr}")
             return jsonify({'error': 'Invalid token'}), 401
     except Exception as e:
+        auth_logger.error(f"Error checking cookie: {str(e)}, IP: {request.remote_addr}")
         return jsonify({'error': str(e)}), 303
     
 @auth_bp.route('/send_password_reset_email', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def send_password_reset_email():
     try:
         data = request.get_json()  # Get the email from the request
         email = data.get('email')
-
         if not email:
+            auth_logger.warning(f"Unauthorized access without email, IP: {request.remote_addr}")
             return jsonify({'error': 'Email is required'}), 400
-
         auth.send_password_reset_email(email)
-
+        auth_logger.info(f"Password reset email sent to {email}, IP: {request.remote_addr}")
         return jsonify({'message': 'Password reset email sent'}), 200
-
     except Exception as e:
-        print(f"Error sending password reset email: {e}") # Log the error
+        auth_logger.error(f"Error sending password reset email: {str(e)}, IP: {request.remote_addr}") # Log the error
         return jsonify({'error': 'An error occurred'}), 500  # Generic error message
     
 @auth_bp.route('/logout', methods=['POST'])
+@rate_limit(max_requests=10, window_size=60) 
 def logout():
     try:
         response = protected_route(request, 'post')
         if response['valid']:
             custom_session_interface_csrf.delete_session_by_sid(request.headers.get('X-CSRF-Token'), 'csrf')
             response = make_response(jsonify({"message": "Logout successful"}), 200)
-            response.delete_cookie("authToken")
+            response.set_cookie("authToken", '', expires= 0, httponly=True, secure=True, samesite='None')
+            auth_logger.info(f"Logout successful, IP: {request.remote_addr}")
             return response
+        else:
+            auth_logger.warning(f"Unauthorized access, IP: {request.remote_addr}")
+            return jsonify({'error': 'Unauthorized'}), 401
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        auth_logger.error(f"Error logging out: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({'error': "An error occurred"}), 500

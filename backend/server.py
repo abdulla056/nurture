@@ -9,6 +9,7 @@ import secrets
 from auth.session_data import CustomRedisSessionInterface, redis_client
 import ssl
 import os
+import logging
 
 ## Access the Firestore 
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -23,11 +24,19 @@ from routes.details_routes import details_bp
 from routes.feedback_routes import feedback_bp
 from routes.supervised_routes import supervised_bp
 from routes.authentication_routes import auth_bp
+from routes.unsupervised_routes import unsupervised_bp
 
 ## Create the Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app, supports_credentials=True)
+CORS(
+    app, 
+    origins=Config.allowed_origins,
+    methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
+    supports_credentials=True,
+    max_age=600
+    )
 app.secret_key = secrets.token_hex(256)
 
 # Initialize the custom session interface
@@ -37,6 +46,13 @@ app.session_interface = CustomRedisSessionInterface(
     ttl=Config.login_session_ttl  # Default TTL of 300 seconds
 )
 
+# Configure logging
+logging.basicConfig(
+    filename="app.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 ## Register the routes
 app.register_blueprint(doctor_bp, url_prefix='/doctor')
 app.register_blueprint(patient_bp, url_prefix='/patient')
@@ -44,6 +60,7 @@ app.register_blueprint(details_bp, url_prefix='/details')
 app.register_blueprint(feedback_bp, url_prefix='/feedback')
 app.register_blueprint(supervised_bp, url_prefix='/supervised')
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(unsupervised_bp, url_prefix='/unsupervised')
 
 # Path to the .pem files
 cert_path = os.path.join(os.path.dirname(__file__), Config.ssl_cert_file)

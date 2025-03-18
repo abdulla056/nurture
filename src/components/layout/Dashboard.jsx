@@ -11,6 +11,16 @@ const getPrediction = () => {
   return predictionId;
 };
 
+const setPrediction = (predictionId) => {
+  Cookies.set("predictionId", predictionId, {
+    expires: 1 / 24,
+    secure: true,
+    sameSite: "Strict",
+  });
+  console.log("Prediction set!");
+};
+
+
 export default function Dashboard() {
   const [predictionDetails, setPredictionDetails] = useState();
   const [pastPredictions, setPastPredictions] = useState([]);
@@ -46,23 +56,24 @@ export default function Dashboard() {
     }
   }, [predictionDetails]);
 
+  const confidenceScore = predictionDetails?.confidence.toFixed(2);
+
   const ctxValue = {
     riskScore: predictionDetails?.riskScore,
     predictionId: predictionDetails?.predictionId,
     timeStamp: predictionDetails?.timeStamp,
-    confidenceScore: predictionDetails?.confidenceScore,
-    contributingFactors: predictionDetails?.contributingFactors,
+    confidenceScore: confidenceScore,
+    contributingFactors: predictionDetails?.explanationText,
     detailId: predictionDetails?.detailId,
     doctorId: predictionDetails?.doctorId,
-    expectedOutcome: predictionDetails?.expectedOutcome,
+    expectedOutcome: predictionDetails?.prediction,
     patientId: predictionDetails?.patientId,
-    predictionResult: predictionDetails?.predictionResult,
+    predictionResult: predictionDetails?.prediction,
     riskLevel: predictionDetails?.riskLevel,
-    shapExplanation: predictionDetails?.shapExplanation,
+    shapExplanation: predictionDetails?.explanationImage,
+    setPrediction: setPrediction,
     pastPredictions: pastPredictions,
   };
-
-  console.log(ctxValue);
 
   return (
     <PredictionDetailsContext.Provider value={ctxValue}>

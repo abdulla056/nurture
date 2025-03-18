@@ -18,7 +18,7 @@ export default function FactorDetails({
           {main ? "Biggest Factor" : "Factor"}
         </span>
         <span className={main ? "text-2xl" : "text-xl"}>{title}</span>
-        <span className="text-xsmall text-[#7E8184]">{description}</span>
+        <span className="text-xsmall text-[#7E8184]">{"description"}</span>
       </div>
       <div className="flex flex-col items-center justify-center">
         <div className="flex flex-row gap-1">

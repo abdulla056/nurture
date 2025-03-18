@@ -20,19 +20,18 @@ import logging  # Added import
 from auth.firebase import get_next_id 
 from routes.authentication_routes import protected_route
 from datetime import datetime
+from auth.rate_limiter import rate_limit
+import logging
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 
-# Initialize Firebase app if not already initialized
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
-
 db = firestore.client()
 
-
 supervised_bp = Blueprint('supervised_bp', __name__)
+
+super_logger = logging.getLogger('supervised_logger')
 
 # Load trained models and scalers
 DEMO_MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "best_DEMOoverall_model.pkl")
@@ -93,7 +92,7 @@ def predict_and_explain(category, features):
     features_df = pd.DataFrame(features_array, columns=feature_names, dtype=float)
     scaled_features = scaler.transform(features_df)
     prediction_numeric = model.predict(scaled_features).tolist()[0]
-    confidence = model.predict_proba(scaled_features).max().item() if hasattr(model, "predict_proba") else 1.0
+    confidence = round(model.predict_proba(scaled_features).max().item(),4) if hasattr(model, "predict_proba") else 1.0
     
     # Map the numerical prediction to the corresponding label
     prediction_label = prediction_labels.get(prediction_numeric, "Unknown")
@@ -114,26 +113,29 @@ def predict_and_explain(category, features):
     
     explanation_list = explanation.as_list()
     total_weight = sum(abs(weight) for _, weight in explanation_list)
-    feature_weight_map = {(feature.split(">")[0].strip()): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
+    feature_weight_map = {(feature.split("<")[0].split(">")[0].strip().replace("_", " ")): round(abs(weight) /total_weight * 100,2) for feature, weight in explanation_list}
 
     return prediction_label, confidence, image_base64, feature_weight_map
 
 @supervised_bp.route("/predict_and_explain", methods=["POST"])
+@rate_limit(max_requests=10, window_size=60) 
 def predict_and_explain_route():  
     try:
         response = protected_route(request, 'post')
+
         if response['valid']:
             data = request.get_json()
             patientId = data.get("patientId")
             category = data.get("category")
             features = [float(feature) for feature in data.get("features", [])]
             if not category or not features:
+                super_logger.error(f"Invalid input data provided by DoctorID: {response['user_id']}, IP: {request.remote_addr}")
                 return jsonify({"error": "Invalid input data"}), 400
             
             # Get prediction and explanation
             prediction_label, confidence, image_base64, feature_weight_map = predict_and_explain(category, features)
             
-            predictionId = get_next_id("predictions")
+            predictionId = get_next_id("prediction")
             
             # Store the decoded label, confidence, explanation, and other data in Firestore
             db.collection('predictions').document(predictionId).set({
@@ -148,11 +150,13 @@ def predict_and_explain_route():
                 "explanationImage": image_base64
             })
             
-            db.collection("predictionFeature").document(document_id).set({
+            db.collection("predictionFeature").document(predictionId).set({
             "Category": category,
             "Features": features,  # Store the decoded label (e.g., "Congenital Malformations")
             "timestamp": firestore.SERVER_TIMESTAMP,
             })
+
+            super_logger.info(f"Prediction made by DoctorID: {response['user_id']} with PredictionID: {predictionId}, IP: {request.remote_addr}")
 
             # Return the response with the decoded label and explanation
             return jsonify({
@@ -160,24 +164,39 @@ def predict_and_explain_route():
                 "confidence": confidence,
                 "documentId": predictionId,
                 "explanationImage": image_base64,
-                "explanationText": feature_weight_map
+                "explanationText": feature_weight_map,
+                "patientId": patientId,
+                "doctorId": response['user_id'], 
+                "predictionId": predictionId
             }), 200
         else:
-            return jsonify({"message": "Unauthorized"}), 401
+            super_logger.warning(f"Unauthorized attempt to make prediction by IP: {request.remote_addr}")
+            return jsonify({"error": "Unauthorized"}), 401
     except Exception as e:
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        super_logger.error(f"Error making prediction: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500
     
 @supervised_bp.route('/get_model_performance', methods=['GET'])
+@rate_limit(max_requests=10, window_size=60) 
 def get_model_performance():
-    doc_ref = db.collection('modelPerformance').document('modelPerformance')
-    doc = doc_ref.get()
-
-    if doc.exists:
-        data = doc.to_dict()
-        print("Fetched Model Performance Data:", data)  # Debugging
-        return jsonify(data)
-    else:
-        print("Firestore document not found!")
-        return jsonify({"error": "Document not found"}), 404
-
+    try:
+        response = protected_route(request, 'get')
+        if response['valid']:
+            doc_ref = db.collection('modelPerformance').document('modelPerformance')
+            doc = doc_ref.get()
+            if doc.exists:
+                data = doc.to_dict()
+                print("Fetched Model Performance Data:", data)  # Debugging
+                super_logger.info(f"Model performance data retrieved by Doctor {response['user_id']}, IP: {request.remote_addr}")
+                return jsonify(data)
+            else:
+                super_logger.warning(f"Model performance data not found requested by Doctor {response['user_id']}, IP: {request.remote_addr}")
+                print("Firestore document not found!")
+                return jsonify({"error": "Document not found"}), 404
+        else:
+            super_logger.warning(f"Unauthorized attempt to make prediction by IP: {request.remote_addr}")
+            return jsonify({"error": "Unauthorized"}), 401
+    except Exception as e:
+        super_logger.error(f"Error getting model performance data: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500

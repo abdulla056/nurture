@@ -6,7 +6,6 @@ const PublicRoute = ({ element }) => {
     const { isAuthenticated, setIsAuthenticated, checkAuthCookie} = useContext(UserDetailsContext);
     // const [isAuthenticated, setIsAuthenticated] = useState(null);
       
-    checkAuthCookie();
   return isAuthenticated ? <Navigate to="/selection-dashboard" /> : element;
 };
 

@@ -5,6 +5,7 @@ import trashIcon from "../../assets/images/trash-icon.png";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { deletePrediction } from "../../services/predictions";
+import { deletePatient } from "../../services/predictions";
 
 const keyFactors = ["Maternal age", "Gestational diabetes"];
 
@@ -16,9 +17,27 @@ export default function OverviewContainer({
   viewAllPatientPredictions,
   handelGoToDashboard,
 }) {
-  console.log("predictionData", predictionData);
+  const contributingFactors = predictionData?.explanationText || {};
+  const contributingFactorsArray = Object.entries(contributingFactors).map(
+    ([key, value]) => ({ key, value })
+  );
+  contributingFactorsArray.sort((a, b) => b.value - a.value);
   async function handleDeletePrediction() {
-    await deletePrediction(predictionData.predictionId);
+    let userConfirmed = confirm("Are you sure you want to proceed?");
+
+    if (userConfirmed) {
+      if (isPrediction) {
+        await deletePrediction(predictionData.predictionId);
+        alert("Prediction deleted successfully!");
+      } else {
+        await deletePatient(patientData.patientId);
+        alert("Patient deleted successfully!");
+      }
+      // Refresh the entire page
+      window.location.reload();
+    } else {
+      alert("Action canceled!");
+    }
   }
   const data = isPrediction ? predictionData : patientData;
   const timestamp = data?.timestamp || null;
@@ -27,7 +46,6 @@ export default function OverviewContainer({
   const time = dateObj
     ? dateObj.toTimeString().split(" ")[0].slice(0, 5)
     : "N/A";
-  const navigate = useNavigate();
   return (
     <AnimatePresence>
       <motion.div
@@ -69,25 +87,28 @@ export default function OverviewContainer({
         </PredictionInfo>
         {isPrediction && (
           <PredictionInfo titleBottom={false} title={"Key factors"}>
-            {keyFactors.map((factor, index) => (
-              <span key={index}>{factor}</span>
+            {contributingFactorsArray.slice(0, 2).map((factor) => (
+              <span key={factor.key}>{factor.key}</span>
             ))}
             <PrimaryButton className={"scale-50 p-2"} animate={false}>
               View all
             </PrimaryButton>
           </PredictionInfo>
         )}
-        <PredictionInfo title={"Delete"} className={"cursor-pointer"}>
+        <PredictionInfo
+          title={"Delete"}
+          className={"cursor-pointer"}
+          onClick={() => handleDeletePrediction()}
+        >
           <img src={trashIcon} alt="trash icon" className="w-1/5" />
         </PredictionInfo>
         <div className="flex flex-col scale-75 gap-2 -mr-3">
-          <PrimaryButton onClick={isPrediction ? enableOverview : viewAllPatientPredictions}>
+          <PrimaryButton
+            onClick={isPrediction ? enableOverview : viewAllPatientPredictions}
+          >
             {isPrediction ? "View more details" : "View all predictions"}
           </PrimaryButton>
-          <PrimaryButton
-            transparent={true}
-            onClick={handelGoToDashboard}
-          >
+          <PrimaryButton transparent={true} onClick={handelGoToDashboard}>
             Go to dashboard
           </PrimaryButton>
         </div>
