@@ -28,6 +28,8 @@ def add_patient():
             else:
                 patient_ref.set({
                     'patientId': data['patientId'],
+                    'birthDate': data['birthDate'],
+                    'pregnancyDate': data['pregnancyDate'],
                     'doctorId': response['user_id'],
                 })
                 patient_logger.info(f"Patient added by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
