@@ -59,7 +59,7 @@ lifestyle_factors = ['WIC_Status', 'Cigarettes_Before_Pregnancy', 'Cigarettes_Fi
 risk_factors = ['Prepregnancy_Diabetes', 'Gestational_Diabetes', 'Prepregnancy_Hypertension',
                 'Gestational_Hypertension', 'Hypertension_Eclampsia', 'Infertility_Treatment', 'Fertility_Enhancing_Drugs',
                 'Asst_Reproductive_Technology', 'Previous_Cesareans', 'Ruptured_Uterus',
-                'Admit_to_Intensive_Care', 'Was_Autopsy_Performed', 'Was_Histological_Placental_Exam_Performed']
+                'Admit_to_Intensive_Care', 'Was_Histological_Placental_Exam_Performed']
 
 # Load full training data
 FULL_TRAINING_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "preprocessed_data.csv")
