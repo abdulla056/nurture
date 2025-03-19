@@ -121,11 +121,6 @@ export const addPredictionFields = [
         options: options.admitToIntensiveCare,
       },
       {
-        id: "wasAutopsyPerformed",
-        label: "Was Autopsy Performed",
-        options: options.wasAutopsyPerformed,
-      },
-      {
         id: "histologicalPlacentalExam",
         label: "Was Histological Placental Exam Performed",
         options: options.wasHistologicalPlacentalExamPerformed,
