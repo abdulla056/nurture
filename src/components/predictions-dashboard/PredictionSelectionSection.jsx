@@ -72,6 +72,12 @@ export default function PredictionSelectionSection({
       }`}
       onClick={!isActive ? changeOverViewStatus : undefined}
     >
+      {predictions.length === 0 && isPrediction && (
+        <h3 className="text-center text-primary  text-lg">No predictions found</h3>
+      )}
+      {patients.length === 0 && !isPrediction && (
+        <h3 className="text-center text-primary text-lg">No patients found</h3>
+      )}
       <AnimatePresence>
         {isActive ? (
           <motion.div

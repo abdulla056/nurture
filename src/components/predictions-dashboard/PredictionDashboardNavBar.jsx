@@ -43,7 +43,7 @@ export default function PredictionDashboardNavBar() {
     <div className={`flex flex-row justify-between items-center sticky top-0 z-50 bg-background ${hasShadow && "shadow-sm -mx-20 px-20"}`}>
       <Logo color={"black"} />
       <div className="flex flex-row gap-10">
-        <PredictionDashboardNavBarButton to={"/home"}>Home</PredictionDashboardNavBarButton>
+        <PredictionDashboardNavBarButton onClick={()=>navigate("/home")}>Home</PredictionDashboardNavBarButton>
         <PredictionDashboardNavBarButton>Help</PredictionDashboardNavBarButton>
         <PredictionDashboardNavBarButton onClick={()=>onLogout()}>Logout</PredictionDashboardNavBarButton>
       </div>

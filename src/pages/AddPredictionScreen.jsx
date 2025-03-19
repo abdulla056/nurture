@@ -125,16 +125,6 @@ export default function AddPredictionScreen() {
 
   return (
     <PrimaryContainer className="items-center !p-12 !px-16 !gap-6">
-      {/* <ConfirmationPopup
-        ref={patientAddedDialog}
-        firstButton={"Go to dashboard"}
-        actionFirstButton={() => navigate("/dashboard")}
-        secondButton={"See all predictions"}
-        title={"Prediction has been processed successfully!"}
-        description={
-          "You can either choose to go to the dashboard or see all predictions again"
-        }
-      /> */}
       <AddPredictionProgressPopUp
         ref={progressDialog}
         goToDashboard={() => goToDashboard()}
@@ -214,14 +204,20 @@ export default function AddPredictionScreen() {
           Go back
         </PrimaryButton>
         <PrimaryButton
-          animate={end ? (modelSelected ? true : false) : true}
-          isActive={end ? (modelSelected ? true : false) : true}
+          animate={
+            patientId ? (end ? (modelSelected ? true : false) : true) : false
+          }
+          isActive={
+            patientId ? (end ? (modelSelected ? true : false) : true) : false
+          }
           onClick={
-            end
-              ? modelSelected
-                ? () => onFormSubmit(modelSelected)
-                : null
-              : () => onNextClicked()
+            patientId
+              ? end
+                ? modelSelected
+                  ? () => onFormSubmit(modelSelected)
+                  : null
+                : () => onNextClicked()
+              : null
           }
         >
           {end ? "Make prediction" : "Continue"}

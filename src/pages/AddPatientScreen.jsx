@@ -27,19 +27,28 @@ export default function AddPatientScreen() {
   const [error, setError] = useState("");
   const patientAddedDialog = useRef();
   const [patientId, setPatientId] = useState("");
+  const [pregnancyDate, setPregnancyDate] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const navigate = useNavigate();
 
   function handlePatientIdChange(value) {
     setPatientId(value);
   }
 
+  function handlePregnancyDateChange(value) {
+    setPregnancyDate(value);
+  }
+
+  function handleBirthDate(value) {
+    setBirthDate(value);
+  }
+
   async function onSubmit() {
     if (patientId === "") {
       setError("Please enter a patient ID");
       return;
-    }
-    else {
-      await addPatient(patientId).then(() => {
+    } else {
+      await addPatient({patientId, pregnancyDate, birthDate}).then(() => {
         patientAddedDialog.current.showModal();
       });
     }
@@ -48,7 +57,9 @@ export default function AddPatientScreen() {
   return (
     <div className="flex flex-col gap-6">
       <AnimatePresence>
-        {(error!=="") && <ErrorMessage message={error} onClose={() => setError("")} />}
+        {error !== "" && (
+          <ErrorMessage message={error} onClose={() => setError("")} />
+        )}
       </AnimatePresence>
       <ConfirmationPopup
         firstButton={"Make prediction"}
@@ -78,7 +89,24 @@ export default function AddPatientScreen() {
               Generate ID
             </PrimaryButton>
           </div>
-          <SelectionDashboardDropDown title={"Pregnancy duration"} />
+          <div className="w-full flex flex-col items-center">
+            <span className="text-small -mb-3">Pregnancy date</span>
+            <TextField
+              type={"date"}
+              id={"pregnancyDate"}
+              formDataChanged={(value) => handlePregnancyDateChange(value)}
+              value={pregnancyDate}
+            />
+          </div>
+          <div className="w-full flex flex-col items-center">
+            <span className="text-small -mb-3">Pregnancy date</span>
+            <TextField
+              type={"date"}
+              id={"birthDate"}
+              formDataChanged={(value) => handleBirthDate(value)}
+              value={birthDate}
+            />
+          </div>
           <span className="text-xs text-font-tertiary">
             This system does not store personal or identifying patient data. All
             data is anonymized.

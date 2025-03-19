@@ -83,11 +83,11 @@ export default function OverviewContainer({
         )}
         <PredictionInfo title={isPrediction ? "Date" : "Birth Date"}>
           <img src={calendaricon} alt="Icon" className="w-1/4" />
-          <span>{date}</span>
+          <span>{isPrediction ? date : patientData.birthDate}</span>
         </PredictionInfo>
         <PredictionInfo title={isPrediction ? "Time" : "Pregnancy Date"}>
           <img src={calendaricon} alt="Icon" className="w-1/4" />
-          <span>{time}</span>
+          <span>{isPrediction ? time : patientData.pregnancyDate}</span>
         </PredictionInfo>
         {isPrediction && (
           <PredictionInfo titleBottom={false} title={"Key factors"}>

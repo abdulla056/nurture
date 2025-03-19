@@ -3,7 +3,8 @@ import PrimaryContainer from "../layout/PrimaryContainer";
 import CustomLine from "../common/CustomLine";
 import PredictionDetails from "../common/PredictionDetails";
 import BlueContainer from "../layout/BlueContainer";
-import { predictionDetails } from "../../assets/data/data";
+// import { predictionDetails } from "../../assets/data/data";
+import calendarIcon from "../../assets/images/calendar.png";
 import PredictionOverviewSection from "./PredictionOverviewSection";
 import VerticalLine from "../common/VerticalLine";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,12 +22,14 @@ export default function PredictedResultOverview({
   const handelGoToDashboard = () => {
     setPrediction(prediction.predictionId);
     navigate("/dashboard");
-  }
+  };
   const timestamp = prediction?.timestamp || null;
   const dateObj = timestamp ? new Date(timestamp) : null;
   const date = dateObj ? dateObj.toISOString().split("T")[0] : "N/A";
   const time = dateObj
-  console.log(prediction)
+    ? dateObj.toISOString().split("T")[1].split(".")[0]
+    : "N/A";
+  console.log(prediction);
   return (
     <PrimaryContainer
       className={
@@ -56,14 +59,26 @@ export default function PredictedResultOverview({
             </div>
             <CustomLine />
             <BlueContainer className="!flex !flex-row justify-between !px-10 py-6">
-              {predictionDetails.map((prediction, index) => (
-                <PredictionDetails
-                  key={index}
-                  icon={prediction.icon}
-                  title={prediction.title}
-                  data={prediction.data}
-                />
-              ))}
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Prediction Date"}
+                data={date}
+              />
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Prediction Time"}
+                data={time}
+              />
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Patient ID"}
+                data={prediction.patientId}
+              />
+              <PredictionDetails
+                icon={calendarIcon}
+                title={"Model"}
+                data={"Xg Boost"}
+              />
             </BlueContainer>
             <div className="flex flex-row gap-12">
               <PredictionOverviewSection

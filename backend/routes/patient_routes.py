@@ -21,14 +21,17 @@ def add_patient():
         response = protected_route(request, 'post')
         if response['valid']:
             data = request.json
-            patient_ref = db.collection('patients').document(data['patientId'])
+            print(data)
+            patient_ref = db.collection('patients').document(data['patientId']['patientId'])
             if patient_ref.get().exists:
                 patient_logger.warning(f"Patient already exists by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
                 return jsonify({"message": "Patient already exists"}), 409
             else:
                 patient_ref.set({
-                    'patientId': data['patientId'],
+                    'patientId': data['patientId']['patientId'],
                     'doctorId': response['user_id'],
+                    'pregnancyDate': data['patientId']['pregnancyDate'],
+                    'birthDate': data['patientId']['birthDate'],
                 })
                 patient_logger.info(f"Patient added by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
                 return jsonify({"message": "Patient added successfully"}), 201
