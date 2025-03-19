@@ -291,24 +291,8 @@ def update_and_visualize():
             "bar_layout": latest_plot_data["bar_layout"],
             "cluster_distribution": latest_plot_data["cluster_distribution"],
             "cluster_characteristics": latest_plot_data["cluster_characteristics"]
+            
         })
-
-        response = protected_route(request, 'get')
-        if response['valid']:
-            # Create the initial plot data using historical data
-            plot_data = create_plot_data(original_historical_data)
-            unsuper_logger.info(f"Initial data retrieved by DoctorID: {response['user_id']}, IP: {request.remote_addr}")
-            return jsonify({
-                "scatter_data": plot_data["scatter_data"],
-                "scatter_layout": plot_data["scatter_layout"],
-                "bar_data": plot_data["bar_data"],
-                "bar_layout": plot_data["bar_layout"],
-                "cluster_distribution": plot_data["cluster_distribution"],  # Include cluster distribution
-                "cluster_characteristics": plot_data["cluster_characteristics"]  # Include cluster characteristics
-            }), 200
-        else:
-            unsuper_logger.warning(f"Unauthorized attempt to get initial data by IP: {request.remote_addr}")
-            return jsonify({"message": "Unauthorized"}), 401
         
     except Exception as e:
         unsuper_logger.error(f"Error getting initial data: {str(e)}, IP: {request.remote_addr}")
