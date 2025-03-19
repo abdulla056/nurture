@@ -79,20 +79,11 @@ const App = () => {
       const fields = categories.find((cat) => cat.key === category).fields; // Get fields for the selected category
       const features = fields.map((field) => formData[field]); // Extract only the relevant features
 
-      // Log the user input to the console
-      console.log("User Input for Category:", category);
-      console.log("Form Data:", formData);
-      console.log("Features Being Sent:", features);
-
       // Send request to Flask backend
       const response = await axios.post("https://127.0.0.1:5001/supervised/predict_and_explain", {
         category: categories.findIndex((cat) => cat.key === category).toString(), // "0", "1", or "2"
         features: features,
       });
-
-      // Log the response for debugging
-      console.log("Flask Response:", response.data);
-
       // Set prediction result
       setPredictionResult(response.data);
     } catch (error) {

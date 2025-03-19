@@ -8,7 +8,6 @@ export const logout = async () => {
     try {
         const response = await api.post('/auth/logout', {} ,{withCredentials: true});
         setIsAuthenticated(false);
-        console.log(response);
     } catch (error) {
         console.error(error);
     }

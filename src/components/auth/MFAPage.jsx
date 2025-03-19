@@ -28,13 +28,11 @@ export default function MFAPage({ sessionId, onSuccess, onError }) {
   // Gets Verification Code
   const getVerificationCode = async () => {
     try {
-      console.log("Props:", { onSuccess, onError });
       setErrorMessage("");
 
       const res = await api.post("/auth/send_email", { sessionId: sessionId });
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        console.log(error.response);
         setErrorMessage(
           "Your session has expired. Please reload and log in again."
         );
@@ -42,7 +40,6 @@ export default function MFAPage({ sessionId, onSuccess, onError }) {
       } else {
         setErrorMessage("Failed to send verification code.");
         onError("Failed to send verification code.");
-        console.log(error);
       }
     }
   };
@@ -89,19 +86,17 @@ export default function MFAPage({ sessionId, onSuccess, onError }) {
       const res = await api.post("/auth/verify_otp",{code, sessionId}, { withCredentials: true });
       setCsrfToken(res.data.csrf_token);  // Store in state
       sessionStorage.setItem('csrfToken', res.data.csrf_token);  // Store in session storage
-      console.log(res.data.message);
       onSuccess()
 
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        console.log(error.response);
         setErrorMessage(
           "Your session has expired. Please reload and log in again."
         );
 
         onError("Your session has expired. Please reload and log in again.");
       } else {
-        console.log(error);
+        
         setErrorMessage("Invalid verification code.");
         onError("Invalid verification code.");
       }

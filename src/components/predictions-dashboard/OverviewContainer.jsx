@@ -22,6 +22,8 @@ export default function OverviewContainer({
     ([key, value]) => ({ key, value })
   );
   contributingFactorsArray.sort((a, b) => b.value - a.value);
+
+  
   async function handleDeletePrediction() {
     let userConfirmed = confirm("Are you sure you want to proceed?");
 

@@ -7,7 +7,6 @@ import { useContext } from "react";
 
 export default function PastPredictions() {
   const { pastPredictions } = useContext(PredictionDetailsContext);
-  console.log(pastPredictions);
   const navigate = useNavigate();
   return (
     <PrimaryContainer className="hover:scale-100 gap-4 hover:cursor-default">
