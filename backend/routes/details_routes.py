@@ -7,7 +7,7 @@ from routes.authentication_routes import protected_route
 from auth.firebase import get_next_id
 from auth.rate_limiter import rate_limit
 import logging
-
+from google.cloud.firestore_v1.base_query import FieldFilter
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
 
@@ -146,7 +146,7 @@ def add_prediction():
 @details_bp.route('/get_prediction/<PredictionID>', methods=['GET'])
 @rate_limit(max_requests=10, window_size=60) 
 def get_prediction(PredictionID):
-    response = protected_route(request, 'get')
+    response = protected_route(request, 'get') 
     if response['valid']:
         prediction_ref = db.collection('predictions').document(PredictionID)
         prediction = prediction_ref.get()
@@ -184,7 +184,7 @@ def get_predictions(PatientID):
 def get_all_predictions():
     response = protected_route(request, 'get')
     if response['valid']:
-        predictions_ref = db.collection('predictions').stream()
+        predictions_ref = db.collection('predictions').where(filter=FieldFilter("doctorId", "==", response['user_id'])).stream()
         predictions = [doc.to_dict() for doc in predictions_ref]
         if predictions:
             detail_logger.info(f"Predictions fetched by doctor {response['user_id']}, IP: {request.remote_addr}")

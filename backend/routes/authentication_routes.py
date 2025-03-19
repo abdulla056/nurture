@@ -197,7 +197,8 @@ def send_email():
             auth_logger.info(f"MFA code sent to {email}, IP: {request.remote_addr}")
             return jsonify({'message' : "MFA code has been sent out", "session_id" : session_id}), 200
         elif session_data and session_data['redirect'] == 'register':
-            session_data['mfa'] = randint(100000, 999999)
+            mfa = randint(100000, 999999)
+            session_data['mfa'] = mfa
             name = session_data['first_name'] + " " + session_data['last_name']
             sendMessage(session_data['email'], name, session_data['mfa'])
             custom_session_interface_login.update_session(session_id, session_data)
@@ -257,6 +258,7 @@ def verify_otp():
                 return jsonify({'error': 'Verification code is incorrect'}), 303
         elif session_data and session_data['redirect'] == 'register':
             # Check if the verification code matches
+            print("Here ah")
             if int(code) == int(session_data['mfa']):
                 try:
                     email = session_data['email']
@@ -293,7 +295,7 @@ def verify_otp():
                     'iat': datetime.utcnow(),
                     'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
                 }
-
+                token = jwt.encode(payload, secret_key, algorithm='HS256')
                 csrf_token = os.urandom(16).hex()
                 custom_session_interface_csrf.create_session(csrf_token)
                 response = make_response(jsonify({"message": "Login successful", "csrf_token": csrf_token}), 200)
