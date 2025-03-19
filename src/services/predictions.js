@@ -34,3 +34,19 @@ export const deletePrediction = async (predictionId) => {
     throw error;
   }
 }
+
+export const deletePatient = async (patientId) => {
+  try {
+    const response = await api.delete(
+      "/patient/delete", {
+        data: { patientId: patientId }, // Payload goes here
+        withCredentials: true, // Credentials option
+      }
+    );
+    return response.data; // Returns prediction result
+  }
+  catch (error) {
+    console.error("Error calling delete patient API:", error);
+    throw error;
+  }
+}
