@@ -61,44 +61,12 @@ features_to_drop = [
     'Initiating_Fetal_Recode_124', 'Init_Cause_or_condition'
 ]
 
-# Define mapping for categorical features
-binary_mapping = {"Y": 1, "N": 0, "X": 2}
-
-# List of features that require mapping
-mapped_features = [
-    "Prepregnancy_Diabetes",
-    "Gestational_Diabetes",
-    "Prepregnancy_Hypertension",
-    "Gestational_Hypertension",
-    "Hypertension_Eclampsia",
-    "Infertility_Treatment",
-    "Fertility_Enhancing_Drugs",
-    "Asst_Reproductive_Technology",
-    "Previous_Cesareans",
-    "Ruptured_Uterus",
-    "Admit_to_Intensive_Care",
-    "Was_Autopsy_Performed",
-    "Was_Histological_Placental_Exam_Performed",
-    "WIC_Status"
-]
-
-# Special case: Mapping for "Sex_of_Infant"
-sex_mapping = {"M": 1, "F": 0}  # Male = 1, Female = 0
 
 
 def preprocess_input(data):
     # Convert input data to a DataFrame
     df = pd.DataFrame([data])
     print(df)
-
-    # Apply mappings to categorical features
-    for feature in mapped_features:
-        if feature in df.columns:
-            df[feature] = df[feature].map(binary_mapping)
-
-    # Apply special mapping for "Sex_of_Infant"
-    if "Sex_of_Infant" in df.columns:
-        df["Sex_of_Infant"] = df["Sex_of_Infant"].map(sex_mapping)
 
     # Drop unnecessary features
     df.drop(columns=features_to_drop, errors='ignore', inplace=True)
@@ -164,6 +132,12 @@ value_mapping = {
     3: "X"   # Not applicable
 }
 
+# Define special mapping for sex of infant
+sex_mapping = {
+    0: "F",  # Female
+    1: "M"   # Male
+}
+
 # Define the categorical features to be mapped
 categorical_features = {
     "sexOfInfant": "Sex_of_Infant",
@@ -183,18 +157,50 @@ categorical_features = {
     "wicStatus": "WIC_Status"
 }
 
+continuous_feature_mapping = {
+    "deliveryYear": "Delivery_Year",
+    "deliveryMonth": "Delivery_Month",
+    "deliveryWeekday": "Weekday",
+    "mothersAge": "Mothers_Age_1",
+    "mothersRace": "Mothers_Race_Recode6",
+    "mothersEducation": "Mothers_Education_Revised",
+    "mothersHeight": "Mothers_Height_in_Inches",
+    "prepregnancyWeight": "Prepregnancy_Weight_Recode",
+    "fathersAge": "Fathers_Combined_Age",
+    "birthWeight": "Birth_Weight_Detail_in_Grams",
+    "cigarettesBeforePregnancy": "Cigarettes_Before_Pregnancy",
+    "cigarettesFirstTrimester": "Cigarettes_First_Trimester",
+    "cigarettesSecondTrimester": "Cigarettes_Second_Trimester",
+    "cigarettesThirdTrimester": "Cigarettes_Third_Trimester",
+    "tobaccoUse": "Tobacco_Use",
+    "monthPrenatalCareBegan": "Month_Prenatal_Care_Began",
+    "bmiPrePregnancy": "BMI_prepregnancy"
+}
 
-def map_categorical_values(data):
-    """Convert categorical feature values to their mapped labels."""
+
+def map_features(data):
+    """Convert categorical and continuous feature keys to their mapped labels while processing categorical values."""
     mapped_data = {}
 
     for key, value in data.items():
         if key in categorical_features:  
             mapped_key = categorical_features[key]  # Get mapped key name
-            mapped_value = value_mapping.get(value, "U")  # Default to "U" if unknown
-            mapped_data[mapped_key] = mapped_value
+
+            # Special case for sexOfInfant
+            if key == "sexOfInfant":
+                mapped_value = sex_mapping.get(value, "U")  # Default to "U" if unknown
+            else:
+                mapped_value = value_mapping.get(value, "U")  # Default to "U" if unknown
+
+        elif key in continuous_feature_mapping:  
+            mapped_key = continuous_feature_mapping[key]  # Get mapped key name
+            mapped_value = value  # Keep numerical value unchanged
+
         else:
-            mapped_data[key] = value  # Keep numerical features unchanged
+            mapped_key = key  # Keep key as is if not in mappings
+            mapped_value = value  
+
+        mapped_data[mapped_key] = mapped_value
 
     return mapped_data
     
@@ -207,7 +213,7 @@ def predict(request_data):
     for d in request_data["keyValue"]:
         merged_data.update(d) 
     
-    data = map_categorical_values(merged_data)
+    data = map_features(merged_data)
 
     print(data)
 
