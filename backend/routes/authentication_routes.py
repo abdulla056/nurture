@@ -303,7 +303,7 @@ def verify_otp():
                     value=token,  # Cookie value
                     httponly=True,  # Prevent client-side access
                     secure=True,  # Only send over HTTPS
-                    samesite="None",  # Prevent CSRF
+                    samesite="None", 
                     max_age=3600,  # Expires in 1 hour
                     path="/",  # Accessible across the entire site
                 )
