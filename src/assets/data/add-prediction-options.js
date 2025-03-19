@@ -46,7 +46,7 @@ export const options = {
   assistedReproductiveTechnology: [
     { label: "No", value: 0 },
     { label: "Yes", value: 1 },
-    { labe: "Not Applicable", value: 2 },
+    { label: "Not Applicable", value: 2 },
     { label: "Unknown or not stated", value: 3 },
   ],
   previousCesareans: [

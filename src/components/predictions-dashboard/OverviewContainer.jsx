@@ -2,12 +2,9 @@ import PredictionInfo from "./PredictionInfo";
 import calendaricon from "../../assets/images/calendar-black.png";
 import PrimaryButton from "../common/PrimaryButton";
 import trashIcon from "../../assets/images/trash-icon.png";
-import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { deletePrediction } from "../../services/predictions";
 import { deletePatient } from "../../services/predictions";
-
-const keyFactors = ["Maternal age", "Gestational diabetes"];
 
 export default function OverviewContainer({
   predictionData,
@@ -21,6 +18,13 @@ export default function OverviewContainer({
   const contributingFactorsArray = Object.entries(contributingFactors).map(
     ([key, value]) => ({ key, value })
   );
+  // const riskBackgroundColor = if (riskScore > 0.5) {
+  //   return "bg-red-500";
+  // } else if (riskScore > 0.3) {
+  //   return "bg-yellow-500";
+  // } else {
+  //   return "bg-green-500";
+  // }
   contributingFactorsArray.sort((a, b) => b.value - a.value);
 
   
@@ -37,8 +41,6 @@ export default function OverviewContainer({
       }
       // Refresh the entire page
       window.location.reload();
-    } else {
-      alert("Action canceled!");
     }
   }
   const data = isPrediction ? predictionData : patientData;
@@ -66,8 +68,8 @@ export default function OverviewContainer({
           </PredictionInfo>
         )}
         <PredictionInfo title={"Risk level"}>
-          <div>Indicator</div>
-          <span>{isPrediction ? predictionData.riskLevel : "Low"}</span>
+          <div className="rounded-full bg-gray-400 p-4"/>
+          <span>{isPrediction ? predictionData.riskLevel : "Undefined"}</span>
         </PredictionInfo>
         {!isPrediction && (
           <PredictionInfo title={"Patient ID"}>
@@ -90,7 +92,7 @@ export default function OverviewContainer({
         {isPrediction && (
           <PredictionInfo titleBottom={false} title={"Key factors"}>
             {contributingFactorsArray.slice(0, 2).map((factor) => (
-              <span key={factor.key}>{factor.key}</span>
+              <span className="text-center" key={factor.key}>{factor.key}</span>
             ))}
             <PrimaryButton className={"scale-50 p-2"} animate={false}>
               View all
@@ -99,18 +101,18 @@ export default function OverviewContainer({
         )}
         <PredictionInfo
           title={"Delete"}
-          className={"cursor-pointer"}
+          className={"cursor-pointer hover:bg-background rounded-full transition-all duration-200 py-2"}
           onClick={() => handleDeletePrediction()}
         >
           <img src={trashIcon} alt="trash icon" className="w-1/5" />
         </PredictionInfo>
         <div className="flex flex-col scale-75 gap-2 -mr-3">
-          <PrimaryButton
+          <PrimaryButton className={"text-nowrap"}
             onClick={isPrediction ? enableOverview : viewAllPatientPredictions}
           >
             {isPrediction ? "View more details" : "View all predictions"}
           </PrimaryButton>
-          <PrimaryButton transparent={true} onClick={handelGoToDashboard}>
+          <PrimaryButton transparent={true} onClick={handelGoToDashboard} className={"text-nowrap"}>
             Go to dashboard
           </PrimaryButton>
         </div>

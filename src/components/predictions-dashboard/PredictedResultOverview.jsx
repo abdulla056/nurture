@@ -26,6 +26,7 @@ export default function PredictedResultOverview({
   const dateObj = timestamp ? new Date(timestamp) : null;
   const date = dateObj ? dateObj.toISOString().split("T")[0] : "N/A";
   const time = dateObj
+  console.log(prediction)
   return (
     <PrimaryContainer
       className={
@@ -79,7 +80,7 @@ export default function PredictedResultOverview({
                 description={"See what features impact the prediction the most"}
               >
                 <img
-                  src={`data:image/png;base64,${prediction.explanation_image}`}
+                  src={`data:image/png;base64,${prediction.explanationImage}`}
                   alt=""
                 />
               </PredictionOverviewSection>

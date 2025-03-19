@@ -7,21 +7,14 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import { useNavigate } from "react-router-dom";
-import { UserDetailsContext } from "../store/user-details-context";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useContext, useEffect, useState } from "react";
+import { UserDetailsContext } from "../store/user-details-context";
 import { logout } from "../services/authentication";
 import api from "../services/api";
 
-// const userDetails = {
-//   firstName: "Mohamed",
-//   lastName: "Danish",
-//   email: "mohameddanish@gmail.com",
-//   phone: "+60 312 312 435",
-// };
-
 export default function ProfileScreen() {
-  // const { deleteCookie } = useContext(UserDetailsContext);
+  const { setIsAuthenticated } = useContext(UserDetailsContext);
   const [userDetails, setUserDetails] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -48,12 +41,18 @@ export default function ProfileScreen() {
   ];
 
   async function onLogout() {
-    try {
-      await logout();
-      // deleteCookie();
+    let userConfirmed = confirm("Are you sure you want to log out?");
+
+    if (userConfirmed) {
+      try {
+        await logout();
+        // deleteCookie();
+        setIsAuthenticated(false);
+        alert("Logged out successfully!");
+      } catch (error) {
+        console.error("Error logging out:", error);
+      }
       navigate("/authentication");
-    } catch (error) {
-      console.error("Error logging out:", error);
     }
   }
   return (
