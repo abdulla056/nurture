@@ -73,7 +73,7 @@ def delete_patient():
             if not patient_ref.get().exists:
                 patient_logger.warning(f"Patient not found by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
                 return jsonify({"message": "Patient not found"}), 404
-            if patient_ref.get().to_dict()['doctorId'] != response['user_id']:
+            if patient_ref.get().to_dict()['doctorId'] == response['user_id']:
                 patient_ref.delete()
                 patient_logger.info(f"Patient deleted by DoctorID: {response['user_id']} with PatientID: {data['patientId']}, IP: {request.remote_addr}")
                 return jsonify({"message": "Patient deleted successfully"}), 200
@@ -82,7 +82,7 @@ def delete_patient():
                 return jsonify({"message": "Unauthorized"}), 401
         else:
             patient_logger.warning(f"Unauthorized attempt to delete patient by IP: {request.remote_addr}")
-            return jsonify({"message": "Unauthorized"}), 401
+            return jsonify({"message": "Unauthorized"}), 402
     except Exception as e:
         patient_logger.error(f"Error deleting patient: {str(e)}, IP: {request.remote_addr}")
         return jsonify({"error": "An error occurred"}), 400

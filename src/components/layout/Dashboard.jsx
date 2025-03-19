@@ -55,11 +55,13 @@ export default function Dashboard() {
     }
   }, [predictionDetails]);
 
+  const confidenceScore = predictionDetails?.confidence.toFixed(2);
+
   const ctxValue = {
     riskScore: predictionDetails?.riskScore,
     predictionId: predictionDetails?.predictionId,
     timeStamp: predictionDetails?.timeStamp,
-    confidenceScore: predictionDetails?.confidence,
+    confidenceScore: confidenceScore,
     contributingFactors: predictionDetails?.explanationText,
     detailId: predictionDetails?.detailId,
     doctorId: predictionDetails?.doctorId,
