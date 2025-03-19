@@ -132,14 +132,6 @@ export const addPredictionFields = [
       },
     ],
   },
-  {
-    title: "Flags Factors",
-    fields: [
-      { id: "sexImputed", label: "Sex Imputed" },
-      { id: "pluralityImputed", label: "Plurality Imputed" },
-      { id: "gestationImputed", label: "Gestation Imputed" },
-    ],
-  },
 ];
 
 export const steps = [

@@ -68,7 +68,7 @@ export default function PredictionSelectionSection({
   return (
     <PrimaryContainer
       className={` ${
-        isActive ? "w-full" : "w-2/12 justify-center cursor-pointer"
+        isActive ? "w-full items-center justify-center" : "w-2/12 justify-center cursor-pointer"
       }`}
       onClick={!isActive ? changeOverViewStatus : undefined}
     >

@@ -56,19 +56,11 @@ export default function AddPredictionScreen() {
     }, {}),
   });
 
-  const [flagsData, setFlagsData] = useState({
-    ...addPredictionFields[3].fields.reduce((acc, field) => {
-      acc[field.id] = 0;
-      return acc;
-    }, {}),
-  });
-
-  const formData = [lifeStyleData, riskData, demographicData, flagsData];
+  const formData = [lifeStyleData, riskData, demographicData];
   const setFormData = [
     setLifeStyleData,
     setRiskData,
     setDemographicData,
-    setFlagsData,
   ];
 
   function formDataChanged(newValue, id) {
@@ -96,6 +88,7 @@ export default function AddPredictionScreen() {
       const response = await predictAndExplain(
         modelSelected,
         Object.values(formData[modelSelected]),
+        formData,
         patientId,
         detailsResponse.detailId
       );
