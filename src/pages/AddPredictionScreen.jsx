@@ -88,6 +88,7 @@ export default function AddPredictionScreen() {
       const response = await predictAndExplain(
         modelSelected,
         Object.values(formData[modelSelected]),
+        formData,
         patientId,
         detailsResponse.detailId
       );
@@ -96,6 +97,8 @@ export default function AddPredictionScreen() {
       setIsProgressPopupOpen(false);
     }
   }
+  
+  
 
   function onModelSelectorPressed(selected) {
     if (selected === modelSelected) {
