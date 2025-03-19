@@ -37,7 +37,7 @@ export default function PCACluster() {
 
   return (
     <PrimaryContainer className="w-1/2 !p-7">
-      <h2>PCA Clustering of Maternal Health Data</h2>
+      <h2>PCA Clustering of Maternal Health Patients</h2>
 
       {loading ? (
         <LoadingSpinner />

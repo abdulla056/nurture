@@ -9,6 +9,7 @@ from firebase_admin import credentials, firestore  # type: ignore
 from routes.authentication_routes import protected_route
 from config import Config
 import logging
+
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
 cred = credentials.Certificate(firebase_config_json)
@@ -29,7 +30,7 @@ pca_model = pickle.load(open(PCA_MODEL_PATH, "rb"))
 SCALER_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "scaler.pkl")
 scaler = pickle.load(open(SCALER_PATH, "rb"))
 
-# Define the exact feature names used during training
+# Define the exact feature names used during training[]
 feature_columns = [
     "Month_Prenatal_Care_Began",
     "Cigarettes_Before_Pregnancy",
@@ -53,6 +54,23 @@ cluster_labels = {
     2: "High Risk"
 }
 
+def categorize_bmi(bmi):
+    """
+    Categorize BMI values into predefined categories.
+    """
+    if bmi < 1:
+        return "Underweight"
+    elif 2 <= bmi < 3:
+        return "Normal"
+    elif 3 <= bmi < 4:
+        return "Overweight"
+    elif 4 <= bmi < 8.3:
+        return "Obesity I"
+    elif 5 <= bmi < 9:
+        return "Obesity II"
+    elif bmi >= 9:
+        return "Extreme Obesity III"
+
 # Global variable to store the latest visualization data
 latest_plot_data = None
 
@@ -64,13 +82,30 @@ def calculate_cluster_characteristics(data):
     cluster_summary = {}
     for _, row in cluster_stats.iterrows():
         cluster_label = row["Cluster_Label"]
+        bmi_category = categorize_bmi(row["BMI_prepregnancy"])  # Categorize BMI
+
+        # Calculate the proportion of patients with Gestational Diabetes and Prepregnancy Hypertension
+        cluster_data = data[data["Cluster_Label"] == cluster_label]
+        gestational_diabetes_proportion = cluster_data["Gestational_Diabetes"].mean()
+        prepregnancy_hypertension_proportion = cluster_data["Prepregnancy_Hypertension"].mean()
+
+        # Determine "Positive" or "Negative" based on the proportion
+        if cluster_label == "Low Risk":
+            # For Low Risk cluster, set status to "Negative" if proportion is less than 0.5
+            gestational_diabetes_status = "Negative" if gestational_diabetes_proportion < 2 else "Positive"
+            prepregnancy_hypertension_status = "Negative" if prepregnancy_hypertension_proportion < 2 else "Positive"
+        else:
+            # For other clusters, use the default threshold of 0.7
+            gestational_diabetes_status = "Positive" if gestational_diabetes_proportion >= 0.7 else "Negative"
+            prepregnancy_hypertension_status = "Positive" if prepregnancy_hypertension_proportion >= 0.7 else "Negative"
+
         summary = {
             "Month_Prenatal_Care_Began": row["Month_Prenatal_Care_Began"],
             "Cigarettes_Before_Pregnancy": row["Cigarettes_Before_Pregnancy"],
-            "BMI_prepregnancy": row["BMI_prepregnancy"],
+            "BMI_prepregnancy": bmi_category,  # Use the categorized BMI
             "Prepregnancy_Diabetes": row["Prepregnancy_Diabetes"],
-            "Gestational_Diabetes": row["Gestational_Diabetes"],
-            "Prepregnancy_Hypertension": row["Prepregnancy_Hypertension"],
+            "Gestational_Diabetes": gestational_diabetes_status,  # "Positive" or "Negative"
+            "Prepregnancy_Hypertension": prepregnancy_hypertension_status,  # "Positive" or "Negative"
         }
         cluster_summary[cluster_label] = summary
     return cluster_summary
@@ -134,16 +169,23 @@ def create_plot_data(data):
         )
 
         # Create hover text for the bar chart
-        hover_text = [
-            f"<b>{label}</b><br>"
-            f"Month Prenatal Care Began: {stats['Month_Prenatal_Care_Began']:.2f}<br>"
-            f"Cigarettes Before Pregnancy: {stats['Cigarettes_Before_Pregnancy']:.2f}<br>"
-            f"BMI (Pre-pregnancy): {stats['BMI_prepregnancy']:.2f}<br>"
-            f"Pre-pregnancy Diabetes: {stats['Prepregnancy_Diabetes']:.2f}<br>"
-            f"Gestational Diabetes: {stats['Gestational_Diabetes']:.2f}<br>"
-            f"Pre-pregnancy Hypertension: {stats['Prepregnancy_Hypertension']:.2f}"
-            for label, stats in cluster_characteristics.items()
-        ]
+        hover_text = []
+        for label, stats in cluster_characteristics.items():
+            # Swap "Medium Risk" and "High Risk" in the hover text ONLY
+            if label == "Medium Risk":
+                label = "High Risk"
+            elif label == "High Risk":
+                label = "Medium Risk"
+            
+            hover_text.append(
+                f"<b>{label}</b><br>"
+                f"Month Prenatal Care Began: {stats['Month_Prenatal_Care_Began']:.2f}<br>"
+                f"Cigarettes Before Pregnancy (Per Day): {stats['Cigarettes_Before_Pregnancy']:.2f}<br>"
+                f"BMI (Pre-pregnancy): {stats['BMI_prepregnancy']}<br>"  # No formatting for BMI category
+                f"Pre-pregnancy Diabetes: {stats['Prepregnancy_Diabetes']:.2f}<br>"
+                f"Gestational Diabetes: {stats['Gestational_Diabetes']}<br>"  # No formatting for string
+                f"Pre-pregnancy Hypertension: {stats['Prepregnancy_Hypertension']}"  # No formatting for string
+            )
 
         # Create a bar chart for cluster distribution
         bar_chart = go.Bar(
@@ -154,7 +196,7 @@ def create_plot_data(data):
             marker=dict(color=["#440154", "#21918c", "#fde725"]),  # Cluster colors
             opacity=0.8,
             hoverinfo="text",
-            hovertext=hover_text
+            hovertext=hover_text  # Use the updated hover text
         )
 
         # Layout for the bar chart
@@ -251,22 +293,23 @@ def update_and_visualize():
             "cluster_characteristics": latest_plot_data["cluster_characteristics"]
         })
 
-#         response = protected_route(request, 'get')
-#         if response['valid']:
-#             # Create the initial plot data using historical data
-#             plot_data = create_plot_data(original_historical_data)
-#             unsuper_logger.info(f"Initial data retrieved by DoctorID: {response['user_id']}, IP: {request.remote_addr}")
-#             return jsonify({
-#                 "scatter_data": plot_data["scatter_data"],
-#                 "scatter_layout": plot_data["scatter_layout"],
-#                 "bar_data": plot_data["bar_data"],
-#                 "bar_layout": plot_data["bar_layout"],
-#                 "cluster_distribution": plot_data["cluster_distribution"],  # Include cluster distribution
-#                 "cluster_characteristics": plot_data["cluster_characteristics"]  # Include cluster characteristics
-#             }), 200
-#         else:
-#             unsuper_logger.warning(f"Unauthorized attempt to get initial data by IP: {request.remote_addr}")
-#             return jsonify({"message": "Unauthorized"}), 401
+        response = protected_route(request, 'get')
+        if response['valid']:
+            # Create the initial plot data using historical data
+            plot_data = create_plot_data(original_historical_data)
+            unsuper_logger.info(f"Initial data retrieved by DoctorID: {response['user_id']}, IP: {request.remote_addr}")
+            return jsonify({
+                "scatter_data": plot_data["scatter_data"],
+                "scatter_layout": plot_data["scatter_layout"],
+                "bar_data": plot_data["bar_data"],
+                "bar_layout": plot_data["bar_layout"],
+                "cluster_distribution": plot_data["cluster_distribution"],  # Include cluster distribution
+                "cluster_characteristics": plot_data["cluster_characteristics"]  # Include cluster characteristics
+            }), 200
+        else:
+            unsuper_logger.warning(f"Unauthorized attempt to get initial data by IP: {request.remote_addr}")
+            return jsonify({"message": "Unauthorized"}), 401
+        
     except Exception as e:
         unsuper_logger.error(f"Error getting initial data: {str(e)}, IP: {request.remote_addr}")
         return jsonify({"error": "An error occurred"}), 500
