@@ -1,10 +1,11 @@
 import api from "./api";
 
-export const predictAndExplain = async (category, features, patientId, detailId) => {
+export const predictAndExplain = async (category, features, keyValue, patientId, detailId) => {
   try {
     const response = await api.post("/supervised/predict_and_explain", {
       category,
       features,
+      keyValue,
       patientId,
       detailId,
     },

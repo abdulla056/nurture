@@ -293,7 +293,7 @@ def verify_otp():
                     'iat': datetime.utcnow(),
                     'exp': datetime.utcnow() + timedelta(hours=1)  # Example: 1-hour expiration
                 }
-
+                token = jwt.encode(payload, secret_key, algorithm='HS256')
                 csrf_token = os.urandom(16).hex()
                 custom_session_interface_csrf.create_session(csrf_token)
                 response = make_response(jsonify({"message": "Login successful", "csrf_token": csrf_token}), 200)
