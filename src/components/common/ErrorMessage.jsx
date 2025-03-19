@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-const ErrorMessage = ({ message, onClose }) => {
+const ErrorMessage = ({ message, onClose, className }) => {
   return (
     <div className="fixed top-12 left-0 w-full flex justify-center z-50">
       <motion.div
@@ -8,7 +8,7 @@ const ErrorMessage = ({ message, onClose }) => {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -50, opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-red-500 text-white px-4 py-2 rounded-md shadow-md"
+        className={`bg-red-500 text-white px-4 py-2 rounded-md shadow-md ${className}`}
       >
         {message}
         <button className="ml-4 text-white font-bold" onClick={onClose}>
