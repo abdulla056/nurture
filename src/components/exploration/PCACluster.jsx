@@ -17,7 +17,7 @@ export default function PCACluster() {
     const fetchInitialData = async () => {
       try {
         // Fetch the initial visualization data
-        const response = await api.get("/unsupervised/get_initial_data");
+        const response = await api.get("/unsupervised/get_initial_data", {withCredentials: true});
         if (response.data.scatter_data) {
           setScatterData(response.data.scatter_data); // Set 3D scatter plot data
           setScatterLayout(response.data.scatter_layout); // Set 3D scatter plot layout

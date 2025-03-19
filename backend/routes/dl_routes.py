@@ -2,14 +2,19 @@ from flask import request, Blueprint, jsonify
 import numpy as np
 import pandas as pd
 from tensorflow import keras 
+from routes.authentication_routes import protected_route
 import joblib
 import os
 import json
+import logging
+
+dl_logger = logging.getLogger('dl_logger')
 
 # Load the default features JSON file
 json_path = os.path.join(os.path.dirname(__file__), "..", "models", "default_features.json")
 with open(json_path, "r") as f:
     default_features = json.load(f)
+
 
 
 # Load the trained model and preprocessing objects
@@ -121,7 +126,6 @@ def preprocess_input(data):
 
     print(df.to_string())
     print(df.shape)
-
     return df
 
 # Define mapping
@@ -224,7 +228,16 @@ def predict(request_data):
     try:
         processed_data = preprocess_input(data)
         
-
+            # Make a prediction
+            try:
+                prediction = model.predict(processed_data)
+                return jsonify({'prediction': prediction.tolist()})
+            except Exception as e:
+                dl_logger.error(f'Prediction failed: {str(e)}, IP: {request.remote_addr}')
+                return jsonify({'error': 'Prediction failed'}), 500
+        else:
+            dl_logger.warning(f"Unauthorized attempt to make prediction by IP: {request.remote_addr}")
+            return jsonify({"error": "Unauthorized"}), 401
     except Exception as e:
         print()
         return jsonify({'error': f'Preprocessing failed: {str(e)}'}), 400
@@ -234,5 +247,6 @@ def predict(request_data):
         prediction = model.predict(processed_data)
         return round(prediction.tolist()*100 , 2)
     except Exception as e:
-        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
+        dl_logger.error(f"Error predicting: {str(e)}, IP: {request.remote_addr}")
+        return jsonify({"error": "An error occurred"}), 500
     
