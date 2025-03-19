@@ -4,6 +4,13 @@ import pandas as pd
 from tensorflow import keras 
 import joblib
 import os
+import json
+
+# Load the default features JSON file
+json_path = os.path.join(os.path.dirname(__file__), "..", "models", "default_features.json")
+with open(json_path, "r") as f:
+    default_features = json.load(f)
+
 
 # Load the trained model and preprocessing objects
 model_path = os.path.join(os.path.dirname(__file__), "..", "models", "dlmodel.keras")
@@ -54,11 +61,44 @@ features_to_drop = [
     'Initiating_Fetal_Recode_124', 'Init_Cause_or_condition'
 ]
 
+# Define mapping for categorical features
+binary_mapping = {"Y": 1, "N": 0, "X": 2}
+
+# List of features that require mapping
+mapped_features = [
+    "Prepregnancy_Diabetes",
+    "Gestational_Diabetes",
+    "Prepregnancy_Hypertension",
+    "Gestational_Hypertension",
+    "Hypertension_Eclampsia",
+    "Infertility_Treatment",
+    "Fertility_Enhancing_Drugs",
+    "Asst_Reproductive_Technology",
+    "Previous_Cesareans",
+    "Ruptured_Uterus",
+    "Admit_to_Intensive_Care",
+    "Was_Autopsy_Performed",
+    "Was_Histological_Placental_Exam_Performed",
+    "WIC_Status"
+]
+
+# Special case: Mapping for "Sex_of_Infant"
+sex_mapping = {"M": 1, "F": 0}  # Male = 1, Female = 0
+
 
 def preprocess_input(data):
     # Convert input data to a DataFrame
     df = pd.DataFrame([data])
     print(df)
+
+    # Apply mappings to categorical features
+    for feature in mapped_features:
+        if feature in df.columns:
+            df[feature] = df[feature].map(binary_mapping)
+
+    # Apply special mapping for "Sex_of_Infant"
+    if "Sex_of_Infant" in df.columns:
+        df["Sex_of_Infant"] = df["Sex_of_Infant"].map(sex_mapping)
 
     # Drop unnecessary features
     df.drop(columns=features_to_drop, errors='ignore', inplace=True)
@@ -115,26 +155,78 @@ def preprocess_input(data):
     print(df.shape)
 
     return df
+
+# Define mapping
+value_mapping = {
+    0: "N",  # No
+    1: "Y",  # Yes
+    2: "U",  # Unknown
+    3: "X"   # Not applicable
+}
+
+# Define the categorical features to be mapped
+categorical_features = {
+    "sexOfInfant": "Sex_of_Infant",
+    "prePregnancyDiabetes": "Prepregnancy_Diabetes",
+    "gestationalDiabetes": "Gestational_Diabetes",
+    "prePregnancyHypertension": "Prepregnancy_Hypertension",
+    "gestationalHypertension": "Gestational_Hypertension",
+    "hypertensionEclampsia": "Hypertension_Eclampsia",
+    "infertilityTreatment": "Infertility_Treatment",
+    "fertilityEnhancingDrugs": "Fertility_Enhancing_Drugs",
+    "assistedReproductiveTechnology": "Asst_Reproductive_Technology",
+    "previousCesareans": "Previous_Cesareans",
+    "rupturedUterus": "Ruptured_Uterus",
+    "admitToIntensiveCare": "Admit_to_Intensive_Care",
+    "wasAutopsyPerformed": "Was_Autopsy_Performed",
+    "histologicalPlacentalExam": "Was_Histological_Placental_Exam_Performed",
+    "wicStatus": "WIC_Status"
+}
+
+
+def map_categorical_values(data):
+    """Convert categorical feature values to their mapped labels."""
+    mapped_data = {}
+
+    for key, value in data.items():
+        if key in categorical_features:  
+            mapped_key = categorical_features[key]  # Get mapped key name
+            mapped_value = value_mapping.get(value, "U")  # Default to "U" if unknown
+            mapped_data[mapped_key] = mapped_value
+        else:
+            mapped_data[key] = value  # Keep numerical features unchanged
+
+    return mapped_data
     
 @dl_bp.route('/predict', methods=['POST'])
-def predict():
-    # Get data from the frontend
-    request_data = request.json
+def predict(request_data):
+    
+
+    merged_data = {**default_features}
+
+    for d in request_data["keyValue"]:
+        merged_data.update(d) 
+    
+    data = map_categorical_values(merged_data)
+
+    print(data)
+
     if not request_data:
         return jsonify({'error': 'No data provided'}), 400
 
     # Preprocess the data
     try:
-        processed_data = preprocess_input(request_data)
+        processed_data = preprocess_input(data)
         
 
     except Exception as e:
+        print()
         return jsonify({'error': f'Preprocessing failed: {str(e)}'}), 400
 
     # Make a prediction
     try:
         prediction = model.predict(processed_data)
-        return jsonify({'prediction': prediction.tolist()})
+        return round(prediction.tolist()*100 , 2)
     except Exception as e:
         return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
     

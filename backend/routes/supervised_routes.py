@@ -22,6 +22,7 @@ from routes.authentication_routes import protected_route
 from datetime import datetime
 from auth.rate_limiter import rate_limit
 import logging
+from routes.dl_routes import predict
 
 # Load Firebase credentials from environment variable
 firebase_config_json = Config.FIREBASE_CONFIG
@@ -128,6 +129,9 @@ def predict_and_explain_route():
 
         if response['valid']:
             data = request.get_json()
+            print(data)
+            risk_score = predict(data)
+            print("risk score: ",risk_score)
             patientId = data.get("patientId")
             category = data.get("category")
             features = [float(feature) for feature in data.get("features", [])]
@@ -148,6 +152,7 @@ def predict_and_explain_route():
                 'detailId' : data.get('detailId'),
                 "prediction": prediction_label,  # Store the decoded label (e.g., "Congenital Malformations")
                 "confidence": confidence,
+                "riskLevel" : risk_score,
                 "timestamp": datetime.utcnow(),
                 "explanationText": feature_weight_map,
                 "explanationImage": image_base64
@@ -169,7 +174,8 @@ def predict_and_explain_route():
                 "explanationImage": image_base64,
                 "explanationText": feature_weight_map,
                 "patientId": patientId,
-                "doctorId": response['user_id'], 
+                "doctorId": response['user_id'],
+                "riskLevel" : risk_score, 
                 "predictionId": predictionId
             }), 200
         else:
