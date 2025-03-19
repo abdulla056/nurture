@@ -18,13 +18,15 @@ export default function OverviewContainer({
   const contributingFactorsArray = Object.entries(contributingFactors).map(
     ([key, value]) => ({ key, value })
   );
-  // const riskBackgroundColor = if (riskScore > 0.5) {
-  //   return "bg-red-500";
-  // } else if (riskScore > 0.3) {
-  //   return "bg-yellow-500";
-  // } else {
-  //   return "bg-green-500";
-  // }
+  const riskBackgroundColor = (riskLevel) => {
+    if (riskLevel === "HIGH") {
+      return "bg-red-500";
+    } else if (riskLevel === "MEDIUM") {
+      return "bg-yellow-500";
+    } else {
+      return "bg-green-500";
+    }
+  };
   contributingFactorsArray.sort((a, b) => b.value - a.value);
 
   
@@ -68,7 +70,12 @@ export default function OverviewContainer({
           </PredictionInfo>
         )}
         <PredictionInfo title={"Risk level"}>
-          <div className="rounded-full bg-gray-400 p-4"/>
+          <div className={`rounded-full p-4 ${
+              isPrediction
+                ? riskBackgroundColor(predictionData.riskLevel)
+                : "bg-gray-400" // Default color if no prediction
+            }`}
+          />
           <span>{isPrediction ? predictionData.riskLevel : "Undefined"}</span>
         </PredictionInfo>
         {!isPrediction && (
@@ -78,7 +85,7 @@ export default function OverviewContainer({
         )}
         {isPrediction && (
           <PredictionInfo title={"Risk score"}>
-            <span className="text-2xl">{predictionData.riskScore}</span>
+            <span className="text-2xl">{predictionData.riskScore+'%'}</span>
           </PredictionInfo>
         )}
         <PredictionInfo title={isPrediction ? "Date" : "Birth Date"}>
