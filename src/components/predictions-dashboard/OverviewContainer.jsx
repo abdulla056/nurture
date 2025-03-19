@@ -26,6 +26,8 @@ export default function OverviewContainer({
   //   return "bg-green-500";
   // }
   contributingFactorsArray.sort((a, b) => b.value - a.value);
+
+  
   async function handleDeletePrediction() {
     let userConfirmed = confirm("Are you sure you want to proceed?");
 

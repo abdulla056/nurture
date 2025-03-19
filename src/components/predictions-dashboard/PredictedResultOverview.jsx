@@ -17,7 +17,6 @@ export default function PredictedResultOverview({
   prediction,
 }) {
   const navigate = useNavigate();
-  console.log(prediction);
   const { setPrediction } = useContext(PredictionSelectorContext);
   const handelGoToDashboard = () => {
     setPrediction(prediction.predictionId);

@@ -31,7 +31,6 @@ export default function SelectionDashboardDropDown({
   function onPatientIdChange(e) {
     setPatientId(e.target.value);
   }
-  console.log(patientIds);
   return (
     <>
       {addPatientButton && (

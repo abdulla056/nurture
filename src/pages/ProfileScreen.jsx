@@ -26,6 +26,7 @@ export default function ProfileScreen() {
         setUserDetails(response.data);
         setIsLoading(false);
       } catch (error) {
+
         console.error(error);
       }
     }

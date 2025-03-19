@@ -101,7 +101,6 @@ export default function AddPredictionScreen() {
       );
       setPredictionId(response.predictionId);
     } catch (error) {
-      console.log(error);
       setIsProgressPopupOpen(false);
     }
   }
@@ -123,8 +122,6 @@ export default function AddPredictionScreen() {
   const start = pageNumber === -1;
 
   const navigate = useNavigate();
-
-  console.log(formData);
 
   return (
     <PrimaryContainer className="items-center !p-12 !px-16 !gap-6">

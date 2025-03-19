@@ -5,9 +5,17 @@ import PrimaryButton from "../common/PrimaryButton";
 import CustomLine from "../common/CustomLine";
 import { useContext } from "react";
 import { PredictionDetailsContext } from "../../store/prediction-details-context";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 export default function ListOfFactors() {
   const { contributingFactors } = useContext(PredictionDetailsContext);
+  if (!contributingFactors) {
+    return ( 
+      <div style={{ paddingTop: '50px' }}> {/* Adjust the value as needed */}
+        <LoadingSpinner />
+      </div> // Show a loading spinner or message
+      )
+  }
   const contributingFactorsArray = Object.entries(contributingFactors).map(([key, value]) => ({ key, value }));
   contributingFactorsArray.sort((a, b) => b.value - a.value);
   const biggestFactor = contributingFactorsArray[0];

@@ -21,12 +21,10 @@ export default function Recommendations() {
 
   const handleChange = (id, value) => {
     setFormData({ ...formData, [id]: value });
-    console.log(formData);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data Submitted:", formData);
     const response = await addRecommendation(formData).then(() => {
       dialog.current.showModal();
     });
