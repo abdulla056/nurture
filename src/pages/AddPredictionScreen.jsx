@@ -88,7 +88,6 @@ export default function AddPredictionScreen() {
       const response = await predictAndExplain(
         modelSelected,
         Object.values(formData[modelSelected]),
-        formData,
         patientId,
         detailsResponse.detailId
       );
