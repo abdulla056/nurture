@@ -7,33 +7,33 @@ import { AnimatePresence, motion } from "framer-motion";
 import { fadeInUp } from "../../animations/variations";
 
 export default function PCACluster() {
-  const [scatterData, setScatterData] = useState(null); // State to hold 3D scatter plot data
-  const [scatterLayout, setScatterLayout] = useState(null); // State to hold 3D scatter plot layout
-  const [barData, setBarData] = useState(null); // State to hold bar chart data
-  const [barLayout, setBarLayout] = useState(null); // State to hold bar chart layout
+  const [scatterData, setScatterData] = useState(null);
+  const [scatterLayout, setScatterLayout] = useState(null);
+  const [barData, setBarData] = useState(null);
+  const [barLayout, setBarLayout] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch PCA clustered data when the component mounts
+  // Fetch updated data when the component mounts
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchUpdatedData = async () => {
       try {
-        // Fetch the initial visualization data
-        const response = await api.get("/unsupervised/get_initial_data", {
-          withCredentials: true,
-        });
+        setLoading(true);
+        const response = await api.get("/unsupervised/update_and_visualize");
         if (response.data.scatter_data) {
-          setScatterData(response.data.scatter_data); // Set 3D scatter plot data
-          setScatterLayout(response.data.scatter_layout); // Set 3D scatter plot layout
-          setBarData(response.data.bar_data); // Set bar chart data
-          setBarLayout(response.data.bar_layout); // Set bar chart layout
+          setScatterData(response.data.scatter_data);
+          setScatterLayout(response.data.scatter_layout);
+          setBarData(response.data.bar_data);
+          setBarLayout(response.data.bar_layout);
         }
       } catch (error) {
-        console.error("Error fetching PCA clustered data:", error);
-        console.error("Error details:", error.response); // Log the full error response
+        console.error("Error fetching updated data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchInitialData();
-  }, []); // Empty dependency array ensures this runs only once on mount
+    fetchUpdatedData();
+  }, []);
 
   return (
     <PrimaryContainer className=" !p-7 !mb-16 w-full">
