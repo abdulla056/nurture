@@ -75,11 +75,11 @@ def preprocess_input(data):
     # Fill missing values in continuous features using the saved mean values
     df[continuous_features] = df[continuous_features].fillna(mean)
 
-    print(df[continuous_features])
+    print(df[continuous_features].to_string())
 
     # Fill missing values in categorical features using the saved mode values
     df[categorical_features] = df[categorical_features].fillna(mode)
-
+    
     print(df[categorical_features])
 
 
