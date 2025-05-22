@@ -34,6 +34,8 @@ export default function ModelPerformance() {
             <VerticalLine key={index*40}/>
           </>
         ))}
+        dbhADBASDHIASDB
+        FBHSFBJAS
       </PrimaryContainer>
       <div className="flex flex-row gap-2">
             <span className="text-regular text-font-tertiary">CNN Model Version 3.21</span>
